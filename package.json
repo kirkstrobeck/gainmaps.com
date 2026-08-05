@@ -1,0 +1,20 @@
+{
+  "name": "hdr-tag",
+  "version": "1.0.0",
+  "description": "Assign a Rec.2020 PQ ICC profile to JPEG or PNG without touching pixel data",
+  "main": "index.js",
+  "scripts": {
+    "test": "tsx --test test/*.test.ts",
+    "cli": "tsx src/cli.ts",
+    "typecheck": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "tsx": "^4.23.8",
+    "typescript": "^7.0.2"
+  }
+}

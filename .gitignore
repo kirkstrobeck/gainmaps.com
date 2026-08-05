@@ -1,0 +1,13 @@
+node_modules/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Tool output — regenerate with `npm run cli -- assign <fixture>`.
+# The untagged fixtures are tracked; the tagged results are not.
+*-pq.png
+*-pq.jpg
+*-rec2020.png
+*-rec2020.jpg
+*-tagged.png
+*-tagged.jpg
