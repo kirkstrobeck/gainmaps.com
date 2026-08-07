@@ -1,4 +1,25 @@
 node_modules/
+.next/
+.pnpm-store/
+.turbo/
+**/.turbo/
+test-results/
+**/test-results/
+playwright-report/
+**/playwright-report/
+*.tsbuildinfo
+
+# Built service worker — regenerate with `pnpm --filter @hdr-lab/web build:worker`.
+apps/web/public/hdr-service-worker.js
+
+# Window-gain calibration scratch + compiled Swift helpers
+tmp-window-gain/
+
+# foo.html Unsplash / Ultra HDR spike assets (regenerate locally)
+foo/assets/
+tools/window-gain/compare-hdr
+tools/window-gain/calibrate
+fixtures/window/window.png
 
 # Local Claude Code settings
 .claude/settings.local.json
@@ -11,3 +32,5 @@ node_modules/
 *-rec2020.jpg
 *-tagged.png
 *-tagged.jpg
+*-softened.png
+.vercel

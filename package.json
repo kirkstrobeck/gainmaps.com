@@ -1,12 +1,20 @@
 {
-  "name": "hdr-tag",
+  "name": "@hdr-lab/core",
   "version": "1.0.0",
   "description": "Assign a Rec.2020 PQ ICC profile to JPEG or PNG without touching pixel data",
   "main": "index.js",
+  "private": true,
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
-    "test": "tsx --test test/*.test.ts",
+    "test": "vitest run --coverage",
     "cli": "tsx src/cli.ts",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "build": "tsc",
+    "dev": "turbo dev --filter=@hdr-lab/web",
+    "web:dev": "turbo dev --filter=@hdr-lab/web",
+    "web:build": "turbo build --filter=@hdr-lab/web",
+    "lint": "turbo lint",
+    "check": "turbo typecheck test"
   },
   "keywords": [],
   "author": "",
@@ -14,7 +22,13 @@
   "type": "module",
   "devDependencies": {
     "@types/node": "^26.1.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "next": "^15.4.5",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "tsx": "^4.23.8",
-    "typescript": "^7.0.2"
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.10"
   }
 }
