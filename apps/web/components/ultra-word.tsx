@@ -4,6 +4,8 @@
 
 import { useId } from "react";
 
+import { ultraOverlayGeometry } from "@/lib/ultra-overlay";
+
 import { UltraFillCanvas } from "./ultra-fill-canvas";
 
 type Props = {
@@ -20,6 +22,8 @@ type Props = {
 export function UltraWord({ word, typeClassName, intensity }: Props) {
   const maskId = `ultra-word-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const mask = `url(#${maskId})`;
+  // Both layers are the same rectangle — see @/lib/ultra-overlay.
+  const overlay = ultraOverlayGeometry();
 
   return (
     <span className="relative inline-block">
@@ -28,11 +32,14 @@ export function UltraWord({ word, typeClassName, intensity }: Props) {
       {/*
         select-none keeps the mask's copy of the word out of the selection —
         without it, copying the headline yields the word twice. The svg must
-        stay full-size: display:none drops the mask and a 0x0 box clips it.
+        stay sized and visible: display:none drops the mask and a 0x0 box clips
+        it. Size comes from `overlay`, never from h-full w-full, which would pin
+        it to the word's box and cut off accents and round overshoot.
       */}
       <svg
         aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full select-none"
+        className="pointer-events-none select-none"
+        style={overlay}
       >
         <defs>
           <mask id={maskId}>
@@ -52,8 +59,8 @@ export function UltraWord({ word, typeClassName, intensity }: Props) {
 
       <UltraFillCanvas
         intensity={intensity}
-        className="pointer-events-none absolute inset-0 h-full w-full"
-        style={{ mask, WebkitMask: mask }}
+        className="pointer-events-none"
+        style={{ ...overlay, mask, WebkitMask: mask }}
       />
     </span>
   );
