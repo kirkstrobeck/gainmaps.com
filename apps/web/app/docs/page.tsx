@@ -45,10 +45,10 @@ export default function Base() {
           <header className="border-b border-[var(--border)] pb-10">
             <p className="mb-4 text-sm font-medium text-[var(--muted)]">Technical document</p>
             <h1 className="max-w-4xl text-5xl font-semibold leading-[1.03] tracking-normal sm:text-6xl">
-              What HDR Lab actually does to an image
+              What Ultra actually does to an image
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--muted)]">
-              HDR Lab turns SDR photos into Ultra HDR JPEGs: an SDR base plus Ultra metadata that HDR
+              Ultra turns SDR photos into HDR JPEGs: an SDR base plus gain-map metadata that HDR
               displays can expand. Processing stays in your browser.
             </p>
           </header>

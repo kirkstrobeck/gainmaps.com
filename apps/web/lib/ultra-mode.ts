@@ -1,9 +1,17 @@
 export type UltraMode = "on" | "off";
 
-export const ULTRA_MODE_STORAGE_KEY = "hdr-lab-ultra-mode";
-/** Prefer reading this first so older sessions keep their Off/On choice. */
-const LEGACY_GAIN_MAP_MODE_STORAGE_KEY = "hdr-lab-gainmap-mode";
-export const ULTRA_MODE_EVENT = "hdr-lab-ultra-mode";
+export const ULTRA_MODE_STORAGE_KEY = "ultra-mode";
+/*
+  Newest first. Writes only ever use the first key; the rest are read so a
+  visitor who chose Off under an earlier name keeps that choice. The same list
+  is inlined in the boot script in app/layout.tsx — change both together.
+*/
+export const ULTRA_MODE_STORAGE_KEYS = [
+  ULTRA_MODE_STORAGE_KEY,
+  "hdr-lab-ultra-mode",
+  "hdr-lab-gainmap-mode",
+];
+export const ULTRA_MODE_EVENT = "ultra-mode";
 export const DEFAULT_ULTRA_MODE: UltraMode = "on";
 
 export function isUltraMode(value: string | null | undefined): value is UltraMode {
@@ -13,10 +21,10 @@ export function isUltraMode(value: string | null | undefined): value is UltraMod
 export function readUltraMode(): UltraMode {
   if (typeof window === "undefined") return DEFAULT_ULTRA_MODE;
   try {
-    const stored = window.localStorage.getItem(ULTRA_MODE_STORAGE_KEY);
-    if (isUltraMode(stored)) return stored;
-    const legacy = window.localStorage.getItem(LEGACY_GAIN_MAP_MODE_STORAGE_KEY);
-    if (isUltraMode(legacy)) return legacy;
+    for (const key of ULTRA_MODE_STORAGE_KEYS) {
+      const stored = window.localStorage.getItem(key);
+      if (isUltraMode(stored)) return stored;
+    }
   } catch {
     return DEFAULT_ULTRA_MODE;
   }

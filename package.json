@@ -1,5 +1,5 @@
 {
-  "name": "@hdr-lab/core",
+  "name": "@ultra/core",
   "version": "1.0.0",
   "description": "Assign a Rec.2020 PQ ICC profile to JPEG or PNG without touching pixel data",
   "main": "index.js",
@@ -10,9 +10,9 @@
     "cli": "tsx src/cli.ts",
     "typecheck": "tsc",
     "build": "tsc",
-    "dev": "turbo dev --filter=@hdr-lab/web",
-    "web:dev": "turbo dev --filter=@hdr-lab/web",
-    "web:build": "turbo build --filter=@hdr-lab/web",
+    "dev": "turbo dev --filter=@ultra/web",
+    "web:dev": "turbo dev --filter=@ultra/web",
+    "web:build": "turbo build --filter=@ultra/web",
     "lint": "turbo lint",
     "check": "turbo typecheck test"
   },

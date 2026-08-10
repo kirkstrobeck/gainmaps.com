@@ -14,12 +14,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HDR Lab - Ultra processor",
+  title: "Ultra",
   description:
     "Batch process photos in the browser into Ultra JPEGs. Local, private, no upload.",
 };
 
-const ultraBootScript = `(function(){try{var k="hdr-lab-ultra-mode";var legacy="hdr-lab-gainmap-mode";var v=localStorage.getItem(k);if(v!=="on"&&v!=="off"){v=localStorage.getItem(legacy);}document.documentElement.dataset.ultra=(v==="on"||v==="off")?v:"on";}catch(e){document.documentElement.dataset.ultra="on";}})();`;
+/*
+  Keys must stay in sync with ULTRA_MODE_STORAGE_KEYS in lib/ultra-mode.ts —
+  newest first, older ones kept so a returning visitor keeps their Off choice.
+*/
+const ultraBootScript = `(function(){var keys=["ultra-mode","hdr-lab-ultra-mode","hdr-lab-gainmap-mode"];var v=null;try{for(var i=0;i<keys.length&&v!=="on"&&v!=="off";i++){v=localStorage.getItem(keys[i]);}}catch(e){}document.documentElement.dataset.ultra=(v==="on"||v==="off")?v:"on";})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (

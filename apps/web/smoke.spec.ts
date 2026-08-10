@@ -15,7 +15,10 @@ async function downloadJob(page: import("@playwright/test").Page) {
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
-      localStorage.removeItem("hdr-lab-ultra-mode");
+      // Every key readUltraMode() consults, or a legacy value decides the test.
+      for (const key of ["ultra-mode", "hdr-lab-ultra-mode", "hdr-lab-gainmap-mode"]) {
+        localStorage.removeItem(key);
+      }
     } catch {
       // Ignore private-mode failures.
     }
@@ -121,7 +124,7 @@ test("toggles the Ultra site theme", async ({ page }) => {
 test("shows the technical document with page anchors", async ({ page }) => {
   await page.getByRole("link", { name: "Docs" }).click();
   await expect(page).toHaveURL(/\/docs$/);
-  await expect(page.getByRole("heading", { name: "What HDR Lab actually does to an image" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "What Ultra actually does to an image" })).toBeVisible();
   const docsNav = page.getByRole("complementary");
   await expect(docsNav.getByRole("link", { name: /Pipeline/ })).toHaveAttribute("href", "#pipeline");
   await expect(docsNav.getByRole("link", { name: /Standards/ })).toHaveAttribute("href", "#standards");

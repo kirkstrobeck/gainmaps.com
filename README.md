@@ -1,7 +1,10 @@
-# hdr-tag
+# Ultra
 
 Give a JPEG or PNG the "impossibly saturated" look by **assigning** a Rec.2020 PQ
 ICC profile — the same trick the Ashby logo on LinkedIn is (accidentally) doing.
+
+The repo is one pnpm + Turborepo workspace: `@ultra/core` at the root (the
+`hdr-tag` CLI and the colour pipeline) and `@ultra/web` in `apps/web`.
 
 ## What it does — and does not do
 

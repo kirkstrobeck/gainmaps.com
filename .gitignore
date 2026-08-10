@@ -9,7 +9,7 @@ playwright-report/
 **/playwright-report/
 *.tsbuildinfo
 
-# Built service worker — regenerate with `pnpm --filter @hdr-lab/web build:worker`.
+# Built service worker — regenerate with `pnpm --filter @ultra/web build:worker`.
 apps/web/public/hdr-service-worker.js
 
 # Window-gain calibration scratch + compiled Swift helpers

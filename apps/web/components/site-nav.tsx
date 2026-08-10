@@ -9,7 +9,7 @@ export function SiteNav() {
         <span className="site-mark flex size-7 items-center justify-center rounded-[var(--radius)] bg-[var(--foreground)] text-[var(--background)]">
           <IconBolt aria-hidden size={17} stroke={1.8} />
         </span>
-        HDR Lab
+        Ultra
       </a>
       <div className="flex items-center gap-3 text-sm text-[var(--muted)] sm:gap-5">
         <UltraModeToggle />
