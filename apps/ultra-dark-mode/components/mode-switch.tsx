@@ -19,7 +19,6 @@ function iconStyle(active: boolean) {
   return {
     color: active ? "var(--ink)" : "var(--muted)",
     opacity: active ? 1 : 0.45,
-    transition: "color 200ms ease, opacity 200ms ease",
   };
 }
 

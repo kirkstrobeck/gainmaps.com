@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 */
 
 const SHAPE =
-  "h-8 rounded-full px-[14px] text-[12px] font-medium uppercase tracking-[0.09em] transition-colors duration-200 disabled:pointer-events-auto disabled:cursor-not-allowed";
+  "h-8 rounded-full px-[14px] text-[12px] font-medium uppercase tracking-[0.09em] disabled:pointer-events-auto disabled:cursor-not-allowed";
 
 const OFF = "border-[var(--line)] bg-transparent text-[var(--muted)]";
 const ON = "udm-ultra-on border-transparent bg-[var(--ink)] text-[var(--bg)]";

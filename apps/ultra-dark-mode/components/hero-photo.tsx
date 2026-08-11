@@ -12,10 +12,12 @@ import {
 } from "@/lib/hero-photo";
 
 /*
-  Two photos of the same mountain, stacked and crossfaded.
+  Two photos of the same mountain, stacked one on top of the other.
 
-  Both stay in the DOM so both stay decoded: the switch is a 600ms opacity
-  change, not a network request, and nothing pops. The gain map only does
+  Both stay in the DOM so both stay decoded: the switch is an opacity swap with
+  no animation, not a network request, so it is instant and nothing pops. The
+  hero's headroom is baked into its gain map at encode time — the headroom
+  slider drives the WebGPU fill only, never this. The gain map only does
   anything when html[data-ultra="on"] has lifted dynamic-range-limit — below
   that it is an ordinary JPEG, which is why the SDR copy underneath is enough
   on a display without headroom.

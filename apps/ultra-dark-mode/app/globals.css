@@ -15,17 +15,13 @@
 
 /*
   dynamic-range-limit: standard is the page floor — app/ultra.css lifts it to
-  no-limit when html[data-ultra="on"]. Both transitions live here, in one
-  declaration, so a later rule can never drop half of them.
+  no-limit when html[data-ultra="on"]. Nothing here animates: flipping mode or
+  Ultra is a state change, not a scene change, and it lands in one frame.
 */
 html {
   background: var(--bg);
   color: var(--ink);
   dynamic-range-limit: standard;
-  transition:
-    background-color 300ms ease,
-    color 300ms ease,
-    dynamic-range-limit 400ms ease;
 }
 
 body {

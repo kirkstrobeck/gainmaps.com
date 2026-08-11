@@ -20,16 +20,16 @@ const TYPE =
 
 const WORD = "ULTRA";
 
-/** Headroom for the fill, in multiples of SDR white. Matches apps/web. */
-const INTENSITY = 2.2;
-
 export function Wordmark() {
-  const { mode, ultra } = useAppearance();
+  const { mode, ultra, headroom } = useAppearance();
 
+  // Headroom for the fill, in multiples of SDR white — the headroom slider
+  // drives it, and DEFAULT_HEADROOM in lib/appearance.ts is the 2.2 this used
+  // to hard-code. The hero photo cannot follow: its gain map is already encoded.
   if (mode === "dark" && ultra === "on") {
     return (
       <h1 className="m-0">
-        <UltraWord word={WORD} typeClassName={TYPE} intensity={INTENSITY} />
+        <UltraWord word={WORD} typeClassName={TYPE} intensity={headroom} />
       </h1>
     );
   }

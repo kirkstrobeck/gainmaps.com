@@ -25,6 +25,7 @@ import {
 type AppearanceContextValue = Appearance & {
   setMode: (mode: Mode) => void;
   setUltra: (ultra: Ultra) => void;
+  setHeadroom: (headroom: number) => void;
 };
 
 const AppearanceContext = createContext<AppearanceContextValue | null>(null);
@@ -61,9 +62,13 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     setAppearance((current) => settle({ ...current, ultra }));
   }, []);
 
+  const setHeadroom = useCallback((headroom: number) => {
+    setAppearance((current) => settle({ ...current, headroom }));
+  }, []);
+
   const value = useMemo<AppearanceContextValue>(
-    () => ({ ...appearance, setMode, setUltra }),
-    [appearance, setMode, setUltra],
+    () => ({ ...appearance, setMode, setUltra, setHeadroom }),
+    [appearance, setMode, setUltra, setHeadroom],
   );
 
   return <AppearanceContext value={value}>{children}</AppearanceContext>;

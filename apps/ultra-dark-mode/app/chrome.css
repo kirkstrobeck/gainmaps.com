@@ -1,9 +1,10 @@
 /* Ultra mode by Kirk Strobeck – https://UltraDarkMode.com */
 
 /*
-  The two pieces of chrome with enough shape to be worth naming: the floating
-  control pill and the hero photo frame. Everything else on the page is a
-  utility class, because everything else is just type and space.
+  The pieces of chrome with enough shape to be worth naming: the floating
+  control pill, the headroom group beside it and the hero photo frame.
+  Everything else on the page is a utility class, because everything else is
+  just type and space.
 */
 
 .udm-pill {
@@ -18,9 +19,6 @@
   backdrop-filter: blur(14px) saturate(140%);
   -webkit-backdrop-filter: blur(14px) saturate(140%);
   box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
-  transition:
-    background 300ms ease,
-    border-color 300ms ease;
 }
 
 .udm-divider {
@@ -29,14 +27,57 @@
   background: var(--line);
 }
 
+/*
+  The rail is the pill's own box, and the only thing the page centres.
+
+  The headroom group hangs off it absolutely, so it contributes nothing to that
+  centring: the mode switch and the Ultra button sit at exactly the same
+  coordinates whether Ultra is on or off. Growing the pill instead would push
+  them left by half the slider on every toggle.
+*/
+.udm-rail {
+  position: relative;
+}
+
+.udm-headroom {
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+
+  /* Same skin as .udm-pill, so it reads as the pill extending rightward. */
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--chip);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+}
+
+/*
+  Too narrow to sit beside the pill: restack underneath it. Still absolute, so
+  the controls above do not move a pixel horizontally either.
+*/
+@media (max-width: 640px) {
+  .udm-headroom {
+    left: 0;
+    top: calc(100% + 8px);
+    width: 100%;
+  }
+}
+
 /* Ultra is on: the button glows a little, in ink so it stays monochrome. */
 .udm-ultra-on {
   box-shadow: 0 0 18px color-mix(in srgb, var(--ink) 32%, transparent);
 }
 
 /*
-  Both photos are stacked in this frame and crossfaded, so the SDR and the gain
-  map version stay decoded and the swap is instant. See components/hero-photo.
+  Both photos are stacked in this frame, so the SDR and the gain map version
+  stay decoded and the swap between them is instant. See components/hero-photo.
 */
 .udm-frame {
   position: relative;
@@ -53,5 +94,4 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: opacity 600ms ease;
 }

@@ -3,7 +3,7 @@
 /*
   Two 16px glyphs, inline rather than from an icon package: the control bar
   needs exactly these, and they inherit currentColor so the active/inactive
-  colour transition is a plain CSS property change.
+  colour swap is a plain CSS property change.
 */
 
 import type { CSSProperties } from "react";

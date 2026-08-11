@@ -14,6 +14,12 @@
 export type UltraFillSession = {
   /** Redraw — WebGPU surfaces can be dropped on resize or tab restore. */
   poke(): void;
+  /*
+    Repaint at a new headroom without touching the device. The adapter and
+    device are expensive and asynchronous; a slider drag is neither, so the
+    value lives in the session and every later paint reads the current one.
+  */
+  setIntensity(next: number): void;
   stop(): void;
 };
 
@@ -53,6 +59,9 @@ export function startUltraFill(
   let device: GpuDevice | undefined;
   let surface: GPUCanvasContext | undefined;
   let stopped = false;
+  // Not read off `options` after this line: the caller may have moved on by the
+  // time the device arrives, and the first paint must use the current value.
+  let intensity = options.intensity;
 
   void (async () => {
     const gpu = navigator.gpu;
@@ -81,14 +90,19 @@ export function startUltraFill(
 
     device = next;
     surface = context;
-    paint(device, surface, options.intensity);
+    paint(device, surface, intensity);
     canvas.dataset.ultraFill = "on";
   })();
 
   return {
     poke() {
       if (!device || !surface) return;
-      paint(device, surface, options.intensity);
+      paint(device, surface, intensity);
+    },
+    setIntensity(next: number) {
+      intensity = next;
+      if (!device || !surface) return;
+      paint(device, surface, intensity);
     },
     stop() {
       stopped = true;
