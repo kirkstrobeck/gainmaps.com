@@ -57,6 +57,18 @@ export function UltraWord({ word, typeClassName, intensity }: Props) {
         </defs>
       </svg>
 
+      {/*
+        The white floor: the same rectangle through the same mask, in plain SDR
+        white, under the canvas. The canvas comes up asynchronously and is
+        re-presented whenever the element moves, and the text below it is
+        transparent — without this the word blinks out. See globals.css.
+      */}
+      <span
+        aria-hidden
+        className="ultra-backdrop"
+        style={{ ...overlay, mask, WebkitMask: mask }}
+      />
+
       <UltraFillCanvas
         intensity={intensity}
         className="pointer-events-none"

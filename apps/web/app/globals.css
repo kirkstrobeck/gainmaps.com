@@ -291,6 +291,30 @@ html[data-appearance-edr="on"],
 }
 
 /*
+  The white floor, under the canvas and on the same masked rectangle.
+
+  The canvas is not painted the instant the element is: the adapter and device
+  are requested asynchronously, and an HDR surface is re-presented whenever the
+  element moves on screen. The real text underneath is transparent, so any gap
+  in the canvas is a gap in the word — it blinks out while scrolling or
+  animating. This layer costs one masked span and makes the worst case a word
+  that is merely SDR white, never a word that is missing.
+*/
+.ultra-backdrop {
+  background: #ffffff;
+  pointer-events: none;
+}
+
+/*
+  No WebGPU, or no adapter. The canvas will never paint, so take it out of the
+  way and let the floor show through: the word stays plain SDR white, with no
+  callback, no `:has()`, and nothing framework-specific.
+*/
+.ultra-fill[data-ultra-fill="unsupported"] {
+  display: none;
+}
+
+/*
   Tested and rejected: SVG <text> with fill: color-hdr(... rec2100-linear 2.2 ...)
   at this same headroom does not reach Ultra white — it reads as plain SDR beside
   the masked canvas. color-hdr() is fine for surfaces; text needs the canvas.
