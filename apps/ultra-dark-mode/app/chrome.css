@@ -1,0 +1,57 @@
+/* Ultra mode by Kirk Strobeck – https://UltraDarkMode.com */
+
+/*
+  The two pieces of chrome with enough shape to be worth naming: the floating
+  control pill and the hero photo frame. Everything else on the page is a
+  utility class, because everything else is just type and space.
+*/
+
+.udm-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9999px;
+  background: var(--chip);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.12);
+  transition:
+    background 300ms ease,
+    border-color 300ms ease;
+}
+
+.udm-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--line);
+}
+
+/* Ultra is on: the button glows a little, in ink so it stays monochrome. */
+.udm-ultra-on {
+  box-shadow: 0 0 18px color-mix(in srgb, var(--ink) 32%, transparent);
+}
+
+/*
+  Both photos are stacked in this frame and crossfaded, so the SDR and the gain
+  map version stay decoded and the swap is instant. See components/hero-photo.
+*/
+.udm-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.udm-frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 600ms ease;
+}
