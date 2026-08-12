@@ -20,10 +20,19 @@ const Switch = React.forwardRef<
     {...props}
     ref={ref}
   >
+    {/*
+      Geometry, so nobody "simplifies" it back to size-6 / translate-x-5:
+      the h-7 w-12 root has a 1px border, so the content box is 26x46. The
+      thumb is 22px and ring-1 draws outside it, so the visible circle is
+      24px — 1px of gap above and below in the 26px slot. Horizontally,
+      2px of box on the left minus the 1px ring is 1px of visible gap, and
+      46 - 22 - 22 = 2px of box on the right, again 1px once the ring is
+      counted. Every gap is 1px.
+    */}
     <SwitchPrimitives.Thumb
       className={cn(
-        "pointer-events-none block size-6 rounded-full bg-[var(--panel)] shadow-md ring-1 ring-black/10 transition-transform",
-        "data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0.5",
+        "pointer-events-none block size-[22px] rounded-full bg-[var(--panel)] shadow-md ring-1 ring-black/10 transition-transform",
+        "data-[state=checked]:translate-x-[22px] data-[state=unchecked]:translate-x-[2px]",
       )}
     />
   </SwitchPrimitives.Root>
