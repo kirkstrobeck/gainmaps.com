@@ -36,7 +36,7 @@ export default function Base() {
           </h1>
 
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
-            Questions, discoveries, edge cases, and feedback — all in one thread. If you found a
+            Questions, discoveries, edge cases, and feedback, all in one thread. If you found a
             format that behaves unexpectedly, or a display where the gain map really shines, this is
             the right place.
           </p>

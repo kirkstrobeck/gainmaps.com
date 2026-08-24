@@ -140,6 +140,8 @@ test("shows the technical document with page anchors", async ({ page }) => {
   const docsNav = page.getByRole("complementary");
   await expect(docsNav.getByRole("link", { name: /Pipeline/ })).toHaveAttribute("href", "#pipeline");
   await expect(docsNav.getByRole("link", { name: /Standards/ })).toHaveAttribute("href", "#standards");
+  await expect(docsNav.getByRole("link", { name: /Names/ })).toHaveAttribute("href", "#names");
+  await expect(page.locator("#names")).toBeVisible();
   await expect(page.locator("#gain")).toBeVisible();
 });
 

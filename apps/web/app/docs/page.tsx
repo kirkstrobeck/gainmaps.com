@@ -99,8 +99,8 @@ export default function Base() {
               What Gainmaps actually does to an image
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--muted)]">
-              A gain-map JPEG carries two things: a standard SDR baseline every app can open, and a
-              secondary brightness layer — the gain map — that HDR displays use to expand highlights
+              A gain map image carries two things: a standard SDR baseline every app can open, and a
+              secondary brightness layer (the gain map) that HDR displays use to expand highlights
               past SDR reference white. Gainmaps synthesizes that second layer locally, in your
               browser, from the pixels you give it.
             </p>
@@ -117,14 +117,14 @@ export default function Base() {
             <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
               <p>
                 The worker rasterizes your photo, builds linear HDR capacity from the SDR pixels using
-                the chosen gain intensity, tone-maps an SDR base, and writes a single gain-map JPEG.
-                The output file is larger than the input — it carries both the SDR image and the gain
-                map — but it opens normally in any JPEG viewer.
+                the chosen gain intensity, tone-maps an SDR base, and writes a single gain map image.
+                The output file is larger than the input: it carries both the SDR image and the gain
+                map, but opens normally in any JPEG viewer.
               </p>
               <p>
                 This is not camera-scene HDR reconstruction. Without original HDR capture data, the
-                tool synthesizes headroom from the SDR image. Compatible viewers — Apple Preview,
-                Photos, Android Ultra HDR clients — can then expand the gain map on capable displays.
+                tool synthesizes headroom from the SDR image. Compatible viewers (Apple Preview,
+                Photos, Android Ultra HDR clients) can then expand the gain map on capable displays.
               </p>
             </div>
           </section>
@@ -161,12 +161,12 @@ export default function Base() {
               <p>
                 <span className="font-medium text-[var(--foreground)]">Input:</span>{" "}
                 PNG, JPEG, WebP, AVIF, GIF (first frame only), HEIC when the browser decoder can open
-                it, and SVG including animated SMIL/CSS SVG — animations are frozen to a keyframe,
+                it, and SVG including animated SMIL/CSS SVG. Animations are frozen to a keyframe,
                 then encoded.
               </p>
               <p>
                 <span className="font-medium text-[var(--foreground)]">Output:</span>{" "}
-                always a gain-map JPEG (<code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">*-gainmap.jpg</code>).
+                always a gain map image (<code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">*-gainmap.jpg</code>).
                 The file contains both layers and can be opened by any standard JPEG viewer.
               </p>
             </div>
@@ -183,7 +183,7 @@ export default function Base() {
             <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
               <p>
                 Gain is the maximum HDR/SDR brightness ratio encoded into the photo. The default mid
-                setting targets roughly 3.34× — similar to many iPhone HDR stills. Lower values are
+                setting targets roughly 3.34×, similar to many iPhone HDR stills. Lower values are
                 subtler; higher values push brighter highlights on HDR displays.
               </p>
               <p>
@@ -204,6 +204,61 @@ export default function Base() {
             </div>
           </section>
 
+          {/* ── Names ── */}
+          <section id="names" className="scroll-mt-24 border-b border-[var(--border)] py-10">
+            <div className="flex items-center gap-3">
+              <span className={SECTION_ICON_CLS} aria-hidden>
+                <UltraIcon size={16}><BookmarkFilled /></UltraIcon>
+              </span>
+              <h2 className="font-display text-2xl font-bold tracking-normal">Names</h2>
+            </div>
+            <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
+              <p>
+                Vendors, platforms, and standards each coined their own name for the same idea:
+                brightness above SDR reference white, encoded so every app can still open the file.
+              </p>
+              <p>
+                On a Mac, when the display raises brightness to show an HDR image, that path is
+                Extended Dynamic Range (EDR). EDR is Apple&apos;s way of <em>displaying</em> brightness
+                above SDR reference white. HDR describes the image content. They are not the same
+                word, and they are often used interchangeably by mistake.
+              </p>
+              <p>
+                An EDR JPEG is possible: it is usually called an HDR JPEG with a gain map. The file
+                holds a normal SDR JPEG plus extra brightness data. Unsupported apps show the SDR
+                layer. Editing or reexporting the image may strip the map. Apple calls the still-image
+                system Adaptive HDR; Android and Google call the JPEG format Ultra HDR, the closest
+                Android equivalent to an EDR JPEG. The cross-platform technical name is HDR gain map
+                image.
+              </p>
+              <p>
+                EDR lifts highlights, not the shadow floor. Blacks do not necessarily get blacker.
+              </p>
+            </div>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-[540px] border-collapse text-left text-xs">
+                <thead>
+                  <tr className="border-b border-[var(--border)]">
+                    <th className="pb-2 pr-4 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Name</th>
+                    <th className="pb-2 pr-4 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Full form</th>
+                    <th className="pb-2 pr-4 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Platform</th>
+                    <th className="pb-2 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">What it means</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {BRAND_NAMES.map((row) => (
+                    <tr key={row.name} className="border-b border-[var(--border)] last:border-b-0">
+                      <td className="py-2.5 pr-4 font-semibold text-[var(--foreground)]">{row.name}</td>
+                      <td className="py-2.5 pr-4 text-[var(--muted)]">{row.fullName}</td>
+                      <td className="py-2.5 pr-4 text-[var(--muted)]">{row.platform}</td>
+                      <td className="py-2.5 text-[var(--muted)]">{row.meaning}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           {/* ── Privacy ── */}
           <section id="privacy" className="scroll-mt-24 border-b border-[var(--border)] py-10">
             <div className="flex items-center gap-3">
@@ -215,7 +270,7 @@ export default function Base() {
             <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
               <p>
                 Files never leave the browser for processing. The service worker encodes locally and
-                returns a downloadable blob — no bytes travel to any server. Closing the tab discards
+                returns a downloadable blob. No bytes travel to any server. Closing the tab discards
                 all in-memory results.
               </p>
               <div
@@ -268,9 +323,9 @@ export default function Base() {
             <h2 className="font-display text-2xl font-bold tracking-normal">Limits</h2>
             <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
               <p>
-                Very large images may be slow to encode in-browser — the worker is single-threaded per
+                Very large images may be slow to encode in-browser; the worker is single-threaded per
                 file. Animated GIF only encodes the first frame. HEIC decoding depends on platform
-                support. Gain-map appearance varies by viewer software and display peak luminance —
+                support. Gain-map appearance varies by viewer software and display peak luminance:
                 the same file looks different on an iPhone XDR versus an SDR monitor.
               </p>
             </div>

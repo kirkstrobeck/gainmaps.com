@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   return {
     title: `${company.name} · Logos · Gainmaps`,
-    description: `The ${company.name} brand mark as a standard SVG and as a gain map JPEG.`,
+    description: `The ${company.name} brand mark as a standard SVG and as a gain map.`,
   };
 }
 
@@ -57,15 +57,15 @@ export default async function Base({ params }: Params) {
           <LogoPair company={company} size="detail" />
           <p className="mt-6 max-w-2xl text-sm leading-6 text-[var(--muted)]">
             Left: the source vector. Right: the same mark rasterized and encoded as an Ultra HDR
-            gain map JPEG at 0.5 boost. JPEG has no alpha channel, so the SVG masks the JPEG's opaque
-            matte — only the mark's own pixels survive, with the checkerboard behind them.
+            gain map at 0.5 boost. JPEG has no alpha channel, so the SVG masks the opaque
+            matte. Only the mark's own pixels survive, with the checkerboard behind them.
           </p>
         </section>
 
         {/* File facts */}
         <dl className="mt-8 grid gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--border)] text-sm sm:grid-cols-2">
           <Fact label="Vector" value={company.svgPath} href={company.svgPath} />
-          <Fact label="Gain map JPEG" value={company.gainmapPath} href={company.gainmapPath} />
+          <Fact label="Gain map" value={company.gainmapPath} href={company.gainmapPath} />
         </dl>
 
         {/* Neighbour navigation */}

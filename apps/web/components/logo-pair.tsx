@@ -31,7 +31,7 @@ export function LogoPair({ company, size }: { company: Company; size: LogoPairSi
       />
       <LogoTile
         src={company.gainmapPath}
-        alt={`${company.name} logo as a gain map JPEG`}
+        alt={`${company.name} logo as a gain map image`}
         label="Ultra"
         size={size}
         gainmap

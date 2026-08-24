@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 
   return {
     title: `${photo.alt} · Photos · Gainmaps`,
-    description: `${photo.alt} by ${photo.photographer} — Standard Unsplash SDR beside an Ultra HDR gain map JPEG.`,
+    description: `${photo.alt} by ${photo.photographer}. Standard Unsplash SDR beside an Ultra HDR gain map.`,
   };
 }
 
@@ -57,8 +57,8 @@ export default async function Base({ params }: Params) {
             <PhotoCredit photo={photo} />
           </div>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            Left: Unsplash original via next/image — the optimizer may serve a sized WebP/AVIF
-            derivative. Right: the same photograph re-encoded locally as an Ultra HDR gain map JPEG,
+            Left: Unsplash original via next/image, which may serve a sized WebP/AVIF
+            derivative. Right: the same photograph re-encoded locally as a gain map image,
             served with <code className="text-[var(--foreground)]">unoptimized</code> so the gain
             map layer survives intact.
           </p>
@@ -66,7 +66,7 @@ export default async function Base({ params }: Params) {
 
         {/* File facts */}
         <dl className="mt-8 grid gap-px overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--border)] text-sm sm:grid-cols-2">
-          <Fact label="Gain map JPEG" value={photoGainmapSrc(photo)} href={photoGainmapSrc(photo)} />
+          <Fact label="Gain map" value={photoGainmapSrc(photo)} href={photoGainmapSrc(photo)} />
           <Fact label="Unsplash original" value={photo.photoUrl} href={photo.photoUrl} />
         </dl>
 

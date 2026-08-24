@@ -148,7 +148,7 @@ export default function Base() {
             />
             <ImageComparePair
               src="/logos/nvidia/logo-gainmap.jpg"
-              alt="NVIDIA logo gain map JPEG"
+              alt="NVIDIA logo gain map image"
             />
           </div>
 
@@ -225,13 +225,13 @@ export default function Base() {
           <div className="mt-6 grid gap-8 sm:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
             <div className="grid gap-4 text-sm leading-7 text-[var(--muted)]">
               <p>
-                HDR is an expanded brightness range — image highlights can sit above the SDR ceiling. A gain map JPEG encodes a normal SDR image plus a secondary brightness map. Unsupported apps render the SDR layer and ignore the rest.
+                HDR is an expanded brightness range: image highlights can sit above the SDR ceiling. A gain map image encodes a normal SDR image plus a secondary brightness map. Unsupported apps render the SDR layer and ignore the rest.
               </p>
               <p>
                 EDR is Apple&apos;s term for <em>displaying</em> brightness above SDR reference white. HDR describes the image content. They are not the same word and are often misused interchangeably.
               </p>
               <p>
-                The cross-platform technical name is <strong className="text-[var(--foreground)]">HDR gain map image</strong>. Consumer brands include Adaptive HDR (Apple) and Ultra HDR (Android/Google). This site encodes those files locally in the browser — no upload, no server.
+                The cross-platform technical name is <strong className="text-[var(--foreground)]">HDR gain map image</strong>. Consumer brands include Adaptive HDR (Apple) and Ultra HDR (Android/Google). This site encodes those files locally in the browser. No upload, no server.
               </p>
               <p className="text-xs leading-6">
                 Blacks do not necessarily get blacker. EDR lifts highlights, not the shadow floor.
@@ -247,7 +247,7 @@ export default function Base() {
             >
               <p className="font-semibold text-[var(--foreground)]">Monitor note</p>
               <p className="mt-2 text-[var(--muted)]">
-                Ultra paints past SDR reference white. On an HDR display — Apple XDR, Android Ultra HDR, or Windows Advanced Color — the effect is visible. On an SDR monitor it renders as ordinary white. That is expected, not a bug.
+                Ultra paints past SDR reference white. On an HDR display (Apple XDR, Android Ultra HDR, or Windows Advanced Color), the effect is visible. On an SDR monitor it renders as ordinary white. That is expected, not a bug.
               </p>
             </aside>
           </div>
@@ -283,13 +283,18 @@ export default function Base() {
               </tbody>
             </table>
           </div>
+          <p className="mt-4 text-sm">
+            <a href="/docs#names" className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75">
+              Full glossary in the docs
+            </a>
+          </p>
         </section>
 
         {/* ── CLI ── */}
         <section className="reveal border-t border-[var(--border)] pt-12">
           <h2 className="font-display text-2xl font-bold">From the terminal</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-            Batch-encode gain map JPEGs without a browser.
+            Batch-encode gain map images without a browser.
           </p>
           <div className="mt-5 max-w-md">
             <BrewCopy />

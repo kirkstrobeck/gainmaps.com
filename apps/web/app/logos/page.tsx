@@ -7,7 +7,7 @@ import { COMPANIES } from "@/lib/logos/companies";
 export const metadata: Metadata = {
   title: "Logos · Gainmaps",
   description:
-    "Brand logos side by side: the standard SVG next to the same mark encoded as a gain map JPEG.",
+    "Brand logos side by side: the standard SVG next to the same mark encoded as a gain map.",
 };
 
 export default function Base() {
@@ -20,9 +20,9 @@ export default function Base() {
             Logos
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
-            {COMPANIES.length} brand logos — standard SVG beside the same mark encoded as an{" "}
-            <strong className="font-medium text-[var(--foreground)]">Ultra</strong> HDR gain map
-            JPEG. Brand colors reach past SDR white on HDR displays.
+            {COMPANIES.length} brand logos. Standard SVG beside the same mark encoded as an{" "}
+            <strong className="font-medium text-[var(--foreground)]">Ultra</strong> HDR gain map.
+            Brand colors reach past SDR white on HDR displays.
           </p>
         </header>
 

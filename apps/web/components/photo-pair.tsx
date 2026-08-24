@@ -35,7 +35,7 @@ export function PhotoPair({ photo, size, priority = false }: { photo: Photo; siz
     <div className="grid grid-cols-2 gap-2 sm:gap-3">
       <PhotoTile
         src={photoStandardSrc(photo)}
-        alt={`${photo.alt} — Standard`}
+        alt={`${photo.alt}, Standard`}
         label="Standard"
         size={size}
         optimized
@@ -43,7 +43,7 @@ export function PhotoPair({ photo, size, priority = false }: { photo: Photo; siz
       />
       <PhotoTile
         src={photoGainmapSrc(photo)}
-        alt={`${photo.alt} — Ultra`}
+        alt={`${photo.alt}, Ultra`}
         label="Ultra"
         size={size}
         optimized={false}
@@ -93,19 +93,21 @@ function PhotoTile({
   label,
   size,
   optimized,
+  priority,
 }: {
   src: string;
   alt: string;
   label: string;
   size: PhotoPairSize;
   optimized: boolean;
+  priority?: boolean;
 }) {
   return (
     <figure className="group m-0 grid gap-0">
       <div
         className={`relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] ${FRAME[size]}`}
       >
-        <PhotoImage src={src} alt={alt} size={size} optimized={optimized} />
+        <PhotoImage src={src} alt={alt} size={size} optimized={optimized} priority={priority} />
         {/* hover-reveal label */}
         <figcaption
           aria-hidden
@@ -129,11 +131,13 @@ function PhotoImage({
   alt,
   size,
   optimized,
+  priority,
 }: {
   src: string;
   alt: string;
   size: PhotoPairSize;
   optimized: boolean;
+  priority?: boolean;
 }) {
   if (!optimized) {
     // eslint-disable-next-line @next/next/no-img-element
@@ -155,6 +159,7 @@ function PhotoImage({
       fill
       sizes={TILE_SIZES[size]}
       quality={80}
+      priority={priority}
       className="object-cover"
     />
   );

@@ -16,7 +16,7 @@ import {
 export const metadata: Metadata = {
   title: "Photos · Gainmaps",
   description:
-    "One hundred Unsplash photographs, Standard SDR next to the same frame encoded as an Ultra HDR gain map JPEG.",
+    "One hundred Unsplash photographs, Standard SDR next to the same frame encoded as an Ultra HDR gain map.",
 };
 
 type Search = { page?: string | string[] };
@@ -39,8 +39,8 @@ export default async function Base({
             Photos
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--muted)]">
-            {PHOTOS.length} Unsplash photographs — Standard SDR beside the same frame encoded as an{" "}
-            <strong className="font-medium text-[var(--foreground)]">Ultra</strong> HDR gain map JPEG.
+            {PHOTOS.length} Unsplash photographs. Standard SDR beside the same frame encoded as an{" "}
+            <strong className="font-medium text-[var(--foreground)]">Ultra</strong> HDR gain map.
           </p>
         </header>
 

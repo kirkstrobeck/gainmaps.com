@@ -1,0 +1,34 @@
+{
+  "name": "gainmap",
+  "version": "1.0.0",
+  "description": "Convert images to Ultra HDR JPEG gain maps",
+  "license": "MIT",
+  "author": "Kirk Strobeck <kirk@strobeck.com>",
+  "repository": "https://github.com/kirkstrobeck/ultra",
+  "homepage": "https://gainmaps.com",
+  "type": "module",
+  "bin": { "gainmap": "./dist/cli.js" },
+  "files": ["dist", "test/fixtures", "README.md"],
+  "exports": {
+    ".": "./dist/cli.js",
+    "./encode": "./src/encode.ts"
+  },
+  "imports": { "#src/*": "./src/*" },
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "hdrify": "^0.12.1",
+    "heic-decode": "^2.1.0",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.2",
+    "@vitest/coverage-v8": "^4.1.10",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.10"
+  }
+}

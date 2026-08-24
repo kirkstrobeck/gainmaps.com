@@ -472,7 +472,7 @@ export function HdrProcessor() {
                     Drop images here to make them HDR.
                   </h1>
                   <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
-                    Processed 100% in your browser by a service worker — nothing leaves. Compare the output, then download.
+                    Processed 100% in your browser by a service worker. Nothing leaves. Compare the output, then download.
                   </p>
                 </div>
 
