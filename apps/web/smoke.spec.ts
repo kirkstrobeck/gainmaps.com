@@ -35,7 +35,7 @@ test.beforeEach(async ({ page }) => {
 
 test("home page renders drop zone and brew snippet", async ({ page }) => {
   await page.goto(BASE_URL);
-  await expect(page.getByText("brew install gainmap")).toBeVisible();
+  await expect(page.getByText("brew install kirkstrobeck/tap/gainmap")).toBeVisible();
   // Product Hunt link is a disabled span until the launch URL is known
   await expect(page.getByText("View on Product Hunt")).toBeVisible();
 });

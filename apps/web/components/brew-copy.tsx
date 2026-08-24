@@ -9,7 +9,7 @@ export function BrewCopy() {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText("brew install gainmap");
+    await navigator.clipboard.writeText("brew install kirkstrobeck/tap/gainmap");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, []);
@@ -19,7 +19,7 @@ export function BrewCopy() {
       <UltraIcon size={16}>
         <TerminalBoxFilled />
       </UltraIcon>
-      <code className="font-mono text-sm">brew install gainmap</code>
+      <code className="font-mono text-sm">brew install kirkstrobeck/tap/gainmap</code>
       <button
         type="button"
         onClick={handleCopy}

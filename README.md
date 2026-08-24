@@ -212,9 +212,11 @@ Third-party assets are **not** covered by that grant:
 Convert images to Ultra HDR JPEG gain maps:
 
 ```sh
-brew install gainmap
+brew install kirkstrobeck/tap/gainmap
 gainmap photo.jpg
 gainmap -R ./shots -o ./out
 ```
 
-Without Homebrew, from this repo: `pnpm install && pnpm --filter gainmap build`. Full flags, Docker, and requirements: [docs/cli.md](docs/cli.md).
+> **Note:** `brew install gainmap` (without the tap prefix) requires a homebrew-core PR submission, which is planned for a future release.
+
+Source: [github.com/kirkstrobeck/gainmaps.com](https://github.com/kirkstrobeck/gainmaps.com). From this clone: `brew install --HEAD --formula ./Formula/gainmap.rb`. Without Homebrew: `pnpm install && pnpm --filter gainmap build`. Full flags, Docker, and requirements: [docs/cli.md](docs/cli.md).
