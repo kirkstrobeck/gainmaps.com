@@ -10,7 +10,19 @@ class Gainmap < Formula
   depends_on "node"
 
   def install
-    cd "package" do
+    if build.head?
+      cd "packages/gainmap" do
+        system "npm", "install"
+        system "npm", "run", "build"
+        system "npm", "prune", "--omit=dev"
+        libexec.install "dist", "node_modules", "package.json"
+        (bin/"gainmap").write <<~EOS
+          #!/bin/bash
+          exec "#{Formula["node"].opt_bin}/node" "#{libexec}/dist/cli.js" "$@"
+        EOS
+        chmod 0755, bin/"gainmap"
+      end
+    else
       system "npm", "install", *std_npm_args
       bin.install_symlink libexec/"bin"/"gainmap"
     end
