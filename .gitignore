@@ -1,3 +1,5 @@
+.reports/
+.lhci-reports/
 node_modules/
 .next/
 .pnpm-store/
@@ -53,3 +55,6 @@ fixtures/window/window.png
 tools/sandbox/.cache/
 tools/sandbox/sandbox.local.conf
 tools/sandbox/.install-hashes
+
+# gainmap CLI build output
+packages/gainmap/dist/

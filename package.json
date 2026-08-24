@@ -15,7 +15,10 @@
     "dark:dev": "turbo dev --filter=@ultra/dark-mode",
     "apps:dev": "turbo dev --filter=@gainmaps/web --filter=@ultra/dark-mode",
     "lint": "turbo lint",
-    "check": "turbo typecheck test"
+    "check": "turbo typecheck test",
+    "lh": "tsx tools/lighthouse/run.ts both",
+    "lh:desktop": "tsx tools/lighthouse/run.ts desktop",
+    "lh:mobile": "tsx tools/lighthouse/run.ts mobile"
   },
   "keywords": [
     "hdr",
@@ -30,6 +33,7 @@
   "repository": "https://github.com/kirkstrobeck/gainmaps.com",
   "type": "module",
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@types/node": "^26.1.2",
     "@vitest/coverage-v8": "^4.1.10",
     "jpeg-js": "^0.4.4",
