@@ -7,13 +7,12 @@
  *   pnpm lh:desktop      # desktop only
  *   pnpm lh:mobile       # mobile only
  *
- * Chrome required. In CI, ubuntu-latest provides it via actions/setup-chrome
- * or the google-chrome package. Locally, ensure `google-chrome` or
- * `chromium-browser` is on PATH.
+ * Chrome required. Resolved from the Playwright installation at runtime.
  */
 
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
+import { createServer } from "node:net";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -27,8 +26,16 @@ if (preset !== "desktop" && preset !== "mobile" && preset !== "both") {
   process.exit(1);
 }
 
-const PORT = 3000;
-const BASE_URL = `http://localhost:${PORT}`;
+async function findFreePort(start: number): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const srv = createServer();
+    srv.listen(start, "127.0.0.1", () => {
+      const port = (srv.address() as any).port;
+      srv.close(() => resolve(port));
+    });
+    srv.on("error", () => findFreePort(start + 1).then(resolve).catch(reject));
+  });
+}
 
 function run(cmd: string, cwd = root): void {
   execSync(cmd, { stdio: "inherit", cwd });
@@ -39,7 +46,7 @@ function lhci(configFile: string): void {
   run(`pnpm exec lhci autorun --config="${cfg}"`, root);
 }
 
-async function waitForServer(url: string, timeoutMs = 30_000): Promise<void> {
+async function waitForServer(url: string, timeoutMs = 60_000): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     try {
@@ -54,14 +61,48 @@ async function waitForServer(url: string, timeoutMs = 30_000): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  // Resolve Chromium path from Playwright installation
+  let chromePath = "";
+  try {
+    chromePath = execSync(
+      `node -e "const {chromium} = require('/workspace/node_modules/.pnpm/playwright@1.62.1/node_modules/playwright'); console.log(chromium.executablePath())"`,
+      { encoding: "utf8" }
+    ).trim();
+  } catch {
+    // fallback: scan /ms-playwright for chromium-* dirs
+  }
+  if (!chromePath || !existsSync(chromePath)) {
+    const msDir = "/ms-playwright";
+    const dirs = readdirSync(msDir).filter((d) => d.startsWith("chromium-"));
+    for (const d of dirs) {
+      const p = `${msDir}/${d}/chrome-linux/chrome`;
+      if (existsSync(p)) {
+        chromePath = p;
+        break;
+      }
+    }
+  }
+  if (!chromePath || !existsSync(chromePath)) {
+    console.error("Chrome not found. Set CHROME_PATH manually.");
+    process.exit(1);
+  }
+  process.env.CHROME_PATH = chromePath;
+  console.log(`Chrome: ${chromePath}`);
+  execSync(`"${chromePath}" --version`, { stdio: "inherit" });
+
+  const PORT = await findFreePort(3010);
+  const BASE_URL = `http://127.0.0.1:${PORT}`;
+  process.env.LHCI_PORT = String(PORT);
+  console.log(`Using port: ${PORT}`);
+
   console.log("\n=== Step 1: build ===");
   run("pnpm -C apps/web build", root);
 
   console.log("\n=== Step 2: start production server ===");
   const server: ChildProcess = spawn(
-    "pnpm",
-    ["-C", "apps/web", "start"],
-    { cwd: root, stdio: "pipe", detached: false },
+    "node",
+    ["node_modules/.bin/next", "start", "-p", String(PORT), "--hostname", "127.0.0.1"],
+    { cwd: webDir, stdio: "pipe", detached: false, env: { ...process.env, NODE_ENV: "production" } },
   );
 
   const cleanup = () => {
@@ -78,11 +119,11 @@ async function main(): Promise<void> {
     console.log("\n=== Step 3: Lighthouse ===");
     if (preset === "desktop" || preset === "both") {
       console.log("\n--- desktop ---");
-      lhci("lhci-desktop.js");
+      lhci("lhci-desktop.cjs");
     }
     if (preset === "mobile" || preset === "both") {
       console.log("\n--- mobile ---");
-      lhci("lhci-mobile.js");
+      lhci("lhci-mobile.cjs");
     }
   } finally {
     cleanup();
