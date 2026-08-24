@@ -1,10 +1,10 @@
 {
-  "name": "@ultra/web",
+  "name": "@gainmaps/web",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
   "author": "Kirk Strobeck <kirk@strobeck.com>",
-  "repository": "https://github.com/kirkstrobeck/ultra",
+  "repository": "https://github.com/kirkstrobeck/gainmaps.com",
   "type": "module",
   "scripts": {
     "dev": "pnpm build:worker && next dev --hostname 0.0.0.0 --port 3000",
@@ -16,6 +16,8 @@
     "e2e": "playwright test smoke.spec.ts --browser chromium --reporter line"
   },
   "dependencies": {
+    "@giscus/react": "*",
+    "@mingcute/react": "*",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slider": "^1.4.7",
     "@radix-ui/react-slot": "^1.2.3",
@@ -28,12 +30,12 @@
     "hdrify": "^0.12.1",
     "heic-decode": "^2.1.0",
     "next": "^15.4.5",
+    "posthog-js": "^1.418.13",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "tailwind-merge": "^3.3.1",
     "upng-js": "^2.1.0",
-    "@mingcute/react": "*",
-    "@giscus/react": "*"
+    "gainmap": "workspace:*"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -44,5 +46,6 @@
     "esbuild": "^0.28.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2"
-  }
+  },
+  "homepage": "https://gainmaps.com"
 }

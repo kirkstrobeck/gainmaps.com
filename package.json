@@ -1,5 +1,5 @@
 {
-  "name": "@ultra/core",
+  "name": "gainmaps.com",
   "version": "1.0.0",
   "description": "Assign a Rec.2020 PQ ICC profile to JPEG or PNG without touching pixel data",
   "private": true,
@@ -9,18 +9,25 @@
     "cli": "tsx src/cli.ts",
     "typecheck": "tsc",
     "build": "tsc",
-    "dev": "turbo dev --filter=@ultra/web",
-    "web:dev": "turbo dev --filter=@ultra/web",
-    "web:build": "turbo build --filter=@ultra/web",
+    "dev": "turbo dev --filter=@gainmaps/web",
+    "web:dev": "turbo dev --filter=@gainmaps/web",
+    "web:build": "turbo build --filter=@gainmaps/web",
     "dark:dev": "turbo dev --filter=@ultra/dark-mode",
-    "apps:dev": "turbo dev --filter=@ultra/web --filter=@ultra/dark-mode",
+    "apps:dev": "turbo dev --filter=@gainmaps/web --filter=@ultra/dark-mode",
     "lint": "turbo lint",
     "check": "turbo typecheck test"
   },
-  "keywords": ["hdr", "icc", "rec2020", "jpeg", "png", "gain-map"],
+  "keywords": [
+    "hdr",
+    "icc",
+    "rec2020",
+    "jpeg",
+    "png",
+    "gain-map"
+  ],
   "author": "Kirk Strobeck <kirk@strobeck.com>",
   "license": "MIT",
-  "repository": "https://github.com/kirkstrobeck/ultra",
+  "repository": "https://github.com/kirkstrobeck/gainmaps.com",
   "type": "module",
   "devDependencies": {
     "@types/node": "^26.1.2",
@@ -34,5 +41,6 @@
     "turbo": "^2.5.6",
     "typescript": "^5.9.2",
     "vitest": "^4.1.10"
-  }
+  },
+  "homepage": "https://gainmaps.com"
 }

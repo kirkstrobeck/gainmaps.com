@@ -1,10 +1,10 @@
-# Ultra
+# gainmaps.com
 
 Give a JPEG or PNG the "impossibly saturated" look by **assigning** a Rec.2020 PQ
 ICC profile — the same trick the Ashby logo on LinkedIn is (accidentally) doing.
 
-The repo is one pnpm + Turborepo workspace: `@ultra/core` at the root (the
-`hdr-tag` CLI and the colour pipeline) and `@ultra/web` in `apps/web`.
+The repo is one pnpm + Turborepo workspace: `gainmaps.com` at the root (the
+`hdr-tag` CLI and the colour pipeline) and `@gainmaps/web` in `apps/web`.
 
 ## What it does — and does not do
 
@@ -206,3 +206,15 @@ Third-party assets are **not** covered by that grant:
   works authored here and are not MIT-licensed.
 - **Fixture images** under `fixtures/` are test fixtures. Their inclusion does
   not grant rights in the depicted artwork beyond running the test suite.
+
+## CLI (`gainmap`)
+
+Convert images to Ultra HDR JPEG gain maps:
+
+```sh
+brew install gainmap
+gainmap photo.jpg
+gainmap -R ./shots -o ./out
+```
+
+Without Homebrew, from this repo: `pnpm install && pnpm --filter gainmap build`. Full flags, Docker, and requirements: [docs/cli.md](docs/cli.md).
