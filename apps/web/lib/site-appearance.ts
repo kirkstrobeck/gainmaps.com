@@ -101,7 +101,7 @@ export function writeSiteAppearance(next: SiteAppearance): void {
 
 export function appearanceHref(path: string, appearance: SiteAppearance): string {
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
-  const url = new URL(path, "https://gainmaps.com");
+  const url = new URL(path, "https://www.gainmaps.com");
   url.searchParams.set("mode", appearance.mode);
   url.searchParams.set("ultra", appearance.ultra);
   if (appearance.intensity != null) url.searchParams.set("intensity", String(appearance.intensity));

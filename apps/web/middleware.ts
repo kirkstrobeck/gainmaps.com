@@ -3,29 +3,51 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseSiteMode, parseSiteUltra } from "@/lib/site-appearance";
 import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 
+const CANONICAL_HOST = "www.gainmaps.com";
+
 function clampIntensity(raw: string | undefined | null): number {
   const n = Number(raw ?? TEXT_ULTRA_SLIDER_DEFAULT);
   if (!Number.isFinite(n)) return TEXT_ULTRA_SLIDER_DEFAULT;
   return Math.min(100, Math.max(0, Math.round(n)));
 }
 
-export function middleware(request: NextRequest) {
-  const url = request.nextUrl;
-  const hostname = request.headers.get("host") ?? "";
+function hostName(header: string): string {
+  return header.split(":")[0]?.toLowerCase() ?? "";
+}
 
+function redirectToCanonical(request: NextRequest, hostname: string): NextResponse | null {
   if (/^light\./i.test(hostname)) {
-    const dest = new URL(request.url);
-    dest.hostname = hostname.replace(/^light\./i, "");
+    const dest = request.nextUrl.clone();
+    dest.protocol = "https:";
+    dest.port = "";
+    dest.hostname = CANONICAL_HOST;
     dest.searchParams.set("mode", "light");
     return NextResponse.redirect(dest, 308);
   }
   if (/^dark\./i.test(hostname)) {
-    const dest = new URL(request.url);
-    dest.hostname = hostname.replace(/^dark\./i, "");
+    const dest = request.nextUrl.clone();
+    dest.protocol = "https:";
+    dest.port = "";
+    dest.hostname = CANONICAL_HOST;
     dest.searchParams.set("mode", "dark");
     return NextResponse.redirect(dest, 308);
   }
+  if (hostname === "gainmaps.com") {
+    const dest = request.nextUrl.clone();
+    dest.protocol = "https:";
+    dest.port = "";
+    dest.hostname = CANONICAL_HOST;
+    return NextResponse.redirect(dest, 308);
+  }
+  return null;
+}
 
+export function middleware(request: NextRequest) {
+  const hostname = hostName(request.headers.get("host") ?? "");
+  const hostRedirect = redirectToCanonical(request, hostname);
+  if (hostRedirect) return hostRedirect;
+
+  const url = request.nextUrl;
   const modeParam = url.searchParams.get("mode");
   const existingMode = request.cookies.get("site-mode")?.value;
   const mode = parseSiteMode(

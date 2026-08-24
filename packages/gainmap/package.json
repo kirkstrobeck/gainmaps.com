@@ -4,8 +4,13 @@
   "description": "Convert images to Ultra HDR JPEG gain maps",
   "license": "MIT",
   "author": "Kirk Strobeck <kirk@strobeck.com>",
-  "repository": "https://github.com/kirkstrobeck/gainmaps.com",
-  "homepage": "https://gainmaps.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kirkstrobeck/gainmaps.com.git",
+    "directory": "packages/gainmap"
+  },
+  "homepage": "https://www.gainmaps.com",
+  "bugs": "https://github.com/kirkstrobeck/gainmaps.com/issues",
   "type": "module",
   "bin": {
     "gainmap": "./dist/cli.js"
@@ -13,17 +18,19 @@
   "files": [
     "dist",
     "test/fixtures",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "CONTRIBUTING.md"
   ],
   "exports": {
     ".": "./dist/cli.js",
     "./encode": "./src/encode.ts"
   },
   "imports": {
-    "#src/*": "./src/*"
+    "#src/*": "./dist/*"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=24"
   },
   "scripts": {
     "build": "tsc",

@@ -19,7 +19,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gainmaps.com"),
+  metadataBase: new URL("https://www.gainmaps.com"),
   title: "Gainmaps",
   description:
     "Batch process photos in the browser into gain map images. Local, private, no upload.",
