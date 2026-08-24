@@ -24,7 +24,7 @@
   ],
   "exports": {
     ".": "./dist/cli.js",
-    "./encode": "./src/encode.ts"
+    "./encode": "./dist/encode.js"
   },
   "imports": {
     "#src/*": "./dist/*"

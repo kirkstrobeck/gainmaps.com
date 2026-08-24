@@ -25,10 +25,9 @@ const FRAME: Record<PhotoPairSize, string> = {
  * Standard goes through next/image against images.unsplash.com — the optimizer
  * may transcode to WebP/AVIF; that is fine for SDR.
  *
- * Ultra MUST set unoptimized={true}. The Next.js image optimizer re-encodes
- * JPEGs and strips the gain map (ISO 21496 / Ultra HDR) that makes the right
- * tile worth showing. unoptimized still uses next/image for layout, lazy
- * loading, and sizes; the local gainmap JPEG bytes pass through unchanged.
+ * Ultra uses a raw <img> to preserve the gain map payload (ISO 21496-1 /
+ * Ultra HDR). The Next.js image optimizer re-encodes JPEGs and strips the
+ * secondary gain map image.
  */
 export function PhotoPair({ photo, size, priority = false }: { photo: Photo; size: PhotoPairSize; priority?: boolean }) {
   return (
@@ -146,7 +145,8 @@ function PhotoImage({
         src={src}
         alt={alt}
         className="gainmap-image absolute inset-0 size-full object-cover"
-        loading="lazy"
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
         decoding="async"
       />
     );
