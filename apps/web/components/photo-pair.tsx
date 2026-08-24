@@ -102,25 +102,16 @@ function PhotoTile({
   priority?: boolean;
 }) {
   return (
-    <figure className="group m-0 grid gap-0">
+    <figure className="m-0 grid gap-0">
       <div
         className={`relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] ${FRAME[size]}`}
       >
         <PhotoImage src={src} alt={alt} size={size} optimized={optimized} priority={priority} />
-        {/* hover-reveal label */}
-        <figcaption
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 left-0 right-0 translate-y-0.5 bg-gradient-to-t from-[var(--background)]/70 to-transparent px-2.5 pb-2 pt-6 text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--foreground)] opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          {label}
-        </figcaption>
       </div>
-      {/* visible label only on detail size */}
-      {size === "detail" && (
-        <p className="mt-1.5 text-center text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--muted)]">
-          {label}
-        </p>
-      )}
+      {/* Always-visible label — accessible at both card and detail sizes */}
+      <figcaption className="mt-1.5 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--muted)]">
+        {label}
+      </figcaption>
     </figure>
   );
 }
@@ -158,7 +149,7 @@ function PhotoImage({
       alt={alt}
       fill
       sizes={TILE_SIZES[size]}
-      quality={80}
+      quality={75}
       priority={priority}
       className="object-cover"
     />

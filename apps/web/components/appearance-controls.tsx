@@ -1,6 +1,6 @@
 "use client";
 
-import { MoonFilled, SunFilled } from "@mingcute/react/core-filled";
+import { DarkModeIcon as MoonFilled, LightModeIcon as SunFilled } from "@/components/icons";
 import { useEffect, useState } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";
@@ -39,7 +39,7 @@ const LIGHT_PIGMENTS = {
   "--panel":             { sdr: "#ffffff", r: 255,  g: 255,  b: 255  },
   "--panel-strong":      { sdr: "#e8edf2", r: 0xe8, g: 0xed, b: 0xf2 },
   "--accent":            { sdr: "#c4723a", r: 0xc4, g: 0x72, b: 0x3a },
-  "--accent-foreground": { sdr: "#ffffff", r: 255,  g: 255,  b: 255  },
+  "--accent-foreground": { sdr: "#1a1d21", r: 26,   g: 29,   b: 33   },
   "--appearance-bg":     { sdr: "#f4f6f8", r: 0xf4, g: 0xf6, b: 0xf8 },
   "--appearance-elevated":{ sdr: "#ffffff", r: 255,  g: 255,  b: 255  },
 } as const satisfies Record<string, Pigment>;
@@ -52,7 +52,7 @@ const DARK_PIGMENTS = {
   "--panel":             { sdr: "#1c2026", r: 0x1c, g: 0x20, b: 0x26 },
   "--panel-strong":      { sdr: "#252b33", r: 0x25, g: 0x2b, b: 0x33 },
   "--accent":            { sdr: "#c4723a", r: 0xc4, g: 0x72, b: 0x3a },
-  "--accent-foreground": { sdr: "#ffffff", r: 255,  g: 255,  b: 255  },
+  "--accent-foreground": { sdr: "#1a1d21", r: 26,   g: 29,   b: 33   },
   "--appearance-bg":     { sdr: "#000000", r: 0,    g: 0,    b: 0    },
   "--appearance-elevated":{ sdr: "#1c2026", r: 0x1c, g: 0x20, b: 0x26 },
 } as const satisfies Record<string, Pigment>;

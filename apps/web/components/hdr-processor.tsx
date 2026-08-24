@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  ArrowDownFilled,
-  CheckFilled,
-  ClockFilled,
-  FileFilled,
-  FileUploadFilled,
-  LockFilled,
-  Refresh1Filled,
-  SafeShieldFilled,
-  SparklesFilled,
-  CloseFilled,
-} from "@mingcute/react/core-filled";
+  ArrowDownwardIcon as ArrowDownFilled,
+  CheckIcon as CheckFilled,
+  ScheduleIcon as ClockFilled,
+  DescriptionIcon as FileFilled,
+  UploadFileIcon as FileUploadFilled,
+  LockIcon as LockFilled,
+  RefreshIcon as Refresh1Filled,
+  VerifiedUserIcon as SafeShieldFilled,
+  AutoAwesomeIcon as SparklesFilled,
+  CloseIcon as CloseFilled,
+} from "@/components/icons";
 import type { DragEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 

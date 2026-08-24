@@ -1,6 +1,6 @@
 "use client";
 
-import { MoonFilled, SunFilled } from "@mingcute/react/core-filled";
+import { DarkModeIcon as MoonFilled, LightModeIcon as SunFilled } from "@/components/icons";
 import { useSyncExternalStore, type ReactNode } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";

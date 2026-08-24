@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { LogoPair } from "@/components/logo-pair";
+import { LogosGrid } from "@/components/logos-grid";
 import { PageChrome } from "@/components/page-chrome";
 import { COMPANIES } from "@/lib/logos/companies";
 
@@ -26,26 +26,7 @@ export default function Base() {
           </p>
         </header>
 
-        <ul className="mt-10 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {COMPANIES.map((company) => (
-            <li key={company.slug}>
-              <a
-                href={`/logos/${company.slug}`}
-                className="group grid gap-3 rounded-[var(--radius)] border border-[var(--border)] p-4 transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-              >
-                <LogoPair company={company} size="card" />
-                <div className="flex items-baseline justify-between px-0.5">
-                  <span className="text-xs font-semibold text-[var(--foreground)]">
-                    {company.name}
-                  </span>
-                  <span className="font-mono text-[10px] text-[var(--muted)]">
-                    #{company.rank}
-                  </span>
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <LogosGrid companies={COMPANIES} />
       </div>
     </main>
   );

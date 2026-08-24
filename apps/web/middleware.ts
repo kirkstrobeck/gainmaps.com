@@ -70,9 +70,19 @@ export function middleware(request: NextRequest) {
   requestHeaders.set("x-site-intensity", String(intensity));
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.cookies.set("site-mode", mode, { path: "/", sameSite: "lax" });
-  response.cookies.set("site-ultra", ultra, { path: "/", sameSite: "lax" });
-  response.cookies.set("site-intensity", String(intensity), { path: "/", sameSite: "lax" });
+
+  // Only set cookies when the value changes — prevents no-store Cache-Control
+  // on every request, which would disqualify pages from the back/forward cache.
+  if (existingMode !== mode) {
+    response.cookies.set("site-mode", mode, { path: "/", sameSite: "lax" });
+  }
+  if (existingUltra !== ultra) {
+    response.cookies.set("site-ultra", ultra, { path: "/", sameSite: "lax" });
+  }
+  if (existingIntensity !== String(intensity)) {
+    response.cookies.set("site-intensity", String(intensity), { path: "/", sameSite: "lax" });
+  }
+
   return response;
 }
 

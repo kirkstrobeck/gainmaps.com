@@ -1,16 +1,16 @@
 "use client";
 
 import {
-  AwardFilled,
-  CommentFilled,
-  FileFilled,
-  GithubFilled,
-  LightningFilled,
-  PaletteFilled,
-  PicFilled,
-  TextFilled,
-  TransferFilled,
-} from "@mingcute/react/core-filled";
+  StarsIcon as AwardFilled,
+  ForumIcon as CommentFilled,
+  DescriptionIcon as FileFilled,
+  GitHubIcon as GithubFilled,
+  BoltIcon as LightningFilled,
+  PaletteIcon as PaletteFilled,
+  PhotoIcon as PicFilled,
+  TextFieldsIcon as TextFilled,
+  SwapHorizIcon as TransferFilled,
+} from "@/components/icons";
 import { usePathname } from "next/navigation";
 import { type ComponentType, type SVGProps } from "react";
 
@@ -75,6 +75,7 @@ export function SiteNav() {
                 key={link.href}
                 href={appearanceHref(link.href, appearance)}
                 aria-current={active ? "page" : undefined}
+                aria-label={link.label}
                 className={cn(
                   link.linkCls,
                   "items-center gap-1.5 rounded-[var(--radius)] px-2 py-1.5 font-medium transition",
@@ -87,7 +88,7 @@ export function SiteNav() {
                 <UltraIcon size={15}>
                   <link.Icon />
                 </UltraIcon>
-                <span className={link.textCls}>{link.label}</span>
+                <span className={link.textCls} aria-hidden>{link.label}</span>
               </a>
             );
           })}

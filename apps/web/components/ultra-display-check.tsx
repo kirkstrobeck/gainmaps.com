@@ -1,6 +1,6 @@
 "use client";
 
-import { LightningFilled } from "@mingcute/react/core-filled";
+import { BoltIcon as LightningFilled } from "@/components/icons";
 
 import { UltraIcon } from "@/components/ultra-icon";
 

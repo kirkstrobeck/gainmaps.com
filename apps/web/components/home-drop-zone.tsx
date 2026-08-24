@@ -1,6 +1,6 @@
 "use client";
 
-import { FileUploadFilled } from "@mingcute/react/core-filled";
+import { UploadFileIcon as FileUploadFilled } from "@/components/icons";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState } from "react";
 

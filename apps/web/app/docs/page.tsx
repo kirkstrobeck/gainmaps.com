@@ -1,16 +1,16 @@
 import {
-  ArrowRightFilled,
-  BookmarkFilled,
-  ExternalLinkFilled,
-  LayersFilled,
-  LightningFilled,
-  LockFilled,
-  PicFilled,
-  ShieldFilled,
-  SparklesFilled,
-  SunFilled,
-  TransferFilled,
-} from "@mingcute/react/core-filled";
+  ArrowForwardIcon as ArrowRightFilled,
+  BookmarkIcon as BookmarkFilled,
+  OpenInNewIcon as ExternalLinkFilled,
+  LayersIcon as LayersFilled,
+  BoltIcon as LightningFilled,
+  LockIcon as LockFilled,
+  PhotoIcon as PicFilled,
+  VerifiedUserIcon as ShieldFilled,
+  AutoAwesomeIcon as SparklesFilled,
+  LightModeIcon as SunFilled,
+  SwapHorizIcon as TransferFilled,
+} from "@/components/icons";
 
 import { PageChrome } from "@/components/page-chrome";
 import { UltraIcon } from "@/components/ultra-icon";

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArrowLeftFilled, ArrowRightFilled } from "@mingcute/react/core-filled";
+import { ArrowBackIcon as ArrowLeftFilled, ArrowForwardIcon as ArrowRightFilled } from "@/components/icons";
 
 import { PageChrome } from "@/components/page-chrome";
 import { PhotoCredit, PhotoPair } from "@/components/photo-pair";

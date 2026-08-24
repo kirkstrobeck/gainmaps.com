@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { DM_Sans, Syne } from "next/font/google";
-import { cookies, headers } from "next/headers";
 
 import "./globals.css";
 import { SiteAppearanceProvider } from "@/components/site-appearance-provider";
-import { parseSiteMode, parseSiteUltra } from "@/lib/site-appearance";
+import { DEFAULT_SITE_MODE, DEFAULT_SITE_ULTRA } from "@/lib/site-appearance";
 import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 
 const syne = Syne({
@@ -23,13 +22,11 @@ export const metadata: Metadata = {
   title: "Gainmaps",
   description:
     "Batch process photos in the browser into gain map images. Local, private, no upload.",
+  icons: {
+    // Minimal inline favicon to avoid the browser's automatic /favicon.ico 404 request.
+    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23c4723a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='11' font-family='system-ui' fill='white'>G</text></svg>",
+  },
 };
-
-function clampIntensity(raw: string | undefined): number {
-  const n = Number(raw ?? TEXT_ULTRA_SLIDER_DEFAULT);
-  if (!Number.isFinite(n)) return TEXT_ULTRA_SLIDER_DEFAULT;
-  return Math.min(100, Math.max(0, Math.round(n)));
-}
 
 const ultraBootScript = `(function(){
   var cookie=function(n){var m=document.cookie.match(new RegExp("(?:^|; )"+n+"=([^;]*)"));return m?decodeURIComponent(m[1]):""};
@@ -39,14 +36,14 @@ const ultraBootScript = `(function(){
   document.documentElement.dataset.mode=mode;
 })();`;
 
-export default async function Base({ children }: Readonly<{ children: React.ReactNode }>) {
-  const jar = await cookies();
-  const headerStore = await headers();
-  const mode = parseSiteMode(headerStore.get("x-site-mode") ?? jar.get("site-mode")?.value);
-  const ultra = parseSiteUltra(headerStore.get("x-site-ultra") ?? jar.get("site-ultra")?.value);
-  const intensity = clampIntensity(
-    headerStore.get("x-site-intensity") ?? jar.get("site-intensity")?.value,
-  );
+export default function Base({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Always render SSR shell with defaults. ultraBootScript (in <head>) reads cookies
+  // synchronously before CSS paint and corrects data-mode/data-ultra/data-intensity.
+  // suppressHydrationWarning keeps the script-corrected DOM values during hydration.
+  // Avoids calling headers()/cookies() so Next.js can serve this page without no-store.
+  const mode = DEFAULT_SITE_MODE;
+  const ultra = DEFAULT_SITE_ULTRA;
+  const intensity = TEXT_ULTRA_SLIDER_DEFAULT;
 
   return (
     <html
@@ -60,11 +57,13 @@ export default async function Base({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
       <body className={`${syne.variable} ${dmSans.variable}`}>
-        <SiteAppearanceProvider initial={{ mode, ultra }}>{children}</SiteAppearanceProvider>
+        <SiteAppearanceProvider initial={{ mode, ultra }}>
+          {children}
+        </SiteAppearanceProvider>
         <footer className="border-t border-[var(--border)] py-4 text-center">
           <a
             href="https://www.linkedin.com/in/kirkstrobeck"
-            className="text-xs text-[var(--foreground-muted,var(--foreground))] opacity-60 transition hover:opacity-100 hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+            className="text-xs text-[var(--muted)] transition hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
           >
             Made by Kirk Strobeck
           </a>

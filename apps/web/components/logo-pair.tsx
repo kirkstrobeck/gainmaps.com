@@ -68,7 +68,7 @@ function LogoTile({
           decoding="async"
         />
       </div>
-      <figcaption className="text-center text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--muted)]">
+      <figcaption className="text-center text-xs font-medium uppercase tracking-[0.1em] text-[var(--muted)]">
         {label}
       </figcaption>
     </figure>

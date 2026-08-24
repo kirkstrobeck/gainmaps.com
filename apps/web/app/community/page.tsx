@@ -1,4 +1,4 @@
-import { ArrowRightFilled, CommentFilled } from "@mingcute/react/core-filled";
+import { ArrowForwardIcon as ArrowRightFilled, ForumIcon as CommentFilled } from "@/components/icons";
 
 import { CommunityComments } from "@/components/community-comments";
 import { PageChrome } from "@/components/page-chrome";

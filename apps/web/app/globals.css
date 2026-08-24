@@ -10,7 +10,7 @@
   --panel: #ffffff;
   --panel-strong: #e8edf2;
   --accent: #c4723a;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #1a1d21;
   --danger: #c0392b;
   --success: #2e7d5a;
   --radius: 10px;
@@ -24,21 +24,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #14171b;
+    --background: #0e1115;
     --foreground: #eef1f4;
     --muted: #8b939e;
-    --border: #2a3038;
-    --panel: #1c2026;
-    --panel-strong: #252b33;
+    --border: #232a32;
+    --panel: #161b21;
+    --panel-strong: #1e262f;
     --accent: #c4723a;
-    --accent-foreground: #ffffff;
+    --accent-foreground: #1a1d21;
     --danger: #e57373;
     --success: #6bcb9a;
     --wash-top: color-mix(in srgb, var(--accent) 12%, transparent);
     --hdr-white: #eef1f4;
     --hdr-accent: #c4723a;
-    --checker-a: #252b33;
-    --checker-b: #1c2026;
+    --checker-a: #1e262f;
+    --checker-b: #161b21;
   }
 }
 
@@ -51,7 +51,7 @@ html[data-mode="light"] {
   --panel: #ffffff;
   --panel-strong: #e8edf2;
   --accent: #c4723a;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #1a1d21;
   --danger: #c0392b;
   --success: #2e7d5a;
   --checker-a: #e8edf2;
@@ -60,18 +60,19 @@ html[data-mode="light"] {
 
 html[data-mode="dark"] {
   color-scheme: dark;
-  --background: #14171b;
+  /* Darkroom: deeper black ground — ramp shifted uniformly */
+  --background: #0e1115;
   --foreground: #eef1f4;
   --muted: #8b939e;
-  --border: #2a3038;
-  --panel: #1c2026;
-  --panel-strong: #252b33;
+  --border: #232a32;
+  --panel: #161b21;
+  --panel-strong: #1e262f;
   --accent: #c4723a;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #1a1d21;
   --danger: #e57373;
   --success: #6bcb9a;
-  --checker-a: #252b33;
-  --checker-b: #1c2026;
+  --checker-a: #1e262f;
+  --checker-b: #161b21;
 }
 
 html {
@@ -392,7 +393,7 @@ html[data-ultra="on"] ::selection {
   --panel: #ffffff;
   --panel-strong: #e8edf2;
   --accent: #c4723a;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #1a1d21;
   --appearance-bg: #f4f6f8;
   --appearance-elevated: #ffffff;
   --appearance-fill: rgb(92 101 112 / 0.14);
@@ -407,7 +408,7 @@ html[data-ultra="on"] ::selection {
   --panel: #1c2026;
   --panel-strong: #252b33;
   --accent: #c4723a;
-  --accent-foreground: #ffffff;
+  --accent-foreground: #1a1d21;
   --appearance-bg: #14171b;
   --appearance-elevated: #1c2026;
   --appearance-fill: rgb(139 147 158 / 0.22);

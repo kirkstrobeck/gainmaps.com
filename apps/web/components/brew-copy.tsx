@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckFilled, CopyFilled, TerminalBoxFilled } from "@mingcute/react/core-filled";
+import { CheckIcon as CheckFilled, ContentCopyIcon as CopyFilled, TerminalIcon as TerminalBoxFilled } from "@/components/icons";
 import { useCallback, useState } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";
