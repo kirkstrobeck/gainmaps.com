@@ -1,18 +1,12 @@
-import Image from "next/image";
-
 import { BoltIcon, ThumbUpIcon } from "@/components/icons";
 import { BrewCopy } from "@/components/brew-copy";
 import { UltraDisplayCheck } from "@/components/ultra-display-check";
-import { ImageComparePair } from "@/components/compare-pair";
 import { HomeDropZone } from "@/components/home-drop-zone";
-import { PhotoCredit, PhotoPair } from "@/components/photo-pair";
 import { SiteNav } from "@/components/site-nav";
 import { UltraIcon } from "@/components/ultra-icon";
-import { UltraWord } from "@/components/ultra-word";
 import { BRAND_NAMES } from "@/lib/brand-names";
 import { COMPANIES } from "@/lib/logos/companies";
-import { PHOTOS, photoBySlug, photoStandardSrc } from "@/lib/photos/catalog";
-import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
+import { PHOTOS, photoBySlug } from "@/lib/photos/catalog";
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 
@@ -23,8 +17,10 @@ const PHOTO_PEEK = PHOTOS.slice(1, 4);
 const PRODUCT_HUNT_URL = "PLACEHOLDER";
 
 export default function Base() {
+  // Lens-flare Yosemite shot: bright sun creates obvious specular highlights
+  // that glows visibly in Ultra vs clipped Standard.
   const comparePhoto =
-    photoBySlug("zebras-in-a-golden-sunlit-grassy-field") ?? PHOTOS[0];
+    photoBySlug("low-sun-with-lens-flare-over-a-forested-valley-and-granite-c") ?? PHOTOS[0];
 
   return (
     <main>
@@ -32,9 +28,11 @@ export default function Base() {
         Skip to content
       </a>
       <SiteNav />
-      <UltraDisplayCheck />
 
       <HeroSection comparePhoto={comparePhoto} />
+
+      {/* Display check below the fold — not between nav and wordmark */}
+      <UltraDisplayCheck />
 
       <div id="main-content">
         {/* ── Try it — conversion CTA ── */}
@@ -42,7 +40,7 @@ export default function Base() {
           <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <h2 className="font-display text-2xl font-bold">Try it</h2>
             <p className="mt-2 max-w-md text-sm leading-6 text-[var(--muted)]">
-              Drop a photo. Get a gain map image. Everything runs in your browser.
+              Drop an image. Get a gain map image. Everything runs in your browser.
             </p>
             <div className="mt-6 max-w-md">
               <HomeDropZone />

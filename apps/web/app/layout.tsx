@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import { Archivo, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 import { SiteAppearanceProvider } from "@/components/site-appearance-provider";
 import { DEFAULT_SITE_MODE, DEFAULT_SITE_ULTRA } from "@/lib/site-appearance";
 import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 
-const syne = Syne({
-  variable: "--font-syne",
+const archivo = Archivo({
+  variable: "--font-archivo",
   subsets: ["latin"],
-  weight: ["700", "800"],
+  axes: ["wdth"],
 });
 
-const dmSans = DM_Sans({
-  variable: "--font-dm-sans",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  weight: ["400", "500"],
 });
 
 export const metadata: Metadata = {
@@ -56,7 +57,7 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
       <head>
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
-      <body className={`${syne.variable} ${dmSans.variable}`}>
+      <body className={`${archivo.variable} ${jetbrainsMono.variable}`}>
         <SiteAppearanceProvider initial={{ mode, ultra }}>
           {children}
         </SiteAppearanceProvider>

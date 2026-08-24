@@ -1,61 +1,111 @@
-import { BoltIcon } from "@/components/icons";
-import { PhotoCredit, PhotoPair } from "@/components/photo-pair";
+"use client";
+
+import { useCallback, useState } from "react";
+
+import { ContentCopyIcon as CopyIcon, CheckIcon } from "@/components/icons";
+import { PhotoCredit } from "@/components/photo-pair";
+import { SeamComparePhoto, SeamCompareType } from "@/components/seam-compare";
 import { UltraIcon } from "@/components/ultra-icon";
 import { UltraWord } from "@/components/ultra-word";
 import type { Photo } from "@/lib/photos/catalog";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
+import { cn } from "@/lib/utils";
 
-const ULTRA_TYPE = "font-display text-5xl font-bold sm:text-6xl lg:text-7xl";
-const TEXT_COMPARE_TYPE = "font-display text-4xl font-bold sm:text-5xl";
+const H1_CLASS = "font-display text-[46px] font-[640] leading-[0.94] tracking-[-0.02em] [font-variation-settings:'wdth'_96] lg:text-[78px]";
+const TYPE_CLASS = "font-display text-3xl font-[640] [font-variation-settings:'wdth'_96] lg:text-4xl";
+const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
+
+function NpxCopy() {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(async () => {
+    await navigator.clipboard.writeText("npx gainmap ./photos");
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, []);
+
+  return (
+    <button
+      type="button"
+      onClick={copy}
+      title="Copy npx command"
+      className={cn(
+        "inline-flex h-11 items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-transparent px-4 font-mono text-sm text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--foreground)]",
+        FOCUS,
+      )}
+    >
+      <code>npx gainmap ./photos</code>
+      <UltraIcon size={14}>
+        {copied ? <CheckIcon /> : <CopyIcon />}
+      </UltraIcon>
+    </button>
+  );
+}
 
 export function HeroSection({ comparePhoto }: { comparePhoto: Photo }) {
   return (
-    <section
-      aria-label="Hero"
-      className="hero-stage mx-auto flex min-h-[calc(100dvh-7rem)] max-w-4xl flex-col items-center justify-center gap-6 px-4 py-8 text-center sm:px-6 lg:px-8"
-    >
-      {/* Eyebrow */}
-      <div className="flex items-center gap-3">
-        <span className="site-mark flex size-11 items-center justify-center rounded-[var(--radius)] bg-[var(--accent)] text-[var(--accent-foreground)] transition">
-          <UltraIcon size={22}>
-            <BoltIcon />
-          </UltraIcon>
-        </span>
-        <p className="text-xs font-medium uppercase tracking-[0.14em] text-[var(--accent)]">
-          Brighter than white
-        </p>
-      </div>
+    <section aria-label="Hero" className="hero-stage">
+      {/*
+        Mobile: flex-col with order properties so photo sits between actions and type.
+        Desktop: 2-col grid, left groups span 3 rows with stretch, photo col 2 spans all.
+      */}
+      <div className={cn(
+        "flex flex-col gap-4 px-4 pt-6 sm:px-8",
+        "lg:grid lg:grid-cols-[380px_1fr] lg:grid-rows-[auto_auto_1fr] lg:gap-x-[56px] lg:gap-y-8 lg:px-16 lg:pt-10",
+      )}>
 
-      {/* Headline */}
-      <h1 className="flex flex-wrap items-baseline justify-center gap-x-2">
-        <UltraWord word="Gain" typeClassName={ULTRA_TYPE} intensity={TEXT_ULTRA_INTENSITY} />
-        <UltraWord word="maps" typeClassName={ULTRA_TYPE} intensity={TEXT_ULTRA_INTENSITY} />
-      </h1>
-
-      {/* Tagline */}
-      <p className="max-w-md text-base leading-7 text-[var(--muted)] sm:text-lg">
-        One file. Two renderers. Standard clips highlights. Ultra unlocks them.
-      </p>
-
-      {/* Side-by-side proofs — text + photo, both above the fold */}
-      <div className="grid w-full max-w-3xl items-start gap-8 sm:grid-cols-2">
-        <div className="grid justify-items-center gap-3">
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Text</p>
-          <div className="grid grid-cols-2 gap-6">
-            <div className="grid gap-2">
-              <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Standard</p>
-              <p className={`${TEXT_COMPARE_TYPE} text-[var(--foreground)]`}>Ultra</p>
-            </div>
-            <div className="grid gap-2">
-              <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Ultra</p>
-              <UltraWord word="Ultra" typeClassName={TEXT_COMPARE_TYPE} intensity={TEXT_ULTRA_INTENSITY} />
-            </div>
-          </div>
+        {/* Group 1: eyebrow, h1, deck */}
+        <div className="order-1 grid gap-4 lg:order-none lg:col-start-1 lg:row-start-1">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
+            Brighter than white
+          </p>
+          <h1 className={`${H1_CLASS} text-balance text-[var(--foreground)]`}>
+            <UltraWord word="Gain" typeClassName={H1_CLASS} intensity={TEXT_ULTRA_INTENSITY} />
+            {" "}
+            <UltraWord word="maps." typeClassName={H1_CLASS} intensity={TEXT_ULTRA_INTENSITY} />
+          </h1>
+          <p className="max-w-[31ch] text-[17px] leading-[1.55] text-[var(--muted)]">
+            One file. Two renderers. Standard clips highlights. Ultra unlocks them.
+          </p>
         </div>
-        <div className="flex w-full flex-col items-center gap-2">
-          <p className="text-xs font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Photo</p>
-          <PhotoPair photo={comparePhoto} size="card" priority />
+
+        {/* Group 2: actions */}
+        <div className="order-2 flex flex-wrap items-center gap-3 lg:order-none lg:col-start-1 lg:row-start-2 lg:self-center">
+          <a
+            href="/convert"
+            className={cn(
+              "inline-flex h-11 items-center rounded-[var(--radius)] bg-[var(--accent)] px-5 text-sm font-semibold text-[var(--accent-foreground)] transition hover:opacity-90",
+              FOCUS,
+            )}
+          >
+            Convert an image
+          </a>
+          <NpxCopy />
+        </div>
+
+        {/* Photo instrument — col 2 spans all rows on desktop, order 3 on mobile */}
+        <div className="order-3 grid content-start gap-2 lg:order-none lg:col-start-2 lg:row-span-3 lg:row-start-1">
+          <SeamComparePhoto
+            photo={comparePhoto}
+            width="100%"
+            className="h-[234px] lg:h-[596px]"
+          />
           <PhotoCredit photo={comparePhoto} />
+        </div>
+
+        {/* Group 3: type instrument */}
+        <div className="order-4 grid gap-3 lg:order-none lg:col-start-1 lg:row-start-3 lg:self-end">
+          <hr className="border-[var(--border)]" />
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--muted)]">
+            Type
+          </p>
+          <SeamCompareType
+            typeClassName={TYPE_CLASS}
+            width="100%"
+            className="h-[108px] lg:h-[132px]"
+          />
+          <p className="hidden text-xs text-[var(--muted)] lg:block">
+            Same text, same display — left is SDR white, right is Ultra.
+          </p>
         </div>
       </div>
     </section>

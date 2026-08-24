@@ -3,14 +3,19 @@
 @source ".";
 
 :root {
-  --background: #f4f6f8;
-  --foreground: #1a1d21;
-  --muted: #5c6570;
-  --border: #d8dee4;
-  --panel: #ffffff;
-  --panel-strong: #e8edf2;
-  --accent: #c4723a;
-  --accent-foreground: #1a1d21;
+  /* Light-mode values — warm parchment ground, darker copper */
+  --background: #f2efe9;
+  --foreground: #17191c;
+  --muted: #5b6068;
+  --border: #d4cec2;
+  --panel: #e9e5dd;
+  --panel-strong: #dedad1;
+  /* Copper #8a4a1f on #f2efe9 = 5.99:1 (WCAG AA+) */
+  --accent: #8a4a1f;
+  --accent-foreground: #fbf8f3;
+  /* Instrument shell: always dark regardless of mode */
+  --inst-bg: #0b0e12;
+  --inst-line: #c8c2b5;
   --danger: #c0392b;
   --success: #2e7d5a;
   --radius: 10px;
@@ -25,17 +30,19 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0e1115;
-    --foreground: #eef1f4;
-    --muted: #8b939e;
+    --foreground: #f4f1ec;
+    --muted: #8f9aa4;
     --border: #232a32;
     --panel: #161b21;
     --panel-strong: #1e262f;
     --accent: #c4723a;
-    --accent-foreground: #1a1d21;
+    --accent-foreground: #14171b;
+    --inst-bg: #0b0e12;
+    --inst-line: #232a32;
     --danger: #e57373;
     --success: #6bcb9a;
     --wash-top: color-mix(in srgb, var(--accent) 12%, transparent);
-    --hdr-white: #eef1f4;
+    --hdr-white: #f4f1ec;
     --hdr-accent: #c4723a;
     --checker-a: #1e262f;
     --checker-b: #161b21;
@@ -44,33 +51,41 @@
 
 html[data-mode="light"] {
   color-scheme: light;
-  --background: #f4f6f8;
-  --foreground: #1a1d21;
-  --muted: #5c6570;
-  --border: #d8dee4;
-  --panel: #ffffff;
-  --panel-strong: #e8edf2;
-  --accent: #c4723a;
-  --accent-foreground: #1a1d21;
+  --background: #f2efe9;
+  --foreground: #17191c;
+  --muted: #5b6068;
+  --border: #d4cec2;
+  --panel: #e9e5dd;
+  --panel-strong: #dedad1;
+  /* #8a4a1f on #f2efe9 = 5.99:1 */
+  --accent: #8a4a1f;
+  --accent-foreground: #fbf8f3;
+  --inst-bg: #0b0e12;
+  --inst-line: #c8c2b5;
   --danger: #c0392b;
   --success: #2e7d5a;
+  --hdr-white: #ffffff;
+  --hdr-accent: #c4723a;
   --checker-a: #e8edf2;
   --checker-b: #d8dee4;
 }
 
 html[data-mode="dark"] {
   color-scheme: dark;
-  /* Darkroom: deeper black ground — ramp shifted uniformly */
   --background: #0e1115;
-  --foreground: #eef1f4;
-  --muted: #8b939e;
+  --foreground: #f4f1ec;
+  --muted: #8f9aa4;
   --border: #232a32;
   --panel: #161b21;
   --panel-strong: #1e262f;
   --accent: #c4723a;
-  --accent-foreground: #1a1d21;
+  --accent-foreground: #14171b;
+  --inst-bg: #0b0e12;
+  --inst-line: #232a32;
   --danger: #e57373;
   --success: #6bcb9a;
+  --hdr-white: #f4f1ec;
+  --hdr-accent: #c4723a;
   --checker-a: #1e262f;
   --checker-b: #161b21;
 }
@@ -130,13 +145,123 @@ body {
   background:
     linear-gradient(180deg, var(--wash-top), transparent 32rem),
     var(--background);
-  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
   line-height: 1.6;
   letter-spacing: 0;
 }
 
 .font-display {
-  font-family: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+}
+
+/* === Seam Instrument === */
+.inst {
+  position: relative;
+  overflow: hidden;
+  background: var(--inst-bg);
+  border: 1px solid var(--inst-line);
+  border-radius: 2px;
+  --seam-x: 50%;
+  touch-action: none;
+  user-select: none;
+}
+
+.inst-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inst-sdr {
+  clip-path: inset(0 calc(100% - var(--seam-x)) 0 0);
+}
+
+.inst-seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 1px;
+  background: rgba(244, 241, 236, 0.55);
+  transform: translateX(calc(var(--seam-x) - 0.5px));
+  pointer-events: none;
+}
+
+.inst-handle {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  background: rgba(11, 14, 18, 0.72);
+  border: 1px solid rgba(244, 241, 236, 0.55);
+  border-radius: 999px;
+  cursor: ew-resize;
+  transform: translate(calc(var(--seam-x) - 13px), -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inst-handle:focus-visible {
+  outline: 2px solid rgba(196, 114, 58, 0.8);
+  outline-offset: 2px;
+}
+
+.inst-tag {
+  position: absolute;
+  bottom: 8px;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(244, 241, 236, 0.65);
+  padding: 0 8px;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.inst-tag-std { left: 0; }
+.inst-tag-ultra { right: 0; }
+
+.inst-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #c4723a;
+  box-shadow: 0 0 8px #c4723a;
+  flex-shrink: 0;
+}
+
+/* Img fills for photo instrument */
+.inst-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Type inside the instrument — always white on dark inst-bg */
+.inst-type-std {
+  color: rgba(244, 241, 236, 0.9);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inst-sdr,
+  .inst-seam,
+  .inst-handle {
+    transition: none !important;
+  }
 }
 
 html[data-ultra="on"] .ultra-surface {
@@ -386,17 +511,17 @@ html[data-ultra="on"] ::selection {
 
 .appearance-lab[data-resolved="light"] {
   color-scheme: light;
-  --background: #f4f6f8;
-  --foreground: #1a1d21;
-  --muted: #5c6570;
-  --border: #d8dee4;
-  --panel: #ffffff;
-  --panel-strong: #e8edf2;
-  --accent: #c4723a;
-  --accent-foreground: #1a1d21;
-  --appearance-bg: #f4f6f8;
-  --appearance-elevated: #ffffff;
-  --appearance-fill: rgb(92 101 112 / 0.14);
+  --background: #f2efe9;
+  --foreground: #17191c;
+  --muted: #5b6068;
+  --border: #d4cec2;
+  --panel: #e9e5dd;
+  --panel-strong: #dedad1;
+  --accent: #8a4a1f;
+  --accent-foreground: #fbf8f3;
+  --appearance-bg: #f2efe9;
+  --appearance-elevated: #e9e5dd;
+  --appearance-fill: rgb(91 96 104 / 0.14);
 }
 
 .appearance-lab[data-resolved="dark"] {
@@ -438,6 +563,27 @@ html[data-ultra="on"] .ultra-fill {
 .ultra-backdrop {
   background: #ffffff;
   pointer-events: none;
+}
+
+/*
+  In light mode, UltraWord letterforms are white-on-white — invisible.
+  Suppress the fill canvas and shift the backdrop to foreground so the glyphs
+  read as dark text. UltraIcon keeps its white fill (it sits on coloured surfaces).
+*/
+html[data-mode="light"] .ultra-word > .ultra-backdrop {
+  background: var(--foreground);
+}
+html[data-mode="light"] .ultra-word > .ultra-fill {
+  opacity: 0;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-mode="dark"]) .ultra-word > .ultra-backdrop {
+    background: var(--foreground);
+  }
+  html:not([data-mode="dark"]) .ultra-word > .ultra-fill {
+    opacity: 0;
+  }
 }
 
 .ultra-fill[data-ultra-fill="unsupported"] {

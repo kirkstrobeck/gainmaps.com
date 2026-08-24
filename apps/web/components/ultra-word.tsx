@@ -26,7 +26,7 @@ export function UltraWord({ word, typeClassName, intensity }: Props) {
   const overlay = ultraOverlayGeometry();
 
   return (
-    <span className="relative inline-block">
+    <span className="ultra-word relative inline-block">
       <span className={`${typeClassName} text-transparent`}>{word}</span>
 
       {/*

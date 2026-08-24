@@ -52,12 +52,28 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               "script-src 'self' 'unsafe-inline'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://images.unsplash.com https://plus.unsplash.com",
+              "img-src 'self' data: blob: https://images.unsplash.com https://plus.unsplash.com",
               "font-src 'self'",
               "connect-src 'self' https://us.i.posthog.com",
               "worker-src 'self' blob:",
               "frame-src https://giscus.app",
               "frame-ancestors 'none'",
+            ].join("; "),
+          },
+        ],
+      },
+      {
+        // The bundled SW includes libheif-js which uses Function() for WASM init.
+        // This rule comes AFTER the wildcard so it overrides the wildcard CSP for this path.
+        source: "/hdr-service-worker.js",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "connect-src 'self'",
+              "worker-src 'self' blob:",
             ].join("; "),
           },
         ],

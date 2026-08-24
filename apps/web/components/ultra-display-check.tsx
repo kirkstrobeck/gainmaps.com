@@ -1,34 +1,46 @@
 "use client";
 
-import { BoltIcon as LightningFilled } from "@/components/icons";
+import { useSyncExternalStore } from "react";
+import { readSiteUltra, subscribeSiteAppearance, type SiteUltra } from "@/lib/site-appearance";
 
-import { UltraIcon } from "@/components/ultra-icon";
+function useSiteUltra(): SiteUltra {
+  return useSyncExternalStore(subscribeSiteAppearance, readSiteUltra, () => "on");
+}
 
 export function UltraDisplayCheck() {
+  const ultra = useSiteUltra();
+
   return (
-    <details open className="border-b border-[var(--border)]">
-      <summary className="cursor-pointer select-none px-4 py-2.5 text-xs font-medium uppercase tracking-[0.1em] text-[var(--muted)] transition hover:text-[var(--foreground)] sm:px-6 lg:px-8 [&::-webkit-details-marker]:hidden [&::marker]:hidden">
-        Display check
-      </summary>
-      <div className="mx-auto max-w-7xl px-4 pb-4 pt-1 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] px-5 py-4">
-          {/* Reference-white square — UltraIcon Lightning paints brighter than this on HDR */}
-          <div
-            className="flex shrink-0 items-center justify-center rounded-[calc(var(--radius)*0.6)]"
-            style={{ width: 52, height: 52, background: "#fff" }}
-          >
-            <UltraIcon size={26}>
-              <LightningFilled />
-            </UltraIcon>
-          </div>
-          <p className="text-sm leading-6 text-[var(--muted)]">
-            If you can see the{" "}
-            <strong className="font-semibold text-[var(--foreground)]">Lightning</strong> glowing
-            brighter than the white square, this display is capable of showing gainmaps. If not, try
-            on your phone or try on something else.
-          </p>
-        </div>
+    <div className="border-t border-[var(--border)] px-4 sm:px-8 lg:px-16">
+      <div className="flex h-10 items-center justify-between font-mono text-[12px] text-[var(--muted)]">
+        {ultra === "on" ? (
+          <>
+            <span className="flex items-center gap-3">
+              <span
+                className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--accent)]"
+                style={{ boxShadow: "0 0 9px var(--accent)" }}
+                aria-hidden
+              />
+              <span>
+                Your screen has the headroom.{" "}
+                <span className="text-[var(--foreground)]">You&apos;re seeing the real thing.</span>
+              </span>
+            </span>
+            <span className="hidden text-[var(--foreground)] sm:inline">1000 nits · Ultra on</span>
+          </>
+        ) : (
+          <>
+            <span className="flex items-center gap-3">
+              <span className="inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--muted)]" aria-hidden />
+              <span>
+                Your screen tops out at SDR.{" "}
+                <span className="text-[var(--foreground)]">Here&apos;s what you&apos;re missing.</span>
+              </span>
+            </span>
+            <span className="hidden text-[var(--foreground)] sm:inline">Ultra off</span>
+          </>
+        )}
       </div>
-    </details>
+    </div>
   );
 }

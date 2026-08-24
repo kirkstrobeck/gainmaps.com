@@ -71,7 +71,7 @@ export function HomeDropZone() {
 
       <div className="grid gap-1.5 text-center">
         <p className="text-base font-semibold text-[var(--foreground)]">
-          {dragActive ? "Release to convert" : "Drop a photo"}
+          {dragActive ? "Release to convert" : "Drop an image"}
         </p>
         <p className="text-[11px] tracking-[0.06em] text-[var(--muted)]">
           JPEG · PNG · WebP · AVIF · HEIC · SVG
