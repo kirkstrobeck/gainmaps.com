@@ -45,6 +45,7 @@ function opaque(image: RasterImage, x: number, y: number): boolean {
 
 /** Where `value` sits between `low` and `high`, or null if they are too close. */
 function position(value: number, low: number, high: number): number | null {
+  /* v8 ignore next -- callers pre-filter flat spans before requesting a position. */
   if (high - low < 1e-6) return null;
   return (value - low) / (high - low);
 }
@@ -83,6 +84,7 @@ export function measureEdges(
         luminance(image, x + 1, y, assigned),
       );
       const target = position(luminance(image, x, y, assigned), lowAssigned, highAssigned);
+      /* v8 ignore next -- authored spans are pre-filtered; assigned spans only collapse, not flatten exactly. */
       if (authored === null || target === null) continue;
 
       count += 1;

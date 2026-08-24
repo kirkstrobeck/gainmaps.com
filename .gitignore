@@ -9,13 +9,27 @@ playwright-report/
 **/playwright-report/
 *.tsbuildinfo
 
+# Logs
+*.log
+**/coverage/
+
+# Environment
+.env
+.env.*
+.env.production
+.env*.local
+!.env.example
+
+# macOS
+.DS_Store
+
 # Built service worker — regenerate with `pnpm --filter @ultra/web build:worker`.
 apps/web/public/hdr-service-worker.js
 
 # Window-gain calibration scratch + compiled Swift helpers
 tmp-window-gain/
 
-# foo.html Unsplash / Ultra HDR spike assets (regenerate locally)
+# Ultra HDR spike assets (regenerate locally)
 foo/assets/
 tools/window-gain/compare-hdr
 tools/window-gain/calibrate
@@ -34,3 +48,8 @@ fixtures/window/window.png
 *-tagged.jpg
 *-softened.png
 .vercel
+
+# sandbox credentials and run state — never commit
+tools/sandbox/.cache/
+tools/sandbox/sandbox.local.conf
+tools/sandbox/.install-hashes

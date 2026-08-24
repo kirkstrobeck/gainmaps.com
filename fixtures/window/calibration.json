@@ -1,0 +1,27 @@
+{
+  "colorSpace" : "extendedLinearDisplayP3",
+  "ev" : 1.8088424205780029,
+  "fit" : {
+    "manLuma" : 2.2516018361747263,
+    "manSat" : 0.34144693973334506,
+    "meanAbs" : 0.06764526500801242,
+    "points" : 2000,
+    "refLuma" : 2.2586990269124509,
+    "refSat" : 0.34089796011988072
+  },
+  "formula" : "rgb' = rgb * 2^ev * scale + offset; then luma + (rgb'-luma)*saturation",
+  "headroom" : 3.3431570529937744,
+  "offset" : [
+    -0.12703368067741394,
+    -0.18058346211910248,
+    -0.2131592333316803
+  ],
+  "reference" : "fixtures\/window\/window-gain.HEIC",
+  "saturation" : 0.92088139057159424,
+  "scale" : [
+    0.97700381278991699,
+    1.0064921379089355,
+    1.0169353485107422
+  ],
+  "source" : "fixtures\/window\/window.jpeg"
+}

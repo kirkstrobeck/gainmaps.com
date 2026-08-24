@@ -25,6 +25,10 @@ Implementation is container surgery, never a decode/re-encode:
 `assign` hashes the compressed pixel payload before and after and aborts if it
 ever differs, so a quality regression can't pass silently.
 
+`soften` is the exception: it intentionally rewrites PNG pixels to add a small
+edge compensation before or after tagging. It keeps non-pixel chunks in place,
+but `IDAT` changes by design.
+
 ## Prefer PNG
 
 Tagging is lossless either way, but the tag can't add resolution or undo an
@@ -64,10 +68,14 @@ $ npm run cli -- edges "Sticker.png" --preset pq
   assigned    sits 15.4% between its neighbours
   collapsed   72.8% of them lose half their blend or more
   verdict     anti-aliasing collapses 2.3x toward the dark side — ...
+  distance    dE 72.8 authored (sRGB primaries)
+              dE 77.5 with Rec.2020 primaries
+  spread      1.07x further overall, 1.11x in chroma alone
+  soften      one blended pixel per edge now has more ground to cover; try `soften --amount 0.11`
 
 $ npm run cli -- edges "Sticker.png" --preset gamut
   collapsed   0.0% of them lose half their blend or more
-  verdict     anti-aliasing survives — edges stay smooth
+  verdict     curve is safe — anti-aliasing survives it
 ```
 
 ## Presets
@@ -93,6 +101,7 @@ npm run cli -- assign "Sticker.png"
 
 npm run cli -- assign in.png --preset gamut      # -> in-rec2020.png
 npm run cli -- edges in.png --preset pq          # will PQ wreck this art?
+npm run cli -- soften in.png --amount 0.11       # -> in-softened.png
 
 npm run cli -- assign in.png -o out.png          # explicit output
 npm run cli -- assign in.jpg --profile my.icc    # a different profile
@@ -104,6 +113,10 @@ npm run cli -- extract donor.jpg -o profile.icc  # pull a profile out
 
 `--profile`, `--from` and `--preset` are mutually exclusive. Verify on macOS with
 `sips -g profile -g pixelWidth out.png`.
+
+`soften` currently supports PNG only. If `--amount` is omitted, it uses the
+chroma-stretch recommendation from `edges`; `0` leaves pixels unchanged and `1`
+applies the full compensation.
 
 ## The profiles
 
@@ -133,32 +146,33 @@ ICC v4.0.0, 556 bytes, parametric TRC.
 | `src/png/crc32.ts` · `chunks.ts` | PNG chunk reader/writer with checksums |
 | `src/png/icc-chunk.ts` | deflate/inflate the `iCCP` chunk |
 | `src/png/decode.ts` | inflate `IDAT` and undo scanline filters, for analysis |
+| `src/png/filter.ts` · `encode.ts` | PNG scanline filtering and `IDAT` replacement for `soften` |
 | `src/icc/tags.ts` | ICC tag table lookup |
 | `src/icc/describe.ts` | ICC header + `desc`/`mluc` reader, for reporting |
 | `src/icc/primaries.ts` | `XYZ ` colorant tags — proves two profiles share a gamut |
-| `src/color/transfer.ts` | sRGB, BT.2020 and PQ transfer functions |
+| `src/color/transfer.ts` | sRGB, BT.2020 and PQ transfer functions and inverses |
 | `src/color/edge-report.ts` | how much anti-aliasing a curve destroys |
+| `src/color/gamut-distance.ts` | how much Rec.2020 primaries stretch edge colour distance |
+| `src/color/soften.ts` | edge-aware pixel compensation in assigned-profile light |
 | `src/profile/presets.ts` | the bundled `pq` / `gamut` profiles |
 | `src/profile/resolve.ts` | pick the profile: flag, donor image, or preset |
-| `src/commands/*.ts` | `assign`, `inspect`, `extract`, `edges` |
+| `src/commands/*.ts` | `assign`, `inspect`, `extract`, `edges`, `soften` |
 | `src/cli.ts` | argument dispatch |
+| `fixtures/window/` | Ground-truth Ultra HDR pair: `window.jpeg` (source) → `window-gain.HEIC` (reference) |
 
 Everything is TypeScript, run through `tsx`. No Python, no shell helpers.
 
 ## Tests
 
 ```sh
-npm test        # node:test via tsx
-npm run typecheck
+pnpm test
+pnpm typecheck
 ```
 
-41 tests covering byte-exact re-serialization of both containers, pixel
-preservation across assignment, profile replacement (not stacking), idempotent
-re-tagging, ICC profiles larger than one JPEG segment, `iCCP` ordering before
-`IDAT`, alpha preservation, CRC-32 correctness, the non-mutation guarantee of
-the profile reader, PQ/sRGB/BT.2020 curve anchors, PNG scanline unfiltering
-against known pixel values, preset resolution and mutual exclusion, the
-shared-primaries proof, and the edge measurements above in both directions.
+`test/window-gain.test.ts` encodes `fixtures/window/window.jpeg` with the
+calibrated keep-base Ultra HDR path and compares it point-for-point (ImageIO
+HDR expand, extended-linear Display P3) against `window-gain.HEIC`. On macOS
+the mean absolute RGB error must stay within the committed budget.
 
 ## Caveats
 
@@ -171,3 +185,24 @@ shared-primaries proof, and the edge measurements above in both directions.
   the file is wrong when edges break under it — the artwork was simply authored
   against a different curve. Re-render the art with PQ-aware anti-aliasing, or
   use `--preset gamut`.
+
+## License
+
+Original source code (TypeScript under `src/`, `test/`, `apps/`, `tools/`) is
+released under the MIT License — see [LICENSE](LICENSE).
+
+Third-party assets are **not** covered by that grant:
+
+- **Brand logos** under `apps/web/public/logos/` are trademarks of their
+  respective owners, included solely to demonstrate the gain-map / Ultra HDR
+  effect. They are not MIT-licensed.
+- **Photographs** under `apps/web/public/photos/` and any Unsplash hotlinks in
+  `apps/web/lib/photos/catalog.ts` remain under the
+  [Unsplash License](https://unsplash.com/license) with photographer credit as
+  recorded in the catalog. They are not MIT-licensed.
+- **ICC profiles** bundled at `profiles/` (`rec2020-pq.icc`, `rec2020.icc`),
+  with copies served by the web app from `apps/web/public/profiles/`, have their
+  own origin as described in The profiles section above. They are not original
+  works authored here and are not MIT-licensed.
+- **Fixture images** under `fixtures/` are test fixtures. Their inclusion does
+  not grant rights in the depicted artwork beyond running the test suite.

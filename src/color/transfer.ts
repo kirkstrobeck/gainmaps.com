@@ -44,6 +44,11 @@ export function bt2020ToLinear(value: number): number {
   return ((value + 0.099) / 1.099) ** (1 / 0.45);
 }
 
+export function linearToBt2020(linear: number): number {
+  if (linear < 0.018) return linear * 4.5;
+  return 1.099 * linear ** 0.45 - 0.099;
+}
+
 /** A transfer curve normalized to its own white, so curves are comparable. */
 export type TransferCurve = (value: number) => number;
 
@@ -51,4 +56,15 @@ export const CURVES: Record<string, TransferCurve> = {
   srgb: srgbToLinear,
   gamut: bt2020ToLinear,
   pq: (value) => pqToNits(value) / PQ_PEAK_NITS,
+};
+
+/**
+ * Each curve's inverse, normalized the same way. Softening has to blend in the
+ * light the viewer actually sees, then write code values back — which needs both
+ * directions of whichever curve the assigned profile carries.
+ */
+export const INVERSE_CURVES: Record<string, TransferCurve> = {
+  srgb: linearToSrgb,
+  gamut: linearToBt2020,
+  pq: (linear) => nitsToPq(linear * PQ_PEAK_NITS),
 };

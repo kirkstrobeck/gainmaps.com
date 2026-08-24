@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   outputFileTracingRoot: root,
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+      { protocol: "https", hostname: "plus.unsplash.com", pathname: "/**" },
+    ],
+  },
 };
 
 export default nextConfig;

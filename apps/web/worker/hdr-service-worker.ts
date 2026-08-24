@@ -101,7 +101,7 @@ async function processJob(data: ProcessJobData, port: MessagePort): Promise<void
       progress: 100,
       phase: "Complete",
       blob: new Blob([toArrayBuffer(processed.output)], { type: "image/jpeg" }),
-      name: `${stripExtension(file.name)}-ultra.jpg`,
+      name: `${stripExtension(file.name)}-gainmap.jpg`,
       bytesIn: input.byteLength,
       bytesOut: processed.output.byteLength,
       note: processed.note,
@@ -118,7 +118,7 @@ async function processJob(data: ProcessJobData, port: MessagePort): Promise<void
 
 /**
  * Photo path: keep the original as the SDR base, then embed a highlight-selective
- * Ultra encoding so HDR displays lift bright regions without a global EV wash.
+ * gain map so HDR displays lift bright regions without a global EV wash.
  */
 async function processGainMapPhoto(args: {
   input: Uint8Array;
@@ -135,9 +135,9 @@ async function processGainMapPhoto(args: {
   post({
     type: "progress",
     progress: 48,
-    phase: "Building Ultra",
+    phase: "Building gain map",
   });
-  post({ type: "progress", progress: 84, phase: "Writing Ultra HDR JPEG" });
+  post({ type: "progress", progress: 84, phase: "Writing gain map JPEG" });
   const encoded = encodeRgbaToUltraHdrJpeg(raster.pixels, raster.width, raster.height, { boost });
 
   return {

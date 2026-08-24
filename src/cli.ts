@@ -1,11 +1,12 @@
 #!/usr/bin/env -S npx tsx
-/** Entry point: assign / inspect / extract / edges. */
+/** Entry point: assign / inspect / extract / edges / soften. */
 
 import { flagString, parseArgs } from './cli/args.js';
 import { assign } from './commands/assign.js';
 import { edges } from './commands/edges.js';
 import { extract } from './commands/extract.js';
 import { inspect } from './commands/inspect.js';
+import { soften } from './commands/soften.js';
 import { PRESETS } from './profile/presets.js';
 
 const PRESET_HELP = PRESETS.map((preset) => `    ${preset.name.padEnd(7)} ${preset.summary}`).join(
@@ -18,12 +19,14 @@ const USAGE = `hdr-tag — retag a JPEG or PNG with a wide-gamut ICC profile (pi
   inspect <file>
   extract <input> -o profile.icc
   edges   <file.png> [--preset name]
+  soften  <file.png> [-o out] [--preset name] [--amount 0..1]
 
 Flags
   -o, --out       output path (assign defaults to <name><preset-suffix><ext>)
   -s, --preset    bundled profile to assign (default: pq)
   -p, --profile   ICC file to assign instead of a preset
   -f, --from      copy the profile embedded in another image
+  --amount         softening strength, default inferred from edge chroma stretch
 
 Presets
 ${PRESET_HELP}
@@ -57,6 +60,14 @@ async function main(): Promise<void> {
   }
   if (command === 'edges') {
     await edges(input, flagString(flags, 'preset'));
+    return;
+  }
+  if (command === 'soften') {
+    await soften(input, {
+      output: flagString(flags, 'out'),
+      preset: flagString(flags, 'preset'),
+      amount: flagString(flags, 'amount'),
+    });
     return;
   }
   if (command === 'extract') {

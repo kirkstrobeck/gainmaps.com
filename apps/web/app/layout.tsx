@@ -1,44 +1,74 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, Syne } from "next/font/google";
+import { cookies, headers } from "next/headers";
 
 import "./globals.css";
+import { SiteAppearanceProvider } from "@/components/site-appearance-provider";
+import { parseSiteMode, parseSiteUltra } from "@/lib/site-appearance";
+import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const syne = Syne({
+  variable: "--font-syne",
   subsets: ["latin"],
+  weight: ["700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Ultra",
+  metadataBase: new URL("https://gainmaps.com"),
+  title: "Gainmaps",
   description:
-    "Batch process photos in the browser into Ultra JPEGs. Local, private, no upload.",
+    "Batch process photos in the browser into gain map images. Local, private, no upload.",
 };
 
-/*
-  Keys must stay in sync with ULTRA_MODE_STORAGE_KEYS in lib/ultra-mode.ts —
-  newest first, older ones kept so a returning visitor keeps their Off choice.
-*/
-const ultraBootScript = `(function(){var keys=["ultra-mode","hdr-lab-ultra-mode","hdr-lab-gainmap-mode"];var v=null;try{for(var i=0;i<keys.length&&v!=="on"&&v!=="off";i++){v=localStorage.getItem(keys[i]);}}catch(e){}document.documentElement.dataset.ultra=(v==="on"||v==="off")?v:"on";})();`;
+function clampIntensity(raw: string | undefined): number {
+  const n = Number(raw ?? TEXT_ULTRA_SLIDER_DEFAULT);
+  if (!Number.isFinite(n)) return TEXT_ULTRA_SLIDER_DEFAULT;
+  return Math.min(100, Math.max(0, Math.round(n)));
+}
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+const ultraBootScript = `(function(){
+  var cookie=function(n){var m=document.cookie.match(new RegExp("(?:^|; )"+n+"=([^;]*)"));return m?decodeURIComponent(m[1]):""};
+  var ultra=cookie("site-ultra")==="off"?"off":"on";
+  var mode=cookie("site-mode")==="light"?"light":"dark";
+  document.documentElement.dataset.ultra=ultra;
+  document.documentElement.dataset.mode=mode;
+})();`;
+
+export default async function Base({ children }: Readonly<{ children: React.ReactNode }>) {
+  const jar = await cookies();
+  const headerStore = await headers();
+  const mode = parseSiteMode(headerStore.get("x-site-mode") ?? jar.get("site-mode")?.value);
+  const ultra = parseSiteUltra(headerStore.get("x-site-ultra") ?? jar.get("site-ultra")?.value);
+  const intensity = clampIntensity(
+    headerStore.get("x-site-intensity") ?? jar.get("site-intensity")?.value,
+  );
+
   return (
-    <html lang="en" data-ultra="on" suppressHydrationWarning>
+    <html
+      lang="en"
+      data-ultra={ultra}
+      data-mode={mode}
+      data-intensity={intensity}
+      suppressHydrationWarning
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
-        <a
-          href="https://www.linkedin.com/in/kirkstrobeck"
-          className="fixed bottom-2 right-2 z-50 rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--accent)_45%,var(--border))] bg-[color-mix(in_srgb,var(--accent)_12%,var(--panel))] px-2 py-1 text-[11px] font-medium text-[var(--foreground)] shadow-sm transition hover:border-[var(--accent)] hover:bg-[color-mix(in_srgb,var(--accent)_18%,var(--panel))]"
-        >
-          Made by Kirk Strobeck
-        </a>
+      <body className={`${syne.variable} ${dmSans.variable}`}>
+        <SiteAppearanceProvider initial={{ mode, ultra }}>{children}</SiteAppearanceProvider>
+        <footer className="border-t border-[var(--border)] py-4 text-center">
+          <a
+            href="https://www.linkedin.com/in/kirkstrobeck"
+            className="text-xs text-[var(--foreground-muted,var(--foreground))] opacity-60 transition hover:opacity-100 hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+          >
+            Made by Kirk Strobeck
+          </a>
+        </footer>
       </body>
     </html>
   );

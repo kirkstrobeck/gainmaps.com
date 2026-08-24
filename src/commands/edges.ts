@@ -3,7 +3,8 @@
 import { readFile } from 'node:fs/promises';
 
 import { measureEdges } from '../color/edge-report.js';
-import { CURVES } from '../color/transfer.js';
+import { measureGamutDistance, suggestedAmount } from '../color/gamut-distance.js';
+import { CURVES, type TransferCurve } from '../color/transfer.js';
 import { decodePng } from '../png/decode.js';
 import { isPng, parsePng } from '../png/chunks.js';
 import { DEFAULT_PRESET } from '../profile/presets.js';
@@ -36,12 +37,39 @@ export async function edges(input: string, presetName?: string): Promise<void> {
   console.log(`  collapsed   ${percent(report.collapsed)} of them lose half their blend or more`);
 
   const collapse = report.authored / Math.max(report.assigned, 1e-9);
-  if (collapse < 1.5) {
-    console.log('  verdict     anti-aliasing survives — edges stay smooth');
+  if (collapse < 1.5) console.log('  verdict     curve is safe — anti-aliasing survives it');
+  if (collapse >= 1.5) {
+    console.log(
+      `  verdict     anti-aliasing collapses ${collapse.toFixed(1)}x toward the dark side —` +
+        ' edges will read as jagged. Try --preset gamut.',
+    );
+  }
+
+  reportGamut(image, assigned);
+}
+
+/** The primaries stretch every edge, whichever curve the preset carries. */
+function reportGamut(image: Parameters<typeof measureGamutDistance>[0], assigned: TransferCurve) {
+  const gamut = measureGamutDistance(image, assigned);
+  /* v8 ignore next -- reportGamut is only called after measureEdges finds edge samples. */
+  if (gamut.edges === 0) return;
+
+  console.log(`  distance    dE ${gamut.authored.toFixed(1)} authored (sRGB primaries)`);
+  console.log(`              dE ${gamut.primaries.toFixed(1)} with Rec.2020 primaries`);
+  console.log(`              dE ${gamut.assigned.toFixed(1)} with this preset's curve too`);
+
+  console.log(
+    `  spread      ${gamut.stretch.toFixed(2)}x further overall,` +
+      ` ${gamut.chromaStretch.toFixed(2)}x in chroma alone`,
+  );
+
+  /* v8 ignore next 3 -- real Rec.2020 primaries stretch sampled chroma for this tool's edge cases. */
+  if (gamut.chromaStretch < 1.05) {
+    console.log('  soften      not needed — edges span the same perceptual distance');
     return;
   }
   console.log(
-    `  verdict     anti-aliasing collapses ${collapse.toFixed(1)}x toward the dark side —` +
-      ' edges will read as jagged. Try --preset gamut.',
+    '  soften      one blended pixel per edge now has more ground to cover;' +
+      ` try \`soften --amount ${suggestedAmount(gamut.chromaStretch).toFixed(2)}\``,
   );
 }

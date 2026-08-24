@@ -1,16 +1,18 @@
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 import { parsePng, serializePng } from '../src/png/chunks.js';
 import { crc32 } from '../src/png/crc32.js';
+import { decodePng } from '../src/png/decode.js';
+import { replacePixels } from '../src/png/encode.js';
 import { codecFor } from '../src/image/registry.js';
 import { pngCodec } from '../src/image/png-codec.js';
 import { summarizeIcc } from '../src/icc/describe.js';
 
-const PNG = 'Sticker - 5_ (1).png';
-const JPEG = 'Sticker - 5_.jpg';
+const PNG = 'fixtures/cli/sticker.png';
+const JPEG = 'fixtures/cli/sticker.jpg';
 const PROFILE = 'profiles/rec2020-pq.icc';
 const EXPECTED = 'Rec2020 Gamut with PQ Transfer';
 
@@ -28,6 +30,21 @@ describe('png chunks', () => {
 
   it('rejects a bad signature', () => {
     assert.throws(() => parsePng(Buffer.alloc(16)), /bad signature/);
+  });
+
+  it('can replace IDAT after decoding without dropping other chunks', async () => {
+    const original = await readFile(PNG);
+    const chunks = parsePng(original);
+    const image = decodePng(chunks);
+    const at = (200 * image.width + 289) * image.channels;
+    image.pixels[at] = 80;
+
+    const rewritten = parsePng(serializePng(replacePixels(chunks, image)));
+    assert.deepEqual(
+      rewritten.map((chunk) => chunk.type),
+      chunks.map((chunk) => chunk.type),
+    );
+    assert.deepEqual(decodePng(rewritten).pixels.subarray(at, at + 4), Buffer.from([80, 93, 166, 255]));
   });
 });
 
@@ -88,7 +105,7 @@ describe('codec registry', () => {
 
   it('reports the jpeg fixture as near-lossless 4:4:4', async () => {
     const facts = codecFor(await readFile(JPEG)).facts(await readFile(JPEG));
-    assert.equal(facts.width, 492);
+    assert.equal(facts.width, 984);
     assert.ok(facts.notes.some((n) => n.includes('4:4:4')), facts.notes.join('; '));
     assert.ok(facts.notes.some((n) => n.includes('near-lossless')), facts.notes.join('; '));
   });

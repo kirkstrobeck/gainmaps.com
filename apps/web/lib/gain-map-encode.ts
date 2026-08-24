@@ -16,6 +16,12 @@ export type GainMapEncodeOptions = {
    * `window`: scene-fit from fixtures/window/calibration.json (accuracy tests only).
    */
   hdrModel?: GainMapHdrModel;
+  /**
+   * What transparent pixels become, since JPEG has no alpha. `white` (default)
+   * suits photos, which are opaque anyway. `checkerboard` suits art with holes
+   * — see flattenRgbaOntoCheckerboard.
+   */
+  matte?: "white" | "checkerboard";
 };
 
 export type GainMapEncodeResult = {
@@ -48,13 +54,47 @@ export function flattenRgbaOntoWhite(
   width: number,
   height: number,
 ): Uint8ClampedArray {
+  return flattenRgba(pixels, width, height, () => [255, 255, 255]);
+}
+
+const CHECKER_SQUARE = 16;
+const CHECKER_LIGHT = 245;
+const CHECKER_DARK = 226;
+
+/**
+ * The transparency matte for art that has holes in it. A photo flattened onto
+ * white loses nothing; a logo flattened onto white gains a plate it never had,
+ * and the viewer cannot tell the mark's own white from the background. A soft
+ * gray checker reads as "nothing here" the way white never can, so a downloaded
+ * file still says where the mark ends.
+ */
+export function flattenRgbaOntoCheckerboard(
+  pixels: Uint8Array,
+  width: number,
+  height: number,
+  square: number = CHECKER_SQUARE,
+): Uint8ClampedArray {
+  return flattenRgba(pixels, width, height, (x, y) => {
+    const shade =
+      (Math.floor(x / square) + Math.floor(y / square)) % 2 === 0 ? CHECKER_LIGHT : CHECKER_DARK;
+    return [shade, shade, shade];
+  });
+}
+
+function flattenRgba(
+  pixels: Uint8Array,
+  width: number,
+  height: number,
+  matteAt: (x: number, y: number) => readonly [number, number, number],
+): Uint8ClampedArray {
   const sdr = new Uint8ClampedArray(width * height * 4);
   for (let index = 0; index < width * height; index += 1) {
     const offset = index * 4;
     const alpha = pixels[offset + 3]! / 255;
-    sdr[offset] = Math.round(pixels[offset]! * alpha + 255 * (1 - alpha));
-    sdr[offset + 1] = Math.round(pixels[offset + 1]! * alpha + 255 * (1 - alpha));
-    sdr[offset + 2] = Math.round(pixels[offset + 2]! * alpha + 255 * (1 - alpha));
+    const matte = matteAt(index % width, Math.floor(index / width));
+    sdr[offset] = Math.round(pixels[offset]! * alpha + matte[0] * (1 - alpha));
+    sdr[offset + 1] = Math.round(pixels[offset + 1]! * alpha + matte[1] * (1 - alpha));
+    sdr[offset + 2] = Math.round(pixels[offset + 2]! * alpha + matte[2] * (1 - alpha));
     sdr[offset + 3] = 255;
   }
   return sdr;
@@ -179,7 +219,10 @@ export function encodeRgbaToUltraHdrJpeg(
   const boost = clamp(Number(options.boost ?? 0.5), 0, 1);
   const headroom = headroomFromBoost(boost);
   const hdrModel = options.hdrModel ?? "highlight";
-  const sdr = flattenRgbaOntoWhite(pixels, width, height);
+  const sdr =
+    options.matte === "checkerboard"
+      ? flattenRgbaOntoCheckerboard(pixels, width, height)
+      : flattenRgbaOntoWhite(pixels, width, height);
   const encoding = encodeKeepBaseGainMap(sdr, width, height, headroom, hdrModel);
   const output = writeJpegGainMap(encoding, {
     quality: 92,
@@ -190,7 +233,7 @@ export function encodeRgbaToUltraHdrJpeg(
     width,
     height,
     headroom,
-    note: `Ultra JPEG · ${headroom.toFixed(2)}× · ${width}×${height}`,
+    note: `Gain map JPEG · ${headroom.toFixed(2)}× · ${width}×${height}`,
   };
 }
 

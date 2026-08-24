@@ -1,10 +1,11 @@
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 
 import {
   CURVES,
   PQ_PEAK_NITS,
   bt2020ToLinear,
+  linearToBt2020,
   linearToSrgb,
   nitsToPq,
   pqToNits,
@@ -34,6 +35,7 @@ describe('transfer curves', () => {
   it('keeps BT.2020 within a few percent of sRGB', () => {
     for (const code of [0.25, 0.5, 0.75]) {
       close(bt2020ToLinear(code), srgbToLinear(code), 0.05);
+      close(linearToBt2020(bt2020ToLinear(code)), code, 1e-12);
     }
   });
 

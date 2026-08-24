@@ -1,13 +1,15 @@
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import { measureEdges } from '../src/color/edge-report.js';
-import { CURVES } from '../src/color/transfer.js';
+import { measureGamutDistance, suggestedAmount } from '../src/color/gamut-distance.js';
+import { softenEdges } from '../src/color/soften.js';
+import { CURVES, INVERSE_CURVES } from '../src/color/transfer.js';
 import { decodePng, pixelAt } from '../src/png/decode.js';
 import { parsePng } from '../src/png/chunks.js';
 
-const PNG = 'Sticker - 5_ (1).png';
+const PNG = 'fixtures/cli/sticker.png';
 
 const loadSticker = async () => decodePng(parsePng(await readFile(PNG)));
 
@@ -67,6 +69,24 @@ describe('edge report', () => {
       gamut.collapsed < 0.1,
       `BT.2020 collapsed ${(gamut.collapsed * 100).toFixed(1)}% of blends`,
     );
+  });
+
+  it('shows Rec.2020 primaries stretching chroma distance', async () => {
+    const report = measureGamutDistance(await loadSticker(), CURVES.gamut!);
+    assert.ok(report.edges > 1000, `only ${report.edges} gamut samples`);
+    assert.ok(report.chromaStretch > 1.05, `chroma stretch was only ${report.chromaStretch}`);
+    assert.ok(suggestedAmount(report.chromaStretch) > 0);
+  });
+
+  it('softens detected blend pixels without changing dimensions or alpha', async () => {
+    const image = await loadSticker();
+    const report = softenEdges(image, CURVES.pq!, INVERSE_CURVES.pq!, 0.35);
+
+    assert.equal(report.image.width, image.width);
+    assert.equal(report.image.height, image.height);
+    assert.equal(report.image.channels, image.channels);
+    assert.equal(pixelAt(report.image, 289, 200)[3], 255);
+    assert.notDeepEqual(pixelAt(report.image, 289, 200), pixelAt(image, 289, 200));
   });
 
   it('reports nothing for a flat image with no edges', () => {

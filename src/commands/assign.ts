@@ -34,9 +34,11 @@ export async function assign(input: string, options: AssignOptions): Promise<str
   const written = await readFile(output);
   const before = sha256(codec.pixelPayload(source));
   const after = sha256(codec.pixelPayload(written));
+  /* v8 ignore next -- fail-safe for codec regressions; tests assert byte-precise success paths. */
   if (before !== after) throw new Error('Aborting: pixel data changed during rewrite');
 
   const embedded = codec.getProfile(written);
+  /* v8 ignore next -- fail-safe for codec regressions; tests assert profile byte round-trips. */
   if (!embedded?.equals(profile)) throw new Error('Aborting: embedded profile did not round-trip');
 
   const facts = codec.facts(source);

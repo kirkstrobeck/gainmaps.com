@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test';
+import { describe, it } from 'vitest';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -7,8 +7,8 @@ import { parseJpeg, serializeJpeg } from '../src/jpeg/structure.js';
 import { extractIccProfile, setIccProfile } from '../src/jpeg/icc-segments.js';
 import { summarizeIcc } from '../src/icc/describe.js';
 
-const SOURCE = 'ashbyhq_logo.jpg';
-const TARGET = 'Sticker - 5_.jpg';
+const SOURCE = 'fixtures/window/window-donor.jpg';
+const TARGET = 'fixtures/window/window.jpeg';
 const PROFILE = 'profiles/rec2020-pq.icc';
 const EXPECTED = 'Rec2020 Gamut with PQ Transfer';
 

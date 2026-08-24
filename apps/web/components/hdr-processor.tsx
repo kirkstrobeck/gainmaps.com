@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  IconArrowDown,
-  IconCheck,
-  IconClock,
-  IconFile,
-  IconLock,
-  IconPhotoUp,
-  IconRefresh,
-  IconShieldCheck,
-  IconSparkles,
-  IconX,
-} from "@tabler/icons-react";
+  ArrowDownFilled,
+  CheckFilled,
+  ClockFilled,
+  FileFilled,
+  FileUploadFilled,
+  LockFilled,
+  Refresh1Filled,
+  SafeShieldFilled,
+  SparklesFilled,
+  CloseFilled,
+} from "@mingcute/react/core-filled";
 import type { DragEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -19,8 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { SvgPreview } from "@/components/svg-preview";
-import { useUltraMode } from "@/components/ultra-mode-toggle";
+import { BrewCopy } from "@/components/brew-copy";
 import { headroomFromBoost } from "@/lib/gain-map-encode";
+import { dequeueFiles } from "@/lib/file-queue";
 import { isSvgFile, rasterizeSvgToPng } from "@/lib/svg-raster";
 import { cn } from "@/lib/utils";
 
@@ -271,7 +272,6 @@ export function HdrProcessor() {
   const [workerState, setWorkerState] = useState<"checking" | "ready" | "error">("checking");
   const [dragActive, setDragActive] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
-  const ultraMode = useUltraMode();
   const queueRunning = useRef(false);
   const inflightIds = useRef(new Set<string>());
   const downloaded = useRef(new Set<string>());
@@ -366,6 +366,11 @@ export function HdrProcessor() {
     setJobs((current) => [...next, ...current]);
   }, [currentSettings]);
 
+  useEffect(() => {
+    const files = dequeueFiles();
+    if (files.length > 0) addFiles(files);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const clearJobs = useCallback(() => {
     for (const job of jobsRef.current) {
       URL.revokeObjectURL(job.sourceUrl);
@@ -448,34 +453,34 @@ export function HdrProcessor() {
         <div className="grid max-h-full w-full max-w-5xl gap-5 text-center">
           <div
             className={cn(
-              "relative grid min-h-[min(520px,calc(100dvh-9rem))] overflow-hidden rounded-[calc(var(--radius)*1.5)] border-2 border-dashed border-[color-mix(in_srgb,var(--foreground)_24%,var(--border))] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_14%,transparent),transparent_44%),var(--panel)] p-5 shadow-sm transition sm:p-8",
-              dragActive && "scale-[0.99] border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_12%,var(--panel))]",
+              "relative grid min-h-[min(520px,calc(100dvh-9rem))] overflow-hidden rounded-[calc(var(--radius)*1.5)] border-2 border-dashed border-[color-mix(in_srgb,var(--foreground)_24%,var(--border))] bg-[var(--panel)] p-5 shadow-sm transition sm:p-8",
+              dragActive && "scale-[0.99] border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_8%,var(--panel))]",
             )}
           >
             <div className="grid place-items-center">
               <div className="grid max-w-3xl gap-5">
                 <div className="mx-auto flex size-16 items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)] shadow-sm [@media(max-height:680px)]:hidden">
-                  <IconPhotoUp aria-hidden size={32} stroke={1.7} />
+                  <FileUploadFilled aria-hidden size={32} />
                 </div>
 
                 <div>
                   <p className="mx-auto mb-4 flex max-w-max items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--background)] px-3 py-1 text-xs font-medium text-[var(--muted)]">
-                    <IconLock aria-hidden size={14} stroke={1.8} />
+                    <LockFilled aria-hidden size={14} />
                     Privacy: These files do not go anywhere.
                   </p>
-                  <h1 className="mx-auto max-w-4xl text-4xl font-semibold leading-[1.02] tracking-normal text-[var(--foreground)] sm:text-5xl lg:text-6xl">
+                  <h1 className="font-display mx-auto max-w-4xl text-4xl font-bold leading-[1.02] tracking-normal text-[var(--foreground)] sm:text-5xl lg:text-6xl">
                     Drop images here to make them HDR.
                   </h1>
                   <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
-                    Your browser processes each image locally with a service worker. Review the before and after, then download.
+                    Processed 100% in your browser by a service worker — nothing leaves. Compare the output, then download.
                   </p>
                 </div>
 
                 <div className="mx-auto flex flex-wrap items-center justify-center gap-3">
                   <Button asChild>
                     <label>
-                      <IconPhotoUp aria-hidden size={18} stroke={1.7} />
-                      Select files
+                      <FileUploadFilled aria-hidden size={18} />
+                      Choose files
                       <input
                         className="sr-only"
                         type="file"
@@ -485,27 +490,17 @@ export function HdrProcessor() {
                       />
                     </label>
                   </Button>
-                  <span className="text-sm text-[var(--muted)]">
-                    PNG, JPEG, WebP, AVIF, GIF, HEIC, and SVG (including animated)
+                  <span className="text-[11px] tracking-[0.06em] text-[var(--muted)]">
+                    JPEG · PNG · WebP · AVIF · GIF · HEIC · SVG
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-3 text-left text-sm text-[var(--muted)] sm:grid-cols-3 [@media(max-height:760px)]:hidden">
-              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)] p-4">
-                <span className="block font-medium text-[var(--foreground)]">Local</span>
-                <span className="mt-1 block text-xs leading-5">No upload route. No server processing.</span>
-              </div>
-              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)] p-4">
-                <span className="block font-medium text-[var(--foreground)]">Private</span>
-                <span className="mt-1 block text-xs leading-5">Files stay in this browser tab.</span>
-              </div>
-              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)] p-4">
-                <span className="block font-medium text-[var(--foreground)]">Adjustable</span>
-                    <span className="mt-1 block text-xs leading-5">Tune Ultra intensity, then export Ultra JPEGs.</span>
-              </div>
-            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[var(--muted)]">
+            <span>Or batch-encode from the terminal:</span>
+            <BrewCopy />
           </div>
         </div>
       </section>
@@ -524,8 +519,8 @@ export function HdrProcessor() {
         <div className="grid gap-4 lg:grid-cols-[minmax(16rem,1fr)_auto] lg:items-end">
           <div className="grid gap-2">
             <div className="flex items-center justify-between gap-3">
-              <Label htmlFor="boost">Ultra</Label>
-              <span className="font-mono text-sm">{headroomFromBoost(boost).toFixed(2)}</span>
+              <Label htmlFor="boost">Gain</Label>
+              <span className="font-mono text-sm tabular-nums">{headroomFromBoost(boost).toFixed(2)}×</span>
             </div>
             <input
               id="boost"
@@ -535,7 +530,7 @@ export function HdrProcessor() {
               step="0.01"
               value={boost}
               onChange={(event) => setBoost(Number(event.target.value))}
-              className="w-full accent-[var(--foreground)]"
+              className="w-full accent-[var(--accent)]"
             />
           </div>
 
@@ -546,7 +541,7 @@ export function HdrProcessor() {
                 disabled={!selectedJob || selectedJob.state === "processing"}
                 onClick={redoSelected}
               >
-                <IconRefresh aria-hidden size={18} stroke={1.7} />
+                <Refresh1Filled aria-hidden size={18} />
                 Regenerate
               </Button>
             ) : null}
@@ -555,7 +550,7 @@ export function HdrProcessor() {
               disabled={selectedJob?.state !== "done"}
               onClick={() => selectedJob && download(selectedJob)}
             >
-              <IconArrowDown aria-hidden size={17} stroke={1.7} />
+              <ArrowDownFilled aria-hidden size={17} />
               Download
             </Button>
           </div>
@@ -564,13 +559,17 @@ export function HdrProcessor() {
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
             <span className="flex items-center gap-1.5 font-medium text-[var(--foreground)]">
-              <IconShieldCheck aria-hidden size={15} stroke={1.7} />
-              No server upload
+              <SafeShieldFilled aria-hidden size={15} />
+              In-browser service worker
             </span>
-            <span>Worker {workerState}</span>
-            <span>Running {totals.running}</span>
-            <span>Finished {totals.done}/{totals.total}</span>
-            <span>Failed {totals.failed}</span>
+            {workerState !== "ready" && (
+              <span className={workerState === "error" ? "text-[var(--danger)]" : ""}>
+                Worker {workerState}
+              </span>
+            )}
+            {totals.running > 0 && <span>Encoding {totals.running}</span>}
+            <span>{totals.done}/{totals.total} done</span>
+            {totals.failed > 0 && <span className="text-[var(--danger)]">Failed {totals.failed}</span>}
           </div>
           <label className="flex cursor-pointer items-center gap-2">
             <input
@@ -590,10 +589,10 @@ export function HdrProcessor() {
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <h1 className="text-lg font-semibold tracking-normal text-[var(--foreground)]">Queue</h1>
-                <p className="mt-1 truncate text-sm text-[var(--muted)]">Click a row to tune and compare.</p>
+                <p className="mt-1 truncate text-sm text-[var(--muted)]">Select a row to inspect or re-encode.</p>
               </div>
               <Button variant="secondary" className="h-9 px-3" onClick={clearJobs} aria-label="Clear queue">
-                <IconRefresh aria-hidden size={18} stroke={1.7} />
+                <Refresh1Filled aria-hidden size={18} />
               </Button>
             </div>
 
@@ -603,7 +602,7 @@ export function HdrProcessor() {
                 dragActive && "border-[var(--accent)] bg-[color-mix(in_srgb,var(--accent)_10%,var(--background))]",
               )}
             >
-              <IconPhotoUp aria-hidden size={22} stroke={1.7} />
+              <FileUploadFilled aria-hidden size={22} />
               <span className="text-sm font-medium">Drop more images here</span>
               <span className="text-xs text-[var(--muted)]">PNG, JPEG, WebP, AVIF, GIF, HEIC, SVG</span>
               <input
@@ -636,11 +635,11 @@ export function HdrProcessor() {
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-[var(--radius)] border border-[var(--border)] bg-[var(--background)]">
                       {job.state === "done" ? (
-                        <IconCheck aria-hidden size={18} stroke={1.8} />
+                        <CheckFilled aria-hidden size={18} />
                       ) : job.state === "error" ? (
-                        <IconX aria-hidden size={18} stroke={1.8} />
+                        <CloseFilled aria-hidden size={18} />
                       ) : (
-                        <IconFile aria-hidden size={18} stroke={1.8} />
+                        <FileFilled aria-hidden size={18} />
                       )}
                     </div>
                     <div className="min-w-0">
@@ -650,7 +649,7 @@ export function HdrProcessor() {
                       </p>
                       {job.settings ? (
                         <p className="mt-1 truncate text-xs text-[var(--muted)]">
-                          Ultra {headroomFromBoost(job.settings.boost).toFixed(2)}
+                          Gain {headroomFromBoost(job.settings.boost).toFixed(2)}
                         </p>
                       ) : null}
                     </div>
@@ -672,7 +671,7 @@ export function HdrProcessor() {
                       download(job);
                     }}
                   >
-                    <IconArrowDown aria-hidden size={17} stroke={1.7} />
+                    <ArrowDownFilled aria-hidden size={17} />
                     Download
                   </Button>
                 </div>
@@ -681,7 +680,7 @@ export function HdrProcessor() {
           </div>
         </div>
 
-        <div className="ultra-surface order-1 flex min-h-0 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[linear-gradient(135deg,color-mix(in_srgb,var(--accent)_13%,transparent),transparent_38%),var(--panel)] shadow-sm lg:order-none">
+        <div className="ultra-surface order-1 flex min-h-0 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] shadow-sm lg:order-none">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] p-3 sm:p-4">
             <div className="min-w-0">
               <h2 className="truncate text-lg font-semibold tracking-normal">
@@ -689,15 +688,15 @@ export function HdrProcessor() {
               </h2>
               <p className="mt-1 text-xs text-[var(--muted)]">
                 {selectedJob?.settings
-                  ? `Processed with Ultra ${headroomFromBoost(selectedJob.settings.boost).toFixed(2)}`
-                  : `Ready with Ultra ${headroomFromBoost(boost).toFixed(2)}`}
+                  ? `Processed with gain ${headroomFromBoost(selectedJob.settings.boost).toFixed(2)}`
+                  : `Ready with gain ${headroomFromBoost(boost).toFixed(2)}`}
               </p>
             </div>
             <div className="text-right text-xs text-[var(--muted)]">
               <div className="font-medium text-[var(--foreground)]">
-                {selectedNeedsRegeneration ? "Settings changed" : "Settings matched"}
+                {selectedNeedsRegeneration ? "Re-encode to apply" : "Settings matched"}
               </div>
-              <div>Before and after preview</div>
+              <div>Standard · Ultra preview</div>
             </div>
           </div>
 
@@ -723,19 +722,24 @@ export function HdrProcessor() {
 
               <figure className="grid min-w-0 gap-2">
                 <figcaption className="text-center text-sm font-medium">Revised</figcaption>
+                {/* Wording avoids "Gain map JPEG" — that string is the job note the smoke tests match on. */}
                 <p className="text-center text-[11px] text-[var(--muted)]" data-testid="ultra-preview-state">
-                  {ultraMode === "on" ? "Ultra unlocked" : "Ultra clamped"}
+                  Ultra HDR
                 </p>
                 <div className="grid aspect-square w-full max-w-[300px] place-items-center justify-self-center overflow-hidden rounded-[var(--radius)] border border-[color-mix(in_srgb,var(--foreground)_18%,var(--border))] bg-[var(--background)] p-3 shadow-sm">
                   {selectedJob?.resultUrl ? (
                     <img
                       alt={`Revised ${selectedJob.file.name}`}
                       src={selectedJob.resultUrl}
-                      className="preview-revised max-h-full max-w-full object-contain"
+                      className="preview-revised gainmap-image max-h-full max-w-full object-contain"
                     />
                   ) : selectedJob ? (
-                    <div className="grid w-full max-w-[220px] gap-3 text-center text-sm text-[var(--muted)]">
-                      <IconSparkles aria-hidden className="mx-auto" size={28} stroke={1.7} />
+                    <div className={`grid w-full max-w-[220px] gap-3 text-center text-sm ${selectedJob.state === "error" ? "text-[var(--danger)]" : "text-[var(--muted)]"}`}>
+                      {selectedJob.state === "error" ? (
+                        <CloseFilled aria-hidden className="mx-auto" size={28} />
+                      ) : (
+                        <SparklesFilled aria-hidden className="mx-auto" size={28} />
+                      )}
                       <p>{selectedJob.state === "error" ? selectedJob.error : selectedJob.phase}</p>
                       <Progress value={selectedJob.progress} />
                     </div>
@@ -747,12 +751,12 @@ export function HdrProcessor() {
 
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] p-3 text-xs text-[var(--muted)] sm:p-4">
             <span className="flex items-center gap-2">
-              <IconLock aria-hidden size={15} stroke={1.7} />
-              Privacy: These files do not go anywhere. They are processed in this browser.
+              <LockFilled aria-hidden size={15} />
+              100% in your browser via service worker.
             </span>
             <span className="flex items-center gap-2">
-              <IconClock aria-hidden size={15} stroke={1.7} />
-              Queue adapts to browser CPU count.
+              <ClockFilled aria-hidden size={15} />
+              Parallel jobs scale to your CPU.
             </span>
           </div>
         </div>
