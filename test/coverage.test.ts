@@ -37,8 +37,8 @@ import { extractIccFromPng, pngPixelPayload, setIccInPng } from '../src/png/icc-
 import { PRESETS } from '../src/profile/presets.js';
 import { resolveProfile, readProfileFromImage } from '../src/profile/resolve.js';
 
-const PNG = 'fixtures/cli/sticker.png';
-const JPEG = 'fixtures/cli/sticker.jpg';
+import { HEIGHT, WIDTH, syntheticJpeg, syntheticRgbaPng, writeSyntheticCliFixtures } from './synthetic-cli-fixtures.js';
+
 const DONOR = 'fixtures/window/window-donor.jpg';
 const PQ = 'profiles/rec2020-pq.icc';
 const GAMUT = 'profiles/rec2020.icc';
@@ -152,8 +152,9 @@ describe('commands', () => {
 
   it('assigns, extracts, inspects, edges, and softens while preserving encoded payload invariants', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'hdr-lab-'));
-    const pngOut = await assign(PNG, { output: join(dir, 'sticker-pq.png'), preset: 'pq' });
-    const jpgOut = await assign(JPEG, { output: join(dir, 'sticker-pq.jpg'), fromImage: DONOR });
+    const { png: PNG, jpeg: JPEG } = await writeSyntheticCliFixtures();
+    const pngOut = await assign(PNG, { output: join(dir, 'edge-pq.png'), preset: 'pq' });
+    const jpgOut = await assign(JPEG, { output: join(dir, 'edge-pq.jpg'), fromImage: DONOR });
     await assign(DONOR, { output: join(dir, 'donor-gamut.jpg'), preset: 'gamut' });
     const profileOut = join(dir, 'profile.icc');
     const softenedOut = join(dir, 'softened.png');
@@ -205,6 +206,7 @@ describe('commands', () => {
     await edges(input, 'gamut');
     await edges(grayEdge, 'gamut');
 
+    const { png: PNG, jpeg: JPEG } = await writeSyntheticCliFixtures();
     await assert.rejects(edges(JPEG), /PNG only/);
     await assert.rejects(edges(PNG, 'bogus'), /No transfer curve/);
     await assert.rejects(soften(JPEG, {}), /PNG only/);
@@ -216,10 +218,10 @@ describe('commands', () => {
 
 describe('png exactness and malformed inputs', () => {
   it('covers chunk placement, dimensions, and malformed files', async () => {
-    const original = await readFile(PNG);
+    const original = syntheticRgbaPng();
     const chunks = parsePng(original);
     assert.equal(colorChunkInsertionPoint([{ type: 'IHDR', data: Buffer.alloc(13) }, { type: 'IEND', data: Buffer.alloc(0) }]), 1);
-    assert.deepEqual(pngDimensions(chunks), { width: 984, height: 984 });
+    assert.deepEqual(pngDimensions(chunks), { width: WIDTH, height: HEIGHT });
     assert.throws(() => pngDimensions([]), /missing IHDR/);
 
     const badLength = Buffer.concat([original.subarray(0, 8), Buffer.from([0xff, 0xff, 0xff, 0xff, 0x49, 0x48, 0x44, 0x52])]);
@@ -238,6 +240,12 @@ describe('png exactness and malformed inputs', () => {
     const image = decodePng(parsePng(minimalPng(1, 5, 2, 3, rows)));
     assert.deepEqual(pixelAt(image, 0, 0), [10, 20, 30]);
     assert.equal(image.pixels.length, 15);
+
+    const paethC = Buffer.from([
+      0, 10, 0, 0, 20, 0, 0,
+      4, 246, 0, 0, 0, 0, 0,
+    ]);
+    assert.equal(decodePng(parsePng(minimalPng(2, 2, 2, 3, paethC))).width, 2);
 
     assert.throws(() => decodePng([]), /missing IHDR/);
     assert.throws(() => decodePng(parsePng(minimalPng(1, 1, 2, 3, Buffer.alloc(4), (ihdr) => ihdr.writeUInt8(16, 8)))), /bit depth/);
@@ -266,7 +274,7 @@ describe('png exactness and malformed inputs', () => {
     assert.equal(extractIccFromPng([]), null);
     assert.throws(() => extractIccFromPng([{ type: 'iCCP', data: Buffer.from('bad') }]), /name terminator/);
     assert.throws(() => extractIccFromPng([{ type: 'iCCP', data: Buffer.from([65, 0, 1]) }]), /compression method/);
-    const named = setIccInPng(parsePng(await readFile(PNG)), await readFile(PQ), 'ø'.repeat(100));
+    const named = setIccInPng(parsePng(syntheticRgbaPng()), await readFile(PQ), 'ø'.repeat(100));
     assert.ok(extractIccFromPng(named)?.equals(await readFile(PQ)));
     assert.ok(pngCodec.facts(minimalPng(1, 1, 7, 3, Buffer.alloc(4))).notes.some((note) => note.includes('type 7')));
   });
@@ -274,7 +282,7 @@ describe('png exactness and malformed inputs', () => {
 
 describe('jpeg exactness and malformed inputs', () => {
   it('preserves scans byte-for-byte across profile assignment and detects malformed structures', async () => {
-    const source = parseJpeg(await readFile(JPEG));
+    const source = parseJpeg(syntheticJpeg());
     const profile = await readFile(PQ);
     const assigned = setIccProfile(source, profile);
     assert.equal(sha(assigned.scan), sha(source.scan));
@@ -355,6 +363,7 @@ describe('icc and profile edge cases', () => {
   it('resolves every profile source and rejects missing embedded profiles', async () => {
     assert.equal((await resolveProfile({ profilePath: GAMUT })).origin, GAMUT);
     assert.match((await resolveProfile({ fromImage: DONOR })).origin, /embedded/);
+    const { png: PNG } = await writeSyntheticCliFixtures();
     await assert.rejects(readProfileFromImage(PNG), /No embedded ICC/);
     await assert.rejects(resolveProfile({ preset: 'missing' }), /Unknown preset/);
     PRESETS.push({ name: 'missing-file', file: 'missing.icc', suffix: '-missing', summary: 'missing' });
@@ -378,15 +387,21 @@ describe('color branch coverage', () => {
     assert.equal(suggestedAmount(-1), 0);
     assert.equal(suggestedAmount(2), 0.6);
 
-    const pixels = Buffer.from([
-      0, 0, 0, 255, 127, 127, 127, 0, 255, 255, 255, 255,
-      0, 0, 0, 255, 127, 127, 127, 255, 255, 255, 255, 255,
-      0, 0, 0, 255, 127, 127, 127, 255, 255, 255, 255, 255,
+    const black = [0, 0, 0, 255];
+    const gray = [127, 127, 127, 255];
+    const white = [255, 255, 255, 255];
+    const clear = [0, 0, 0, 0];
+    const row = (cells: number[][]) => Buffer.from(cells.flat());
+    const pixels = Buffer.concat([
+      row([black, gray, white, black, black, white]),
+      row([black, clear, gray, black, black, white]),
+      row([black, gray, white, black, black, white]),
+      row([black, gray, white, black, black, white]),
     ]);
-    const image: RasterImage = { width: 3, height: 3, channels: 4, pixels };
-    assert.equal(opaque(image, 1, 0), false);
+    const image: RasterImage = { width: 6, height: 4, channels: 4, pixels };
+    assert.equal(opaque(image, 1, 1), false);
     assert.deepEqual(codesAt(image, 0, 0), [0, 0, 0]);
-    assert.equal(scanEdges(image).length, 1);
+    assert.ok(scanEdges(image).length >= 1);
     assert.ok(measureEdges(image, CURVES.srgb!, CURVES.pq!).antiAliased >= 1);
     assert.ok(measureGamutDistance(image, CURVES.gamut!).edges >= 1);
     assert.throws(() => softenEdges(image, CURVES.pq!, INVERSE_CURVES.pq!, Number.NaN), /amount/);

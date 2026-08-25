@@ -46,8 +46,7 @@ The saturation pop comes from the **primaries**. The jagged edges come from the
 
 Anti-aliasing is authored against a roughly perceptual curve: the blended pixel
 on a letter's edge is meant to read as a midpoint. PQ's shadow slope is far
-steeper, so that midpoint collapses onto the dark side. A white-on-blue edge in
-the sticker fixture, sampled at row 200:
+steeper, so that midpoint collapses onto the dark side. A white-on-blue edge:
 
 | pixel | RGB | as sRGB | as PQ |
 | --- | --- | --- | --- |
