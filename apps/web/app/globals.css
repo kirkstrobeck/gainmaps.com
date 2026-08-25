@@ -186,24 +186,24 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 0;
+  left: var(--seam-x);
   width: 1px;
   background: rgba(244, 241, 236, 0.55);
-  transform: translateX(calc(var(--seam-x) - 0.5px));
+  transform: translateX(-0.5px);
   pointer-events: none;
 }
 
 .inst-handle {
   position: absolute;
   top: 50%;
-  left: 0;
+  left: var(--seam-x);
   width: 26px;
   height: 26px;
   background: rgba(11, 14, 18, 0.72);
   border: 1px solid rgba(244, 241, 236, 0.55);
   border-radius: 999px;
   cursor: ew-resize;
-  transform: translate(calc(var(--seam-x) - 13px), -50%);
+  transform: translate(-13px, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -227,7 +227,7 @@ body {
 }
 .inst--animating .inst-seam,
 .inst--animating .inst-handle {
-  transition: transform 300ms ease;
+  transition: left 300ms ease;
 }
 
 /* Corner SDR/Ultra switch */
