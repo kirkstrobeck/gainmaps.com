@@ -27,6 +27,7 @@ playwright-report/
 
 # Built service worker — regenerate with `pnpm --filter @ultra/web build:worker`.
 apps/web/public/hdr-service-worker.js
+apps/web/public/demo/
 
 # Window-gain calibration scratch + compiled Swift helpers
 tmp-window-gain/

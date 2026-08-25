@@ -43,7 +43,11 @@ test("home page renders drop zone and brew snippet", async ({ page }) => {
 test("processes a PNG through the gain map queue", async ({ page }) => {
   test.setTimeout(120000);
 
-  await page.locator("input[type=file]").setInputFiles("public/demo/sticker-source.png");
+  await page.locator("input[type=file]").setInputFiles({
+    name: "sticker-source.png",
+    mimeType: "image/png",
+    buffer: palettePng,
+  });
   await expect(page.getByText("Original")).toBeVisible();
   await expect(page.getByText("Revised")).toBeVisible();
   await expect(page.getByTestId("job-row")).toHaveCount(1);
