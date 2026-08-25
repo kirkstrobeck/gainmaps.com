@@ -50,7 +50,6 @@ export function UltraIcon({
 
   return (
     <span
-      data-ultra="on"
       aria-hidden
       className={cn("ultra-icon relative inline-block", className)}
       style={{ width: size, height: size }}

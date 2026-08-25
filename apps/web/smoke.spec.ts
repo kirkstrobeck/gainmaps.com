@@ -274,3 +274,63 @@ test("seam instrument is keyboard accessible", async ({ page }) => {
   expect(seamX).toBeTruthy();
   expect(parseFloat(seamX!)).toBeGreaterThan(50);
 });
+
+test("ultra defaults to on for fresh cookieless visit", async ({ page, context }) => {
+  await context.clearCookies();
+  await page.goto(BASE_URL);
+  await expect(page.locator("html")).toHaveAttribute("data-ultra", "on");
+  await expect(
+    page.getByRole("group", { name: "Ultra display" }).getByRole("button", { name: "ULTRA" })
+  ).toHaveAttribute("aria-pressed", "true");
+});
+
+test("seam starts at 50% on both instruments on first paint", async ({ page }) => {
+  await page.goto(BASE_URL);
+  const values = await page.evaluate(() =>
+    Array.from(document.querySelectorAll(".inst")).map(el =>
+      getComputedStyle(el).getPropertyValue("--seam-x").trim()
+    )
+  );
+  expect(values.length).toBeGreaterThanOrEqual(2);
+  for (const v of values) {
+    expect(parseFloat(v)).toBeCloseTo(50, 0);
+  }
+});
+
+test("pointer drag from image body moves the seam", async ({ page }) => {
+  await page.goto(BASE_URL);
+  const inst = page.locator(".inst").first();
+  const box = await inst.boundingBox();
+  expect(box).toBeTruthy();
+  const y = box!.y + box!.height / 2;
+  await page.mouse.move(box!.x + box!.width * 0.3, y);
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width * 0.7, y);
+  await page.mouse.up();
+  const seamX = await page.evaluate(() => {
+    const el = document.querySelector(".inst");
+    return el ? getComputedStyle(el).getPropertyValue("--seam-x").trim() : "0";
+  });
+  expect(parseFloat(seamX)).toBeGreaterThan(60);
+});
+
+test("seam corner SDR/Ultra buttons are accessible and functional", async ({ page }) => {
+  await page.goto(BASE_URL);
+  const inst = page.locator(".inst").first();
+
+  await inst.getByRole("button", { name: "Show Standard" }).click();
+  await page.waitForTimeout(400);
+  const afterSdr = await page.evaluate(() => {
+    const el = document.querySelector(".inst");
+    return el ? getComputedStyle(el).getPropertyValue("--seam-x").trim() : "0";
+  });
+  expect(parseFloat(afterSdr)).toBeCloseTo(100, 0);
+
+  await inst.getByRole("button", { name: "Show Ultra" }).click();
+  await page.waitForTimeout(400);
+  const afterUltra = await page.evaluate(() => {
+    const el = document.querySelector(".inst");
+    return el ? getComputedStyle(el).getPropertyValue("--seam-x").trim() : "100";
+  });
+  expect(parseFloat(afterUltra)).toBeCloseTo(0, 0);
+});

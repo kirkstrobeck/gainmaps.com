@@ -127,7 +127,13 @@ export function photoBySlug(slug: string): Photo | undefined {
 }
 
 export function photoStandardSrc(photo: Photo, width = 1920): string {
-  return `https://images.unsplash.com/${photo.unsplashPhotoId}?auto=format&fit=crop&w=${width}&q=80`;
+  return `https://images.unsplash.com/${photo.unsplashPhotoId}?auto=format&fit=crop&w=${width}&q=90`;
+}
+
+export function photoStandardSrcset(photo: Photo): string {
+  return [1280, 1920, 2560, 3200]
+    .map(w => `https://images.unsplash.com/${photo.unsplashPhotoId}?auto=format&fit=crop&w=${w}&q=90 ${w}w`)
+    .join(", ");
 }
 
 export function photoGainmapSrc(photo: Photo): string {

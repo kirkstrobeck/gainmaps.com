@@ -13,8 +13,6 @@ import { ImageProofSection } from "@/components/image-proof-section";
 const LOGO_STRIP = COMPANIES.slice(0, 8);
 const PHOTO_PEEK = PHOTOS.slice(1, 4);
 
-// TODO: replace PLACEHOLDER with Product Hunt URL after launch
-const PRODUCT_HUNT_URL = "PLACEHOLDER";
 
 export default function Base() {
   // Lens-flare Yosemite shot: bright sun creates obvious specular highlights

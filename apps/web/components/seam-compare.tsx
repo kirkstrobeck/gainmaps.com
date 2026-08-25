@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useRef } from "react";
-
+import { useCallback, useRef, useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { UltraWord } from "@/components/ultra-word";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 import type { Photo } from "@/lib/photos/catalog";
-import { photoGainmapSrc, photoStandardSrc } from "@/lib/photos/catalog";
+import { photoGainmapSrc, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/catalog";
 
 type InstrumentProps = {
   width?: number | string;
@@ -20,6 +20,8 @@ function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProp
   const handleRef = useRef<HTMLButtonElement>(null);
   const dragging = useRef(false);
   const posRef = useRef(50);
+  const rectRef = useRef<DOMRect | null>(null);
+  const [seamSide, setSeamSide] = useState<"sdr" | "ultra" | null>(null);
 
   const applyPos = useCallback((pct: number) => {
     const el = containerRef.current;
@@ -27,19 +29,31 @@ function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProp
     if (!el) return;
     posRef.current = pct;
     el.style.setProperty("--seam-x", `${pct.toFixed(2)}%`);
-    if (btn) btn.setAttribute("aria-valuenow", String(Math.round(pct)));
+    btn?.setAttribute("aria-valuenow", String(Math.round(pct)));
   }, []);
 
-  const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+  const animateTo = useCallback((pct: number) => {
+    const el = containerRef.current;
+    if (!el) return;
+    el.classList.add("inst--animating");
+    applyPos(pct);
+    setSeamSide(pct >= 100 ? "sdr" : pct <= 0 ? "ultra" : null);
+    setTimeout(() => { el.classList.remove("inst--animating"); }, 350);
+  }, [applyPos]);
+
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    rectRef.current = containerRef.current?.getBoundingClientRect() ?? null;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
-  }, []);
+    setSeamSide(null);
+    if (rectRef.current) {
+      applyPos(Math.max(0, Math.min(100, ((e.clientX - rectRef.current.left) / rectRef.current.width) * 100)));
+    }
+  }, [applyPos]);
 
   const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging.current) return;
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    applyPos(Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100)));
+    if (!dragging.current || !rectRef.current) return;
+    applyPos(Math.max(0, Math.min(100, ((e.clientX - rectRef.current.left) / rectRef.current.width) * 100)));
   }, [applyPos]);
 
   const onPointerUp = useCallback(() => { dragging.current = false; }, []);
@@ -49,6 +63,7 @@ function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProp
       : e.key === "ArrowRight" || e.key === "ArrowUp" ? 2 : 0;
     if (!delta) return;
     e.preventDefault();
+    setSeamSide(null);
     applyPos(Math.max(0, Math.min(100, posRef.current + delta)));
   }, [applyPos]);
 
@@ -57,16 +72,13 @@ function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProp
       ref={containerRef}
       className={`inst${className ? ` ${className}` : ""}`}
       style={{ width, height }}
+      onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
     >
-      {/* Ultra layer — always fully visible */}
       <div className="inst-layer">{ultra}</div>
-      {/* SDR layer — clipped to left of seam */}
       <div className="inst-layer inst-sdr">{sdr}</div>
-      {/* Seam line */}
       <div className="inst-seam" aria-hidden />
-      {/* Handle */}
       <button
         ref={handleRef}
         type="button"
@@ -76,14 +88,32 @@ function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProp
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={50}
-        onPointerDown={onPointerDown}
         onKeyDown={onKeyDown}
-      />
-      {/* Corner tags */}
+      >
+        <ChevronLeftIcon size={10} color="rgba(244,241,236,0.8)" aria-hidden />
+        <ChevronRightIcon size={10} color="rgba(244,241,236,0.8)" aria-hidden />
+      </button>
       <div className="inst-tag inst-tag-std">Standard</div>
-      <div className="inst-tag inst-tag-ultra">
-        <span className="inst-dot" aria-hidden />
-        Ultra
+      <div className="inst-corner-switch" onPointerDown={e => e.stopPropagation()}>
+        <button
+          type="button"
+          className="inst-switch-btn"
+          aria-pressed={seamSide === "sdr"}
+          aria-label="Show Standard"
+          onClick={() => animateTo(100)}
+        >
+          SDR
+        </button>
+        <button
+          type="button"
+          className="inst-switch-btn inst-switch-ultra"
+          aria-pressed={seamSide === "ultra"}
+          aria-label="Show Ultra"
+          onClick={() => animateTo(0)}
+        >
+          <span className="inst-dot" aria-hidden />
+          Ultra
+        </button>
       </div>
     </div>
   );
@@ -112,6 +142,8 @@ export function SeamComparePhoto({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={stdSrc}
+          srcSet={photoStandardSrcset(photo)}
+          sizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
           alt={`${photo.alt}, Standard`}
           className="inst-img gainmap-image"
           loading="eager"

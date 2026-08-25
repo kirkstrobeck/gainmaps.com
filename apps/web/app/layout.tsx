@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, JetBrains_Mono } from "next/font/google";
+import { Archivo, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 
 import "./globals.css";
 import { SiteAppearanceProvider } from "@/components/site-appearance-provider";
@@ -10,6 +10,12 @@ const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
   axes: ["wdth"],
+});
+
+const bricolageGrotesque = Bricolage_Grotesque({
+  variable: "--font-bricolage-grotesque",
+  subsets: ["latin"],
+  axes: ["opsz", "wdth"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -57,7 +63,7 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
       <head>
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
-      <body className={`${archivo.variable} ${jetbrainsMono.variable}`}>
+      <body className={`${archivo.variable} ${bricolageGrotesque.variable} ${jetbrainsMono.variable}`}>
         <SiteAppearanceProvider initial={{ mode, ultra }}>
           {children}
         </SiteAppearanceProvider>

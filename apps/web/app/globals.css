@@ -151,7 +151,7 @@ body {
 }
 
 .font-display {
-  font-family: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-bricolage-grotesque), ui-sans-serif, system-ui, sans-serif;
 }
 
 .font-mono {
@@ -212,6 +212,66 @@ body {
 .inst-handle:focus-visible {
   outline: 2px solid rgba(196, 114, 58, 0.8);
   outline-offset: 2px;
+}
+
+/* Expand handle touch target to 44x44 without growing the visual circle */
+.inst-handle::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+
+/* Animated transitions for programmatic seam moves */
+.inst--animating .inst-sdr {
+  transition: clip-path 300ms ease;
+}
+.inst--animating .inst-seam,
+.inst--animating .inst-handle {
+  transition: transform 300ms ease;
+}
+
+/* Corner SDR/Ultra switch */
+.inst-corner-switch {
+  position: absolute;
+  bottom: 8px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 6px;
+}
+
+.inst-switch-btn {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(244, 241, 236, 0.65);
+  background: transparent;
+  border: none;
+  padding: 3px 5px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.inst-switch-btn:hover {
+  color: rgba(244, 241, 236, 0.9);
+  background: rgba(244, 241, 236, 0.08);
+}
+
+.inst-switch-btn[aria-pressed="true"],
+.inst-switch-btn:focus-visible {
+  color: rgba(244, 241, 236, 0.9);
+}
+
+.inst-switch-btn:focus-visible {
+  outline: 2px solid rgba(196, 114, 58, 0.8);
+  outline-offset: 1px;
 }
 
 .inst-tag {
@@ -554,10 +614,20 @@ html[data-ultra="on"] .ultra-fill {
   dynamic-range-limit: no-limit;
 }
 
-.ultra-icon,
-.ultra-icon .ultra-fill,
-.ultra-icon .ultra-backdrop {
+/* Ultra mode by Kirk Strobeck */
+html[data-ultra="on"] .ultra-icon,
+html[data-ultra="on"] .ultra-icon .ultra-fill,
+html[data-ultra="on"] .ultra-icon .ultra-backdrop {
   dynamic-range-limit: no-limit;
+}
+
+html[data-ultra="off"] .ultra-icon,
+html[data-ultra="off"] .ultra-icon .ultra-fill,
+html[data-ultra="off"] .ultra-icon .ultra-backdrop,
+html[data-ultra="off"] .ultra-fill,
+html[data-ultra="off"] .ultra-backdrop,
+html[data-ultra="off"] .ultra-word {
+  dynamic-range-limit: standard;
 }
 
 .ultra-backdrop {

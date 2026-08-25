@@ -5,6 +5,7 @@
 import { useEffect, useRef, type CSSProperties } from "react";
 
 import { startUltraFill } from "@/lib/ultra-fill";
+import { SITE_APPEARANCE_EVENT, readSiteUltra } from "@/lib/site-appearance";
 
 type Props = {
   intensity: number;
@@ -20,15 +21,29 @@ export function UltraFillCanvas({ intensity, className, style }: Props) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const session = startUltraFill(canvas, { intensity });
-    const repaint = () => session.poke();
+    let session = readSiteUltra() === "on" ? startUltraFill(canvas, { intensity }) : null;
+
+    const repaint = () => { session?.poke(); };
+    const onAppearance = (e: Event) => {
+      const ultra = (e as CustomEvent<{ ultra: string }>).detail.ultra;
+      if (ultra === "off" && session) {
+        session.stop();
+        session = null;
+      }
+      if (ultra === "on" && !session) {
+        session = startUltraFill(canvas, { intensity });
+      }
+    };
+
     document.addEventListener("visibilitychange", repaint);
     window.addEventListener("resize", repaint);
+    window.addEventListener(SITE_APPEARANCE_EVENT, onAppearance);
 
     return () => {
       document.removeEventListener("visibilitychange", repaint);
       window.removeEventListener("resize", repaint);
-      session.stop();
+      window.removeEventListener(SITE_APPEARANCE_EVENT, onAppearance);
+      session?.stop();
     };
   }, [intensity]);
 
