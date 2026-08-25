@@ -11,7 +11,7 @@
  */
 
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, symlinkSync, unlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -113,12 +113,16 @@ async function main(): Promise<void> {
     try { unlinkSync(pidFile); } catch { /* ignore */ }
   }
 
-  // Remove any stale distDir so a prior build (potentially run as root or a different uid)
-  // cannot leave files that the current user cannot overwrite, then recreate with open
-  // permissions so Next.js worker processes can write to it.
+  // Build onto container-local tmpfs so parallel export workers never hammer the
+  // virtiofs bind mount (which produces intermittent EACCES under high concurrency).
+  // apps/web/.next-prod becomes a symlink; NEXT_DIST_DIR stays ".next-prod" so Next
+  // resolves it relative to the project dir and follows the symlink transparently.
   const distDir = resolve(webDir, ".next-prod");
+  const tmpDir = "/tmp/next-prod";
+  rmSync(tmpDir, { recursive: true, force: true });
+  mkdirSync(tmpDir, { recursive: true, mode: 0o777 });
   rmSync(distDir, { recursive: true, force: true });
-  mkdirSync(distDir, { recursive: true, mode: 0o777 });
+  symlinkSync(tmpDir, distDir);
 
   console.log("\n=== Step 1: build ===");
   run("pnpm -C apps/web build", root, { ...process.env, NEXT_DIST_DIR: ".next-prod" });
