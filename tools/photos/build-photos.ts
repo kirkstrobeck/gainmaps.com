@@ -20,13 +20,13 @@
  *   npx tsx tools/photos/build-photos.ts --force
  *   npx tsx tools/photos/build-photos.ts --limit=12
  */
-import { mkdir, stat, writeFile } from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import sharp from "sharp";
 
-import { encodeRgbaToUltraHdrJpeg } from "../../apps/web/lib/gain-map-encode.ts";
+import { PHOTO_WIDTHS, encodeVariants } from "./encode-variants.ts";
 import { PHOTOS, type Photo } from "../../apps/web/lib/photos/catalog.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -83,10 +83,9 @@ async function main(): Promise<void> {
 
 async function buildOne(photo: Photo, force: boolean): Promise<Outcome> {
   const directory = join(publicRoot, photo.slug);
-  const dest = join(directory, "gainmap.jpg");
 
-  if (!force && (await exists(dest))) {
-    return { ok: true, photo, note: dest, skipped: true };
+  if (!force && (await allVariantsExist(directory))) {
+    return { ok: true, photo, note: directory, skipped: true };
   }
 
   const jpeg = await downloadUnsplash(photo).catch((error: unknown) => errorMessage(error));
@@ -95,14 +94,14 @@ async function buildOne(photo: Photo, force: boolean): Promise<Outcome> {
   const raster = await rasterize(jpeg).catch((error: unknown) => errorMessage(error));
   if (typeof raster === "string") return { ok: false, photo, reason: `decode failed — ${raster}` };
 
-  const encoded = encodeRgbaToUltraHdrJpeg(raster.pixels, raster.width, raster.height, {
-    boost: BOOST,
-    matte: "white",
-  });
+  await encodeVariants(raster.pixels, raster.width, raster.height, directory, BOOST);
+  return { ok: true, photo, note: `${raster.width}×${raster.height} → ${PHOTO_WIDTHS.join("/")}w`, skipped: false };
+}
 
-  await mkdir(directory, { recursive: true });
-  await writeFile(dest, encoded.output);
-  return { ok: true, photo, note: encoded.note, skipped: false };
+async function allVariantsExist(directory: string): Promise<boolean> {
+  const names = ["gainmap-400.jpg", "gainmap-800.jpg", "gainmap-1280.jpg", "gainmap.jpg"];
+  const checks = await Promise.all(names.map((n) => exists(join(directory, n))));
+  return checks.every(Boolean);
 }
 
 async function downloadUnsplash(photo: Photo, attempt = 0): Promise<Buffer> {

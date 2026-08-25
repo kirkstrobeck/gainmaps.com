@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 
 import sharp from "sharp";
 
-import { encodeRgbaToUltraHdrJpeg } from "../../apps/web/lib/gain-map-encode.ts";
+import { encodeLogoVariants } from "./encode-logo-variants.ts";
 import { LOGO_SEEDS, type LogoSeed } from "./sources.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -156,13 +156,8 @@ async function buildOne(entry: Resolved): Promise<Outcome> {
     return { ok: false, seed: entry.seed, reason: `rasterize failed — ${raster}` };
   }
 
-  const encoded = encodeRgbaToUltraHdrJpeg(raster, CANVAS, CANVAS, {
-    boost: BOOST,
-    matte: "checkerboard",
-  });
-  await writeFile(join(directory, "logo-gainmap.jpg"), encoded.output);
-
-  return { ok: true, seed: entry.seed, source: entry.source, note: encoded.note };
+  await encodeLogoVariants(raster, CANVAS, directory, BOOST);
+  return { ok: true, seed: entry.seed, source: entry.source, note: `${CANVAS}×${CANVAS}` };
 }
 
 /**
