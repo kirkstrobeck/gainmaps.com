@@ -16,7 +16,7 @@ export function parseExtensionList(raw: string | undefined): readonly string[] {
 
 export function matchesExclude(path: string, patterns: readonly string[]): boolean {
   if (patterns.length === 0) return false;
-  return patterns.some((pattern) => globMatch(path, pattern) || globMatch(path.replaceAll("\", "/"), pattern));
+  return patterns.some((pattern) => globMatch(path, pattern) || globMatch(path.split(String.fromCharCode(92)).join("/"), pattern));
 }
 
 export async function collectInputs(
@@ -71,10 +71,12 @@ function unique(paths: readonly string[]): readonly string[] {
 }
 
 function globMatch(path: string, pattern: string): boolean {
-  const normalized = path.replaceAll("\", "/");
-  const source = "^" + pattern.replaceAll("\", "/").split("**").map((part, index, all) => {
-    const escaped = part.replace(/[.+^?${}()|[\]]/g, "\$&").replaceAll("*", "[^/]*").replaceAll("?", "[^/]");
-    if (index < all.length - 1) return escaped + ".*";
+  const slash = String.fromCharCode(92);
+  const normalized = path.split(slash).join("/");
+  const pieces = pattern.split(slash).join("/").split("**");
+  const source = "^" + pieces.map((part, index) => {
+    const escaped = [...part].map((ch) => (".+^?${}()|[]".includes(ch) ? String.fromCharCode(92) + ch : ch)).join("").split("*").join("[^/]*");
+    if (index < pieces.length - 1) return escaped + ".*";
     return escaped;
   }).join("") + "$";
   return new RegExp(source).test(normalized);

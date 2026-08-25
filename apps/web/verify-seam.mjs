@@ -1,19 +1,10 @@
 // Seam slider regression test — runs against the already-running dev/prod server.
 // Usage: node apps/web/verify-seam.mjs
 import { chromium } from '@playwright/test';
-import { mkdirSync, readdirSync } from 'fs';
+import { mkdirSync } from 'fs';
 import path from 'path';
 
 const BASE      = 'http://127.0.0.1:3000';
-
-function findChromium() {
-  const base = process.env.PLAYWRIGHT_BROWSERS_PATH ?? '/ms-playwright';
-  const entries = readdirSync(base);
-  const dir = entries.find(e => e.startsWith('chromium-') && !e.includes('headless'));
-  if (!dir) { throw new Error(`No chromium-* dir in ${base}`); }
-  return path.join(base, dir, 'chrome-linux', 'chrome');
-}
-const CHROME = findChromium();
 const REPORT    = '/workspace/reports/land';
 mkdirSync(REPORT, { recursive: true });
 
@@ -47,7 +38,7 @@ async function runViewport(browser, w, h, label) {
   console.log(`Viewport: ${label}  ${w}×${h}`);
   console.log('═'.repeat(56));
 
-  const ctx  = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 800, deviceScaleFactor: 1 });
+  const ctx  = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 800, deviceScaleFactor: 1, bypassCSP: true });
   const page = await ctx.newPage();
 
   const msgs = [];
@@ -100,12 +91,110 @@ async function runViewport(browser, w, h, label) {
     console.log(`  after SDR:   handle.cx=${m2.handle.cx.toFixed(1)}  expected≈${ex100.toFixed(1)}`);
     near(m2.handle.cx, ex100, m0.inst.width * 0.04, 'handle at ~100% after SDR');
 
+    const seamAfterSdr = await page.evaluate((idx2) => {
+      const inst = document.querySelectorAll('.inst')[idx2];
+      return getComputedStyle(inst).getPropertyValue('--seam-x').trim();
+    }, i);
+    console.log(`  --seam-x after SDR click: ${seamAfterSdr}`);
+
     await page.locator('.inst').nth(i).getByRole('button', { name: 'Show Ultra' }).click();
     await page.waitForTimeout(400);
     const m3  = await measure(page, i);
     const ex0 = m0.inst.left;
     console.log(`  after Ultra: handle.cx=${m3.handle.cx.toFixed(1)}  expected≈${ex0.toFixed(1)}`);
     near(m3.handle.cx, ex0, m0.inst.width * 0.04, 'handle at ~0% after Ultra');
+
+    const seamAfterUltra = await page.evaluate((idx2) => {
+      const inst = document.querySelectorAll('.inst')[idx2];
+      return getComputedStyle(inst).getPropertyValue('--seam-x').trim();
+    }, i);
+    console.log(`  --seam-x after Ultra click: ${seamAfterUltra}`);
+
+    // ── 3b. Corner button geometry ────────────────────────────────────
+    const btnRects = await page.evaluate((idx2) => {
+      const inst = document.querySelectorAll('.inst')[idx2];
+      const sdr = inst.querySelector('[aria-label="Show Standard"]');
+      const ultra = inst.querySelector('[aria-label="Show Ultra"]');
+      const ir = inst.getBoundingClientRect();
+      const sr = sdr ? sdr.getBoundingClientRect() : null;
+      const ur = ultra ? ultra.getBoundingClientRect() : null;
+      const style = (el) => {
+        const cs = getComputedStyle(el);
+        return {
+          bg: cs.backgroundColor,
+          border: cs.borderWidth,
+          radius: cs.borderRadius,
+          color: cs.color,
+        };
+      };
+      return {
+        inst: { x: ir.x, y: ir.y, w: ir.width, h: ir.height },
+        sdr: sr ? { x: sr.x, y: sr.y, w: sr.width, h: sr.height, cx: sr.x + sr.width/2, cy: sr.y + sr.height/2 } : null,
+        ultra: ur ? { x: ur.x, y: ur.y, w: ur.width, h: ur.height, cx: ur.x + ur.width/2, cy: ur.y + ur.height/2 } : null,
+        sdrStyle: sdr ? style(sdr) : null,
+        ultraStyle: ultra ? style(ultra) : null,
+      };
+    }, i);
+
+    console.log(`\n  SDR btn: x=${btnRects.sdr?.x.toFixed(1)} y=${btnRects.sdr?.y.toFixed(1)} w=${btnRects.sdr?.w.toFixed(1)} h=${btnRects.sdr?.h.toFixed(1)} cx=${btnRects.sdr?.cx.toFixed(1)}`);
+    console.log(`  Ultra btn: x=${btnRects.ultra?.x.toFixed(1)} y=${btnRects.ultra?.y.toFixed(1)} w=${btnRects.ultra?.w.toFixed(1)} h=${btnRects.ultra?.h.toFixed(1)} cx=${btnRects.ultra?.cx.toFixed(1)}`);
+    console.log(`  SDR style: bg=${btnRects.sdrStyle?.bg} border=${btnRects.sdrStyle?.border} radius=${btnRects.sdrStyle?.radius}`);
+    console.log(`  Ultra style: bg=${btnRects.ultraStyle?.bg} border=${btnRects.ultraStyle?.border} radius=${btnRects.ultraStyle?.radius}`);
+
+    const instMidX = btnRects.inst.x + btnRects.inst.w / 2;
+    const instBottom = btnRects.inst.y + btnRects.inst.h;
+    const instH = btnRects.inst.h;
+
+    // SDR center-x must be in left half
+    btnRects.sdr && btnRects.sdr.cx < instMidX
+      ? ok(`SDR center-x (${btnRects.sdr.cx.toFixed(1)}) in left half`)
+      : fail(`SDR center-x should be in left half`, `cx=${btnRects.sdr?.cx?.toFixed(1)} midX=${instMidX.toFixed(1)}`);
+
+    // Ultra center-x must be in right half
+    btnRects.ultra && btnRects.ultra.cx > instMidX
+      ? ok(`Ultra center-x (${btnRects.ultra.cx.toFixed(1)}) in right half`)
+      : fail(`Ultra center-x should be in right half`, `cx=${btnRects.ultra?.cx?.toFixed(1)} midX=${instMidX.toFixed(1)}`);
+
+    // Both in bottom third vertically
+    if (btnRects.sdr) {
+      const sdrCy = btnRects.sdr.cy;
+      sdrCy > instBottom - instH/3
+        ? ok(`SDR in bottom third (cy=${sdrCy.toFixed(1)})`)
+        : fail(`SDR should be in bottom third`, `cy=${sdrCy.toFixed(1)} threshold=${(instBottom - instH/3).toFixed(1)}`);
+    }
+    if (btnRects.ultra) {
+      const uCy = btnRects.ultra.cy;
+      uCy > instBottom - instH/3
+        ? ok(`Ultra in bottom third (cy=${uCy.toFixed(1)})`)
+        : fail(`Ultra should be in bottom third`, `cy=${uCy.toFixed(1)}`);
+    }
+
+    // No overlap
+    if (btnRects.sdr && btnRects.ultra) {
+      const noOverlap = btnRects.sdr.x + btnRects.sdr.w < btnRects.ultra.x;
+      noOverlap
+        ? ok(`SDR and Ultra buttons do not overlap`)
+        : fail(`SDR and Ultra buttons overlap`, `sdr.right=${(btnRects.sdr.x+btnRects.sdr.w).toFixed(1)} ultra.left=${btnRects.ultra.x.toFixed(1)}`);
+    }
+
+    // background is NOT transparent
+    if (btnRects.sdrStyle) {
+      btnRects.sdrStyle.bg !== 'rgba(0, 0, 0, 0)'
+        ? ok(`SDR bg is non-transparent: ${btnRects.sdrStyle.bg}`)
+        : fail(`SDR bg should not be transparent`);
+    }
+    if (btnRects.ultraStyle) {
+      btnRects.ultraStyle.bg !== 'rgba(0, 0, 0, 0)'
+        ? ok(`Ultra bg is non-transparent: ${btnRects.ultraStyle.bg}`)
+        : fail(`Ultra bg should not be transparent`);
+    }
+
+    // border-width > 0
+    if (btnRects.sdrStyle) {
+      parseFloat(btnRects.sdrStyle.border) > 0
+        ? ok(`SDR border-width=${btnRects.sdrStyle.border}`)
+        : fail(`SDR border-width should be > 0`);
+    }
   }
 
   // ── 4. Console messages ──────────────────────────────────────
@@ -131,7 +220,7 @@ async function runViewport(browser, w, h, label) {
   await ctx.close();
 }
 
-const browser = await chromium.launch({ executablePath: CHROME, args: ['--no-sandbox'] });
+const browser = await chromium.launch({ args: ['--no-sandbox'] });
 try {
   await runViewport(browser, 1440, 900, 'desktop');
   await runViewport(browser, 390,  844, 'mobile');

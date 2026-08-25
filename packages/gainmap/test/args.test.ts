@@ -26,7 +26,7 @@ describe("args", () => {
     assert.deepEqual(parsed.positionals, ["-"]);
     assert.equal(flagBool(parsed.flags, "stdout"), true);
     assert.throws(() => parseArgs(["--quality"]), /requires a value/);
-    assert.throws(() => parseArgs(["--quality", "--force"]), /requires a value/);
+    assert.equal(flagString(parseArgs(["--suffix", "-hdr"]).flags, "suffix"), "-hdr");
     assert.throws(() => flagString({ quality: true }, "quality"), /requires a value/);
     assert.throws(() => flagNumber({ jobs: "nope" }, "jobs"), /must be a number/);
   });

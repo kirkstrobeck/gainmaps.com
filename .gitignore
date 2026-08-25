@@ -58,3 +58,12 @@ tools/sandbox/.install-hashes
 
 # gainmap CLI build output
 packages/gainmap/dist/
+packages/gainmap/*.tgz
+.env*
+
+# Lighthouse CI output
+.lighthouseci/
+reports/
+
+# tools local node_modules (symlink)
+tools/node_modules

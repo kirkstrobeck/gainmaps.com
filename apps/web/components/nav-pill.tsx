@@ -5,45 +5,43 @@ import { cn } from "@/lib/utils";
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
 
 export function NavPill({
-  leftLabel, rightLabel, leftActive, onLeft, onRight, label,
+  leftLabel, rightLabel, leftActive, onToggle, label,
 }: {
   leftLabel: string; rightLabel: string; leftActive: boolean;
-  onLeft: () => void; onRight: () => void; label?: string;
+  onToggle: () => void; label?: string;
 }) {
   return (
-    <div
-      className="inline-flex h-7 items-center rounded-[999px] border border-[var(--border)] bg-[var(--panel)] p-0.5"
-      role="group"
+    <button
+      type="button"
+      role="switch"
+      aria-checked={!leftActive}
       aria-label={label}
+      onClick={onToggle}
+      className={cn(
+        "inline-flex h-7 cursor-pointer items-center rounded-[999px] border border-[var(--border)] bg-[var(--panel)] p-0.5",
+        FOCUS,
+      )}
     >
-      <button
-        type="button"
-        onClick={onLeft}
-        aria-pressed={leftActive}
+      <span
         className={cn(
-          "h-full rounded-[999px] px-2.5 font-mono text-[12px] font-medium transition",
-          FOCUS,
+          "inline-flex h-full items-center rounded-[999px] px-2.5 font-mono text-[12px] font-medium transition",
           leftActive
             ? "bg-[var(--foreground)] text-[var(--background)]"
-            : "text-[var(--muted)] hover:text-[var(--foreground)]",
+            : "text-[var(--muted)]",
         )}
       >
         {leftLabel}
-      </button>
-      <button
-        type="button"
-        onClick={onRight}
-        aria-pressed={!leftActive}
+      </span>
+      <span
         className={cn(
-          "h-full rounded-[999px] px-2.5 font-mono text-[12px] font-medium transition",
-          FOCUS,
+          "inline-flex h-full items-center rounded-[999px] px-2.5 font-mono text-[12px] font-medium transition",
           !leftActive
-            ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
-            : "text-[var(--muted)] hover:text-[var(--foreground)]",
+            ? "bg-[var(--foreground)] text-[var(--background)]"
+            : "text-[var(--muted)]",
         )}
       >
         {rightLabel}
-      </button>
-    </div>
+      </span>
+    </button>
   );
 }

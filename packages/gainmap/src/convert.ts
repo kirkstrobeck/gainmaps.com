@@ -2,10 +2,15 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import { decodeImage } from "#src/decode.js";
-import { encodeRgbaToUltraHdrJpeg, type GainMapEncodeOptions } from "#src/encode.js";
-import type { OutputPlan } from "#src/output-path.js";
+import { encodeRgbaToUltraHdrJpeg } from "#src/encode.js";
+type OutputPlan = { readonly input: string; readonly output: string | null; readonly stdout: boolean };
 
-export type ConvertOptions = GainMapEncodeOptions & {
+export type ConvertOptions = {
+  readonly boost?: number;
+  readonly headroom?: number;
+  readonly quality?: number;
+  readonly hdrModel?: "highlight" | "window";
+  readonly matte?: "white" | "checkerboard";
   readonly dryRun: boolean;
   readonly force: boolean;
   readonly maxSize?: number;
@@ -23,13 +28,17 @@ export type ConvertResult = {
   readonly note: string;
 };
 
+export function formatError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  return String(error);
+}
+
 export async function convertPlans(
   plans: readonly OutputPlan[],
   options: ConvertOptions,
   stdinBytes?: Uint8Array,
   writeStdout: (bytes: Uint8Array) => void = (bytes) => { process.stdout.write(bytes); },
-  log: (message: string) => void = (message) => { process.stderr.write(message + "
-"); },
+  log: (message: string) => void = (message) => { process.stderr.write(message + String.fromCharCode(10)); },
 ): Promise<{ readonly results: readonly ConvertResult[]; readonly failures: number }> {
   const batches = await mapLimit(plans, options.jobs, (plan, index) =>
     convertOne(plan, options, stdinBytes, writeStdout, (message) => {
@@ -51,7 +60,7 @@ async function convertOne(
     const result = await convertPlan(plan, options, stdinBytes, writeStdout, log);
     return { result, failed: false };
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = formatError(error);
     log("error: " + plan.input + ": " + message);
     if (!options.continueOnError) throw error;
     return {

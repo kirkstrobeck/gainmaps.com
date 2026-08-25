@@ -123,14 +123,14 @@ test("encodes SVGs as gain map JPEGs", async ({ page }) => {
 test("defaults Ultra on and exposes chrome toggles", async ({ page }) => {
   await page.goto(BASE_URL);
   await expect(page.locator("html")).toHaveAttribute("data-ultra", "on");
-  await expect(page.getByRole("group", { name: "Ultra display" })).toHaveCount(1);
-  await expect(page.getByRole("group", { name: "Color mode" })).toHaveCount(1);
+  await expect(page.getByRole("switch", { name: "Ultra display" })).toHaveCount(1);
+  await expect(page.getByRole("switch", { name: "Color mode" })).toHaveCount(1);
 
-  await page.getByRole("group", { name: "Ultra display" }).getByRole("button", { name: "SDR" }).click();
+  await page.getByRole("switch", { name: "Ultra display" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-ultra", "off");
   await expect(page).toHaveURL(/ultra=off/);
 
-  await page.getByRole("group", { name: "Ultra display" }).getByRole("button", { name: "ULTRA" }).click();
+  await page.getByRole("switch", { name: "Ultra display" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-ultra", "on");
 });
 
@@ -254,7 +254,7 @@ test("cookieless visit renders with default appearance", async ({ page }) => {
   await page.goto(BASE_URL);
   await expect(page.locator("html")).toHaveAttribute("data-ultra", "on");
   // Nav pill reflects the state
-  await expect(page.getByRole("group", { name: "Ultra display" })).toBeVisible();
+  await expect(page.getByRole("switch", { name: "Ultra display" })).toBeVisible();
 });
 
 test("seam instrument is keyboard accessible", async ({ page }) => {
@@ -280,8 +280,8 @@ test("ultra defaults to on for fresh cookieless visit", async ({ page, context }
   await page.goto(BASE_URL);
   await expect(page.locator("html")).toHaveAttribute("data-ultra", "on");
   await expect(
-    page.getByRole("group", { name: "Ultra display" }).getByRole("button", { name: "ULTRA" })
-  ).toHaveAttribute("aria-pressed", "true");
+    page.getByRole("switch", { name: "Ultra display" })
+  ).toHaveAttribute("aria-checked", "true");
 });
 
 test("seam starts at 50% on both instruments on first paint", async ({ page }) => {

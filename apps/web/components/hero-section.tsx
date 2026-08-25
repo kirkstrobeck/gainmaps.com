@@ -12,7 +12,7 @@ import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 import { cn } from "@/lib/utils";
 
 const H1_CLASS = "font-display text-[46px] font-[640] leading-[0.94] tracking-[-0.02em] [font-variation-settings:'wdth'_96] lg:text-[78px]";
-const TYPE_CLASS = "font-display text-3xl font-[640] [font-variation-settings:'wdth'_96] lg:text-4xl";
+const TYPE_CLASS = "font-display font-bold [font-size:clamp(3rem,28vw,8rem)]";
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
 
 function NpxCopy() {
@@ -61,7 +61,7 @@ export function HeroSection({ comparePhoto }: { comparePhoto: Photo }) {
           <h1 className={`${H1_CLASS} text-balance text-[var(--foreground)]`}>
             <UltraWord word="Gain" typeClassName={H1_CLASS} intensity={TEXT_ULTRA_INTENSITY} />
             {" "}
-            <UltraWord word="maps." typeClassName={H1_CLASS} intensity={TEXT_ULTRA_INTENSITY} />
+            <UltraWord word="maps" typeClassName={H1_CLASS} intensity={TEXT_ULTRA_INTENSITY} />
           </h1>
           <p className="max-w-[31ch] text-[17px] leading-[1.55] text-[var(--muted)]">
             One file. Two renderers. Standard clips highlights. Ultra unlocks them.

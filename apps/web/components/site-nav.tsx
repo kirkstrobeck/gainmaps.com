@@ -63,7 +63,7 @@ export function SiteNav() {
           Gainmaps<span className="text-[var(--accent)]">.</span>
         </a>
 
-        {/* Desktop links + controls */}
+        {/* Desktop links + controls — DARK/LIGHT comes FIRST */}
         <div className="hidden items-center gap-6 lg:flex">
           {LINKS.map(({ href, label }) => {
             const active = pathname === href || pathname.startsWith(`${href}/`);
@@ -86,18 +86,16 @@ export function SiteNav() {
           <div className="ml-2 h-4 w-px bg-[var(--border)]" aria-hidden />
 
           <NavPill
-            label="Ultra display"
-            leftLabel="SDR" rightLabel="ULTRA"
-            leftActive={ultra === "off"}
-            onLeft={() => commit({ ultra: "off" })}
-            onRight={() => commit({ ultra: "on" })}
-          />
-          <NavPill
             label="Color mode"
             leftLabel="DARK" rightLabel="LIGHT"
             leftActive={mode === "dark"}
-            onLeft={() => commit({ mode: "dark" })}
-            onRight={() => commit({ mode: "light" })}
+            onToggle={() => commit({ mode: mode === "dark" ? "light" : "dark" })}
+          />
+          <NavPill
+            label="Ultra display"
+            leftLabel="SDR" rightLabel="ULTRA"
+            leftActive={ultra === "off"}
+            onToggle={() => commit({ ultra: ultra === "off" ? "on" : "off" })}
           />
 
           <a
@@ -117,8 +115,7 @@ export function SiteNav() {
             label="Ultra display"
             leftLabel="SDR" rightLabel="ULTRA"
             leftActive={ultra === "off"}
-            onLeft={() => commit({ ultra: "off" })}
-            onRight={() => commit({ ultra: "on" })}
+            onToggle={() => commit({ ultra: ultra === "off" ? "on" : "off" })}
           />
           <button
             type="button"
@@ -157,8 +154,7 @@ export function SiteNav() {
               label="Color mode"
               leftLabel="DARK" rightLabel="LIGHT"
               leftActive={mode === "dark"}
-              onLeft={() => commit({ mode: "dark" })}
-              onRight={() => commit({ mode: "light" })}
+              onToggle={() => commit({ mode: mode === "dark" ? "light" : "dark" })}
             />
           </div>
         </div>

@@ -6,8 +6,8 @@
 export const TEXT_ULTRA_HEADROOM_MIN = 1;
 export const TEXT_ULTRA_HEADROOM_MAX = 4;
 
-/** Middle/high default — brighter than mild 2.2, short of max 4.0. */
-export const TEXT_ULTRA_INTENSITY = 3.1;
+/** Default intensity — at max headroom. */
+export const TEXT_ULTRA_INTENSITY = TEXT_ULTRA_HEADROOM_MAX;
 
 const HEADROOM_SPAN = TEXT_ULTRA_HEADROOM_MAX - TEXT_ULTRA_HEADROOM_MIN;
 

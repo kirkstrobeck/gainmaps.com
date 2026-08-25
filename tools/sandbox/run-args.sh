@@ -61,19 +61,16 @@ sandbox_extra_mount_args() {
 # Mounting the repo a second time at its literal host path means a path that
 # works inside also works when handed to the daemon.
 sandbox_mount_args() {
-  local docker_repo docker_cache
-  docker_repo="$(sandbox_host_repo)"
-  docker_cache="$(sandbox_host_cache)"
   printf '%s\n' \
-    -v "$docker_repo:/workspace" \
-    -v "$docker_repo:$docker_repo" \
-    -v "$docker_cache/claude-home:/home/agent/.claude" \
-    -v "$docker_cache/codex-home:/home/agent/.codex" \
-    -v "$docker_cache/cursor-home:/home/agent/.config/cursor" \
-    -v "$docker_cache/gh:/home/agent/.config/gh" \
-    -v "$docker_cache/agy-home:/home/agent/.gemini" \
-    -v "$docker_cache/amp-home:/home/agent/.config/amp" \
-    -v "$docker_cache/opencode-home:/home/agent/.config/opencode"
+    -v "$REPO_ROOT:/workspace" \
+    -v "$REPO_ROOT:$REPO_ROOT" \
+    -v "$CACHE_DIR/claude-home:/home/agent/.claude" \
+    -v "$CACHE_DIR/codex-home:/home/agent/.codex" \
+    -v "$CACHE_DIR/cursor-home:/home/agent/.config/cursor" \
+    -v "$CACHE_DIR/gh:/home/agent/.config/gh" \
+    -v "$CACHE_DIR/agy-home:/home/agent/.gemini" \
+    -v "$CACHE_DIR/amp-home:/home/agent/.config/amp" \
+    -v "$CACHE_DIR/opencode-home:/home/agent/.config/opencode"
   sandbox_worktree_mount_args
   sandbox_extra_mount_args
 
@@ -234,7 +231,7 @@ sandbox_env_args() {
   printf '%s\n' \
     -e "SANDBOX_INNER=1" \
     -e "SANDBOX_PROJECT=$SANDBOX_PROJECT" \
-    -e "HOST_REPO_ROOT=$(sandbox_host_repo)"
+    -e "HOST_REPO_ROOT=$REPO_ROOT"
 
   # Mirrored so commits made inside carry the human's identity, not root's.
   local name email

@@ -43,7 +43,7 @@ jobs:
 
       - name: Run Lighthouse (${{ matrix.preset }})
         run: |
-          pnpm exec lhci autorun --config="tools/lighthouse/lhci-${{ matrix.preset }}.js"
+          pnpm exec lhci autorun --config="tools/lighthouse/lhci-${{ matrix.preset }}.cjs"
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
 

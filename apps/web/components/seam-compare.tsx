@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { UltraWord } from "@/components/ultra-word";
+import { SeamCornerButtons } from "@/components/seam-corner-buttons";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 import type { Photo } from "@/lib/photos/catalog";
 import { photoGainmapSrc, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/catalog";
@@ -93,28 +94,7 @@ function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProp
         <ChevronLeftIcon size={10} color="rgba(244,241,236,0.8)" aria-hidden />
         <ChevronRightIcon size={10} color="rgba(244,241,236,0.8)" aria-hidden />
       </button>
-      <div className="inst-tag inst-tag-std">Standard</div>
-      <div className="inst-corner-switch" onPointerDown={e => e.stopPropagation()}>
-        <button
-          type="button"
-          className="inst-switch-btn"
-          aria-pressed={seamSide === "sdr"}
-          aria-label="Show Standard"
-          onClick={() => animateTo(100)}
-        >
-          SDR
-        </button>
-        <button
-          type="button"
-          className="inst-switch-btn inst-switch-ultra"
-          aria-pressed={seamSide === "ultra"}
-          aria-label="Show Ultra"
-          onClick={() => animateTo(0)}
-        >
-          <span className="inst-dot" aria-hidden />
-          Ultra
-        </button>
-      </div>
+      <SeamCornerButtons seamSide={seamSide} animateTo={animateTo} />
     </div>
   );
 }
@@ -167,7 +147,7 @@ export function SeamComparePhoto({
 }
 
 export function SeamCompareType({
-  typeClassName = "font-display text-4xl font-bold",
+  typeClassName = "font-display font-bold [font-size:clamp(3rem,28vw,8rem)]",
   width,
   height,
   className,

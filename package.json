@@ -12,8 +12,6 @@
     "dev": "turbo dev --filter=@gainmaps/web",
     "web:dev": "turbo dev --filter=@gainmaps/web",
     "web:build": "turbo build --filter=@gainmaps/web",
-    "dark:dev": "turbo dev --filter=@ultra/dark-mode",
-    "apps:dev": "turbo dev --filter=@gainmaps/web --filter=@ultra/dark-mode",
     "lint": "turbo lint",
     "check": "turbo typecheck test",
     "lh": "tsx tools/lighthouse/run.ts both",

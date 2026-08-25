@@ -230,68 +230,57 @@ body {
   transition: left 300ms ease;
 }
 
-/* Corner SDR/Ultra switch */
-.inst-corner-switch {
+/* Corner SDR/Ultra buttons — bottom-left and bottom-right */
+.inst-corner {
   position: absolute;
   bottom: 8px;
-  right: 0;
-  display: flex;
-  align-items: center;
-  gap: 2px;
   padding: 0 6px;
+  z-index: 10;
+}
+
+.inst-corner-sdr {
+  left: 0;
+}
+
+.inst-corner-ultra {
+  right: 0;
 }
 
 .inst-switch-btn {
+  position: relative;
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(244, 241, 236, 0.65);
-  background: transparent;
-  border: none;
-  padding: 3px 5px;
-  border-radius: 3px;
+  color: rgba(244, 241, 236, 1);
+  background: rgba(11, 14, 18, 0.72);
+  border: 1px solid rgba(244, 241, 236, 0.4);
+  padding: 6px 10px;
+  border-radius: 999px;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+}
+
+/* 44×44 hit target via ::before */
+.inst-switch-btn::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
 }
 
 .inst-switch-btn:hover {
-  color: rgba(244, 241, 236, 0.9);
-  background: rgba(244, 241, 236, 0.08);
+  background: rgba(11, 14, 18, 0.88);
+  border-color: rgba(244, 241, 236, 0.7);
 }
 
-.inst-switch-btn[aria-pressed="true"],
-.inst-switch-btn:focus-visible {
-  color: rgba(244, 241, 236, 0.9);
+.inst-switch-btn:active {
+  background: rgba(11, 14, 18, 0.95);
+  transform: scale(0.97);
 }
-
-.inst-switch-btn:focus-visible {
-  outline: 2px solid rgba(196, 114, 58, 0.8);
-  outline-offset: 1px;
-}
-
-.inst-tag {
-  position: absolute;
-  bottom: 8px;
-  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(244, 241, 236, 0.65);
-  padding: 0 8px;
-  pointer-events: none;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.inst-tag-std { left: 0; }
-.inst-tag-ultra { right: 0; }
 
 .inst-dot {
   width: 5px;
@@ -387,6 +376,11 @@ html[data-ultra="off"] .preview-revised,
 html[data-ultra="off"] .gainmap-image,
 html[data-ultra="off"] .preview-svg:not(.preview-original) {
   dynamic-range-limit: standard;
+}
+
+/* Seam instrument gainmap images always show full headroom (the seam IS the comparison) */
+html[data-ultra="off"] .inst .gainmap-image {
+  dynamic-range-limit: no-limit;
 }
 
 /* Hero backdrop gainmap layer — fades out when Ultra is off */

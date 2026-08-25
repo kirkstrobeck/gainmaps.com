@@ -67,7 +67,8 @@ export async function decodeImage(
 }
 
 async function decodeHeicRaster(input: Uint8Array, maxSize?: number): Promise<RasterImage> {
-  const decoded = await decodeHeic({ buffer: input.buffer.slice(input.byteOffset, input.byteOffset + input.byteLength) });
+  const copy = new Uint8Array(input);
+  const decoded = await decodeHeic({ buffer: copy.buffer });
   const pixels = new Uint8Array(decoded.data);
   if (maxSize == null) return { width: decoded.width, height: decoded.height, pixels };
   return resizeRgba(pixels, decoded.width, decoded.height, maxSize);
@@ -85,7 +86,7 @@ async function decodeWithSharp(input: Uint8Array, format: ImageFormat, maxSize?:
   return { width: info.width, height: info.height, pixels: new Uint8Array(data) };
 }
 
-function sharpOptions(format: ImageFormat): sharp.SharpOptions {
+function sharpOptions(format: ImageFormat): NonNullable<Parameters<typeof sharp>[1]> {
   if (format === "gif") return { animated: false, pages: 1, failOn: "none" };
   if (format === "svg") return { density: 144, failOn: "none" };
   return { failOn: "none" };

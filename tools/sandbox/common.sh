@@ -10,29 +10,12 @@ SANDBOX_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 REPO_ROOT="$(cd "$SANDBOX_DIR/../.." && pwd -P)"
 CACHE_DIR="$SANDBOX_DIR/.cache"
 
-# When the outer agent is itself in a container, pwd -P is /workspace. The
-# Docker daemon resolves bind-mount sources on the host, where /workspace is a
-# different tree. Cursor Cloud exports HOST_REPO_ROOT as the Mac path — use it
-# for docker -v sources and for the container name so two nested agents at
-# /workspace do not share one sandbox.
-sandbox_host_repo() {
-  if [ -n "${HOST_REPO_ROOT:-}" ] && [ "$HOST_REPO_ROOT" != "$REPO_ROOT" ]; then
-    printf '%s' "$HOST_REPO_ROOT"
-  else
-    printf '%s' "$REPO_ROOT"
-  fi
-}
-
-sandbox_host_cache() {
-  printf '%s' "$(sandbox_host_repo)${CACHE_DIR#"$REPO_ROOT"}"
-}
-
 # shellcheck source=config.sh
 . "$SANDBOX_DIR/config.sh"
 
 # Hashed suffix, so two worktrees of the same repo get two containers instead of
-# fighting over one. Same host repo path always yields the same name.
-SANDBOX_NAME="${SANDBOX_PROJECT}-sandbox-$(printf '%s' "$(sandbox_host_repo)" | shasum | cut -c1-8)"
+# fighting over one. Same repo path always yields the same name.
+SANDBOX_NAME="${SANDBOX_PROJECT}-sandbox-$(printf '%s' "$REPO_ROOT" | shasum | cut -c1-8)"
 
 export SANDBOX_DIR REPO_ROOT CACHE_DIR SANDBOX_NAME
 

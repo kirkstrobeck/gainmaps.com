@@ -53,6 +53,6 @@ function relativeOutput(input: string, root: string | undefined, suffix: string)
   const base = stripExtension(basename(input)) + suffix + ".jpg";
   if (root == null) return base;
   const rel = relative(root, dirname(input));
-  if (rel === "" || rel === ".") return base;
+  if (!rel) return base;
   return join(rel, base);
 }

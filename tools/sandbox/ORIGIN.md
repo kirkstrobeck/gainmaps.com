@@ -24,10 +24,10 @@ To pull a newer harness into this project:
 
     SANDBOX_ORIGIN_REPO=kirkstrobeck/sandbox
     SANDBOX_ORIGIN_REF=main
-    SANDBOX_ORIGIN_COMMIT=
+    SANDBOX_ORIGIN_COMMIT=68a6b8116b281598b741ca761c640aeb91fbe52d
     SANDBOX_ORIGIN_URL=https://github.com/kirkstrobeck/sandbox
     SANDBOX_ORIGIN_GIT=git@github.com:kirkstrobeck/sandbox.git
-    SANDBOX_ORIGIN_INSTALLED=2026-08-23T20:22:14Z
+    SANDBOX_ORIGIN_INSTALLED=2026-08-24T21:24:07Z
 
 tools/sandbox/update.sh reads those KEY=value lines back out to find upstream.
 Keep them if you edit this file; delete the file and update falls back to

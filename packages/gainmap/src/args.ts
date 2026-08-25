@@ -30,6 +30,11 @@ const BOOLEAN_FLAGS = new Set([
   "quiet",
   "verbose",
   "continue",
+  "update",
+  "self-update",
+  "auto-update",
+  "no-update-check",
+  "offline",
 ]);
 
 const REPEATABLE_FLAGS = new Set(["exclude"]);
@@ -61,7 +66,7 @@ function parseAt(
     return parseAt(argv, index + 1, positionals, withFlag(flags, key, true));
   }
   const next = argv[index + 1];
-  if (next == null || (next.startsWith("-") && next !== "-")) {
+  if (next == null) {
     throw new Error("--" + key + " requires a value");
   }
   return parseAt(argv, index + 2, positionals, withFlag(flags, key, next));
@@ -76,7 +81,7 @@ function withFlag(
   const prev = flags[key];
   if (Array.isArray(prev)) return { ...flags, [key]: [...prev, String(value)] };
   if (typeof prev === "string") return { ...flags, [key]: [prev, String(value)] };
-  return { ...flags, [key]: [String(value)] };
+  return { ...flags, [key]: String(value) };
 }
 
 export function flagString(flags: ParsedArgs["flags"], key: string): string | undefined {

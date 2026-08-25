@@ -56,6 +56,8 @@ const PATHS = {
   uploadFile: "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zm-3-8h-2v3H9v2h4v3l3.5-4-3.5-4v2z",
   stars: "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm4.24 16L12 15.45 7.77 18l1.12-4.81-3.73-3.23 4.92-.42L12 5l1.92 4.53 4.92.42-3.73 3.23L16.23 18z",
   refresh: "M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z",
+  chevronLeft: "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z",
+  chevronRight: "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z",
 } as const;
 
 export function BoltIcon(p: IconProps) { return <Icon {...p} path={PATHS.bolt} />; }
@@ -85,6 +87,8 @@ export function SwapHorizIcon(p: IconProps) { return <Icon {...p} path={PATHS.sw
 export function UploadFileIcon(p: IconProps) { return <Icon {...p} path={PATHS.uploadFile} />; }
 export function StarsIcon(p: IconProps) { return <Icon {...p} path={PATHS.stars} />; }
 export function RefreshIcon(p: IconProps) { return <Icon {...p} path={PATHS.refresh} />; }
+export function ChevronLeftIcon(p: IconProps) { return <Icon {...p} path={PATHS.chevronLeft} />; }
+export function ChevronRightIcon(p: IconProps) { return <Icon {...p} path={PATHS.chevronRight} />; }
 
 export function GitHubIcon({ size, width, height, color, className, ...rest }: IconProps) {
   const dim = size ?? width ?? height ?? 24;
