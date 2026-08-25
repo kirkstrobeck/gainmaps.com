@@ -6,21 +6,36 @@ import { SiteNav } from "@/components/site-nav";
 import { UltraIcon } from "@/components/ultra-icon";
 import { BRAND_NAMES } from "@/lib/brand-names";
 import { COMPANIES } from "@/lib/logos/companies";
-import { PHOTOS, photoBySlug } from "@/lib/photos/catalog";
+import { PHOTOS, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/catalog";
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
+
+export const dynamic = "force-dynamic";
 
 const LOGO_STRIP = COMPANIES.slice(0, 8);
 const PHOTO_PEEK = PHOTOS.slice(1, 4);
 
 export default function Base() {
-  // Lens-flare Yosemite shot: bright sun creates obvious specular highlights
-  // that glows visibly in Ultra vs clipped Standard.
-  const comparePhoto =
-    photoBySlug("low-sun-with-lens-flare-over-a-forested-valley-and-granite-c") ?? PHOTOS[0];
+  // Pick a random hero photo per request (server-side — no hydration mismatch).
+  const comparePhoto = PHOTOS[Math.floor(Math.random() * PHOTOS.length)] ?? PHOTOS[0];
+
+  const heroSrc = photoStandardSrc(comparePhoto, 1920);
+  const heroSrcSet = photoStandardSrcset(comparePhoto);
 
   return (
+    <>
+      {/* Preload the hero image chosen per request so LCP is not delayed */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <link
+        rel="preload"
+        as="image"
+        href={heroSrc}
+        // @ts-expect-error — React 18 hoists this to <head>; imagesrcset/imagesizes are valid
+        imagesrcset={heroSrcSet}
+        imagesizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
+        fetchPriority="high"
+      />
     <main>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:rounded-[var(--radius)] focus:bg-[var(--accent)] focus:px-4 focus:py-2 focus:text-[var(--accent-foreground)]">
         Skip to content
@@ -158,5 +173,6 @@ export default function Base() {
         </div>
       </div>
     </main>
+    </>
   );
 }
