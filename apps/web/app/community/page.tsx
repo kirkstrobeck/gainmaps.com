@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import { ArrowForwardIcon as ArrowRightFilled, ForumIcon as CommentFilled } from "@/components/icons";
 
 import { CommunityComments } from "@/components/community-comments";
 import { PageChrome } from "@/components/page-chrome";
 import { UltraIcon } from "@/components/ultra-icon";
+
+export const metadata: Metadata = {
+  title: "Community · Gainmaps",
+  description:
+    "Questions, discoveries, edge cases, and feedback about gain map images — a shared thread for format quirks, display reports, and anything you found in the wild.",
+};
 
 const LINKS = [
   { href: "/convert", label: "Convert a photo" },
