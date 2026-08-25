@@ -1,5 +1,4 @@
 /* Ultra mode by Kirk Strobeck */
-import { preload } from "react-dom";
 import { ThumbUpIcon } from "@/components/icons";
 import { UltraDisplayCheck } from "@/components/ultra-display-check";
 import { HomeDropZone } from "@/components/home-drop-zone";
@@ -7,7 +6,7 @@ import { SiteNav } from "@/components/site-nav";
 import { UltraIcon } from "@/components/ultra-icon";
 import { BRAND_NAMES } from "@/lib/brand-names";
 import { COMPANIES } from "@/lib/logos/companies";
-import { PHOTOS, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/catalog";
+import { PHOTOS } from "@/lib/photos/catalog";
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
@@ -27,15 +26,6 @@ export default async function Base({
   const comparePhoto = PHOTOS[Math.floor(Math.random() * PHOTOS.length)] ?? PHOTOS[0];
   // Exclude the hero from the peek strip so the same image never appears twice.
   const PHOTO_PEEK = PHOTOS.filter((p) => p !== comparePhoto).slice(0, 3);
-
-  const heroSrc = photoStandardSrc(comparePhoto, 1920);
-  const heroSrcSet = photoStandardSrcset(comparePhoto);
-  preload(heroSrc, {
-    as: "image",
-    imageSrcSet: heroSrcSet,
-    imageSizes: "(min-width: 1280px) calc(100vw - 460px), 100vw",
-    fetchPriority: "high",
-  });
 
   return (
     <main>

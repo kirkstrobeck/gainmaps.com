@@ -128,8 +128,8 @@ export function SeamComparePhoto({
           width={photo.width}
           height={photo.height}
           className="inst-img gainmap-image"
-          loading="eager"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
           decoding="async"
         />
       }
@@ -143,8 +143,8 @@ export function SeamComparePhoto({
           width={photo.width}
           height={photo.height}
           className="inst-img gainmap-image"
-          loading="eager"
-          fetchPriority="high"
+          loading="lazy"
+          fetchPriority="low"
           decoding="async"
         />
       }
