@@ -27,8 +27,6 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.gainmaps.com"),
   title: "Gainmaps",
-  description:
-    "Batch process photos in the browser into gain map images. Local, private, no upload.",
   icons: {
     // Minimal inline favicon to avoid the browser's automatic /favicon.ico 404 request.
     icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23c4723a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='11' font-family='system-ui' fill='white'>G</text></svg>",
@@ -61,12 +59,6 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
       suppressHydrationWarning
     >
       <head>
-        {/* Hardcoded so the description is always in the initial <head> flush,
-            even for the dynamic homepage where RSC metadata resolves late. */}
-        <meta
-          name="description"
-          content="Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server."
-        />
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
       <body className={`${archivo.variable} ${bricolageGrotesque.variable} ${jetbrainsMono.variable}`}>

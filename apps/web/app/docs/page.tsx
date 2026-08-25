@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   ArrowForwardIcon as ArrowRightFilled,
   BookmarkIcon as BookmarkFilled,
@@ -15,6 +16,12 @@ import {
 import { PageChrome } from "@/components/page-chrome";
 import { UltraIcon } from "@/components/ultra-icon";
 import { BRAND_NAMES } from "@/lib/brand-names";
+
+export const metadata: Metadata = {
+  title: "Docs · Gainmaps",
+  description:
+    "How gain map images work: what changes in HDR, the encoding pipeline, formats, privacy, standards, and limits.",
+};
 
 const sections = [
   ["What changes", "#what-changes"],

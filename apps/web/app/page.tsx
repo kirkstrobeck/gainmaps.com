@@ -1,5 +1,4 @@
 /* Ultra mode by Kirk Strobeck */
-import type { Metadata } from "next";
 import { preload } from "react-dom";
 import { ThumbUpIcon } from "@/components/icons";
 import { UltraDisplayCheck } from "@/components/ultra-display-check";
@@ -13,11 +12,6 @@ import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
 import { UltraSkillCard } from "@/components/ultra-skill-card";
-
-export const metadata: Metadata = {
-  description:
-    "Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server.",
-};
 
 const LOGO_STRIP = COMPANIES.slice(0, 8);
 
@@ -45,6 +39,7 @@ export default async function Base({
 
   return (
     <main>
+      <meta name="description" content="Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server." />
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:rounded-[var(--radius)] focus:bg-[var(--accent)] focus:px-4 focus:py-2 focus:text-[var(--accent-foreground)]">
         Skip to content
       </a>
