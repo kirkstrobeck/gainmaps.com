@@ -1,6 +1,5 @@
-import posthog from 'posthog-js'
-
-function initPostHog() {
+async function initPostHog() {
+  const { default: posthog } = await import('posthog-js')
   posthog.init(process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: "/ingest",
     defaults: '2026-05-30',
@@ -11,5 +10,5 @@ function initPostHog() {
 }
 
 document.readyState === 'complete'
-  ? initPostHog()
-  : window.addEventListener('load', initPostHog)
+  ? initPostHog().catch(() => {})
+  : window.addEventListener('load', () => initPostHog().catch(() => {}))
