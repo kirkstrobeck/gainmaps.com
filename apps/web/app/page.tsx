@@ -1,4 +1,5 @@
 /* Ultra mode by Kirk Strobeck */
+import type { Metadata } from "next";
 import { ThumbUpIcon } from "@/components/icons";
 import { UltraDisplayCheck } from "@/components/ultra-display-check";
 import { HomeDropZone } from "@/components/home-drop-zone";
@@ -13,6 +14,11 @@ import { InstallSwitcher } from "@/components/install-switcher";
 import { CopyButton } from "@/components/copy-button";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  description:
+    "Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server.",
+};
 
 const LOGO_STRIP = COMPANIES.slice(0, 8);
 
