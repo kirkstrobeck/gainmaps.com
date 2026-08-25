@@ -1,0 +1,34 @@
+# Gainmaps
+
+> Convert photos to HDR gain map images in your browser. Local and private — no upload, no server.
+
+## What are gain map images?
+
+A gain map image encodes an SDR photo plus a secondary brightness map. On HDR displays (Apple XDR, Android Ultra HDR, Windows Advanced Color) highlights render above SDR reference white. On SDR displays the image renders normally.
+
+The cross-platform technical name is HDR gain map image. Consumer brands include Adaptive HDR (Apple) and Ultra HDR (Android/Google).
+
+## Browser converter
+
+[Convert images in your browser](/convert)
+
+Drag and drop any photo — PNG, JPEG, GIF, HEIC, WebP, or AVIF. Processing runs locally in a service worker. No file leaves your device.
+
+## CLI
+
+Install the gainmap command-line tool to batch-encode gain map images without a browser.
+
+- npm: `npm install -g gainmap`
+- Homebrew: `brew install gainmaps`
+- curl: `curl -fsSL https://gainmaps.com/install.sh | sh`
+
+## Ultra text Claude Code skill
+
+Add Ultra-white HDR letterforms to headlines and logotypes using a WebGPU canvas. Available as a Claude Code skill.
+
+[Ultra text skill](/text)
+
+## Galleries
+
+- [Photo gallery](/photos) — 100 landscape photographs as gain map images
+- [Logo gallery](/logos) — brand logos rendered as gain map images

@@ -5,6 +5,7 @@ import "./globals.css";
 import { SiteAppearanceProvider } from "@/components/site-appearance-provider";
 import { DEFAULT_SITE_MODE, DEFAULT_SITE_ULTRA } from "@/lib/site-appearance";
 import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
+import { StructuredData } from "@/components/structured-data";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -72,6 +73,7 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
             Made by Kirk Strobeck
           </a>
         </footer>
+        <StructuredData />
       </body>
     </html>
   );
