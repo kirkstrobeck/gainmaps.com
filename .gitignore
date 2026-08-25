@@ -74,6 +74,7 @@ tools/node_modules
 .lh-desktop.log
 .lh-mobile.log
 .next-prod/
+apps/web/.next-prod.pid
 
 # Local Product Hunt launch kit
 misc/product-hunt/

@@ -11,7 +11,7 @@
  */
 
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = resolve(__dirname, "../..");
 const webDir = resolve(root, "apps/web");
+const pidFile = resolve(webDir, ".next-prod.pid");
 
 const preset = process.argv[2] ?? "both";
 if (preset !== "desktop" && preset !== "mobile" && preset !== "both") {
@@ -95,6 +96,23 @@ async function main(): Promise<void> {
   process.env.LHCI_PORT = String(PORT);
   console.log(`Using port: ${PORT}`);
 
+  // Kill any server orphaned by a prior run that was hard-killed before cleanup ran.
+  if (existsSync(pidFile)) {
+    const raw = readFileSync(pidFile, "utf8").trim();
+    const oldPid = parseInt(raw, 10);
+    if (!isNaN(oldPid)) {
+      try { process.kill(-oldPid, "SIGKILL"); } catch { /* already gone */ }
+      const until = Date.now() + 5000;
+      let alive = true;
+      while (alive && Date.now() < until) {
+        await new Promise((r) => setTimeout(r, 100));
+        try { process.kill(-oldPid, 0); }
+        catch { alive = false; }
+      }
+    }
+    try { unlinkSync(pidFile); } catch { /* ignore */ }
+  }
+
   // Remove any stale distDir so a prior build (potentially run as root or a different uid)
   // cannot leave files that the current user cannot overwrite, then recreate with open
   // permissions so Next.js worker processes can write to it.
@@ -109,11 +127,15 @@ async function main(): Promise<void> {
   const server: ChildProcess = spawn(
     "node_modules/.bin/next",
     ["start", "-p", String(PORT), "--hostname", "127.0.0.1"],
-    { cwd: webDir, shell: true, stdio: "inherit", detached: false, env: { ...process.env, NODE_ENV: "production", NEXT_DIST_DIR: ".next-prod" } },
+    { cwd: webDir, shell: true, stdio: "inherit", detached: true, env: { ...process.env, NODE_ENV: "production", NEXT_DIST_DIR: ".next-prod" } },
   );
+  server.unref();
+  const pgid = server.pid!;
+  writeFileSync(pidFile, String(pgid), "utf8");
 
   const cleanup = () => {
-    server.kill("SIGTERM");
+    try { process.kill(-pgid, "SIGTERM"); } catch { /* already gone */ }
+    try { unlinkSync(pidFile); } catch { /* already removed */ }
   };
   process.on("SIGINT", cleanup);
   process.on("SIGTERM", cleanup);
