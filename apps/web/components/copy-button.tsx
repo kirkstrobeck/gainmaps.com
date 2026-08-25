@@ -1,7 +1,7 @@
 /* Ultra mode by Kirk Strobeck */
 "use client";
 
-import { CheckIcon as CheckFilled, ContentCopyIcon as CopyFilled } from "@/components/icons";
+import { CheckIcon as CheckFilled, CloseIcon as CloseFilled, ContentCopyIcon as CopyFilled } from "@/components/icons";
 import { useCallback, useState } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";
@@ -14,13 +14,31 @@ type Props = {
   className?: string;
 };
 
+function stateLabel(copied: boolean, failed: boolean): string {
+  if (copied) return "Copied";
+  if (failed) return "Failed";
+  return "Copy";
+}
+
+function stateColor(copied: boolean, failed: boolean): string {
+  if (copied) return "text-[var(--success)]";
+  if (failed) return "text-[var(--danger)]";
+  return "text-[var(--muted)] hover:text-[var(--accent)]";
+}
+
 export function CopyButton({ text, className }: Props) {
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setFailed(true);
+      setTimeout(() => setFailed(false), 2000);
+    }
   }, [text]);
 
   return (
@@ -30,15 +48,15 @@ export function CopyButton({ text, className }: Props) {
       className={cn(
         "inline-flex items-center gap-1 rounded px-2 py-1 text-xs transition",
         FOCUS,
-        copied ? "text-[var(--success)]" : "text-[var(--muted)] hover:text-[var(--accent)]",
+        stateColor(copied, failed),
         className,
       )}
       aria-label="Copy command"
     >
       <UltraIcon size={14}>
-        {copied ? <CheckFilled /> : <CopyFilled />}
+        {copied ? <CheckFilled /> : failed ? <CloseFilled /> : <CopyFilled />}
       </UltraIcon>
-      {copied ? "Copied" : "Copy"}
+      {stateLabel(copied, failed)}
     </button>
   );
 }

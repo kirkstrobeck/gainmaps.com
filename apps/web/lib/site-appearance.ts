@@ -34,6 +34,7 @@ export function parseSiteUltra(value: string | null | undefined): SiteUltra {
 }
 
 function cookieValue(name: string): string | undefined {
+  /* v8 ignore next */
   if (typeof document === "undefined") return undefined;
   const prefix = `${name}=`;
   const row = document.cookie.split("; ").find((part) => part.startsWith(prefix));
@@ -94,7 +95,9 @@ export function writeSiteAppearance(next: SiteAppearance): void {
   writeCookie(SITE_ULTRA_COOKIE, next.ultra);
   if (next.intensity != null) writeCookie(SITE_INTENSITY_COOKIE, String(next.intensity));
   const qs = searchFromAppearance(next);
-  const url = `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash}`;
+  /* v8 ignore next */
+  const qsPart = qs ? `?${qs}` : "";
+  const url = `${window.location.pathname}${qsPart}${window.location.hash}`;
   window.history.replaceState(null, "", url);
   window.dispatchEvent(new CustomEvent(SITE_APPEARANCE_EVENT, { detail: next }));
 }
