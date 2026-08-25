@@ -6,9 +6,6 @@ export default defineConfig({
   testMatch: ["smoke.spec.ts"],
   use: {
     baseURL: BASE_URL,
-    launchOptions: {
-      executablePath: "/ms-playwright/chromium-1187/chrome-linux/chrome",
-    },
   },
   projects: [
     {

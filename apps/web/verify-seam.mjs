@@ -1,11 +1,19 @@
 // Seam slider regression test — runs against the already-running dev/prod server.
 // Usage: node apps/web/verify-seam.mjs
 import { chromium } from '@playwright/test';
-import { mkdirSync } from 'fs';
+import { mkdirSync, readdirSync } from 'fs';
 import path from 'path';
 
 const BASE      = 'http://127.0.0.1:3000';
-const CHROME    = '/ms-playwright/chromium-1187/chrome-linux/chrome';
+
+function findChromium() {
+  const base = process.env.PLAYWRIGHT_BROWSERS_PATH ?? '/ms-playwright';
+  const entries = readdirSync(base);
+  const dir = entries.find(e => e.startsWith('chromium-') && !e.includes('headless'));
+  if (!dir) { throw new Error(`No chromium-* dir in ${base}`); }
+  return path.join(base, dir, 'chrome-linux', 'chrome');
+}
+const CHROME = findChromium();
 const REPORT    = '/workspace/reports/land';
 mkdirSync(REPORT, { recursive: true });
 

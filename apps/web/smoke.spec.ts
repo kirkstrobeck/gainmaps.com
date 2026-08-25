@@ -295,6 +295,22 @@ test("seam starts at 50% on both instruments on first paint", async ({ page }) =
   for (const v of values) {
     expect(parseFloat(v)).toBeCloseTo(50, 0);
   }
+
+  // Also verify the handle element is physically positioned at ~50% of the instrument
+  const insts = page.locator(".inst");
+  const count = await insts.count();
+  expect(count).toBeGreaterThanOrEqual(2);
+  for (let i = 0; i < count; i++) {
+    const inst = insts.nth(i);
+    const handle = inst.locator(".inst-handle");
+    const instBox = await inst.boundingBox();
+    const handleBox = await handle.boundingBox();
+    expect(instBox).toBeTruthy();
+    expect(handleBox).toBeTruthy();
+    const handleCx = handleBox!.x + handleBox!.width / 2;
+    const instMid  = instBox!.x + instBox!.width / 2;
+    expect(Math.abs(handleCx - instMid)).toBeLessThan(instBox!.width * 0.05);
+  }
 });
 
 test("pointer drag from image body moves the seam", async ({ page }) => {
