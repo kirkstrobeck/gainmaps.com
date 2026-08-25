@@ -69,8 +69,11 @@ reports/
 # tools local node_modules (symlink)
 tools/node_modules
 
-# Agent answer file
+# Agent answer file and lighthouse logs
 .agent-answer.md
+.lh-desktop.log
+.lh-mobile.log
+.next-prod/
 
 # Local Product Hunt launch kit
 misc/product-hunt/
