@@ -45,9 +45,9 @@ export default async function Base({
         </header>
 
         <ul className="mt-10 grid list-none grid-cols-1 gap-8 p-0 sm:grid-cols-2 lg:grid-cols-3">
-          {photos.map((photo) => (
+          {photos.map((photo, index) => (
             <li key={photo.id}>
-              <PhotoCard photo={photo} />
+              <PhotoCard photo={photo} priority={index === 0 || undefined} />
             </li>
           ))}
         </ul>
@@ -58,7 +58,7 @@ export default async function Base({
   );
 }
 
-function PhotoCard({ photo }: { photo: Photo }) {
+function PhotoCard({ photo, priority }: { photo: Photo; priority?: boolean }) {
   return (
     <article className="grid gap-3">
       <a
@@ -66,7 +66,7 @@ function PhotoCard({ photo }: { photo: Photo }) {
         className="group relative block overflow-hidden rounded-[var(--radius)] border border-[var(--border)] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
         aria-label={photo.alt}
       >
-        <PhotoPair photo={photo} size="card" />
+        <PhotoPair photo={photo} size="card" priority={priority} />
         {/* hover label overlay */}
         <span className="pointer-events-none absolute inset-x-0 bottom-0 flex translate-y-1 items-end bg-gradient-to-t from-[var(--background)]/80 to-transparent p-3 opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-y-0 group-hover:opacity-100">
           <span className="line-clamp-2 text-xs font-medium text-[var(--foreground)]">
