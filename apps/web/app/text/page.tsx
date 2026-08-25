@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function Base() {
   return (
-    <Suspense>
+    <Suspense fallback={<main className="min-h-screen" />}>
       <TextPageClient />
     </Suspense>
   );
