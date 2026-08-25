@@ -9,13 +9,12 @@ import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
-  axes: ["wdth"],
 });
 
 const bricolageGrotesque = Bricolage_Grotesque({
   variable: "--font-bricolage-grotesque",
   subsets: ["latin"],
-  axes: ["opsz", "wdth"],
+  axes: ["wdth"],
 });
 
 const jetbrainsMono = JetBrains_Mono({
