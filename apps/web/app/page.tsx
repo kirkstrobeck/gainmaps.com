@@ -1,5 +1,6 @@
 /* Ultra mode by Kirk Strobeck */
 import type { Metadata } from "next";
+import { preload } from "react-dom";
 import { ThumbUpIcon } from "@/components/icons";
 import { UltraDisplayCheck } from "@/components/ultra-display-check";
 import { HomeDropZone } from "@/components/home-drop-zone";
@@ -11,9 +12,7 @@ import { PHOTOS, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/cata
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
-import { CopyButton } from "@/components/copy-button";
-
-export const dynamic = "force-dynamic";
+import { UltraSkillCard } from "@/components/ultra-skill-card";
 
 export const metadata: Metadata = {
   description:
@@ -22,7 +21,14 @@ export const metadata: Metadata = {
 
 const LOGO_STRIP = COMPANIES.slice(0, 8);
 
-export default function Base() {
+type Search = { [key: string]: string | string[] | undefined };
+
+export default async function Base({
+  searchParams,
+}: {
+  searchParams: Promise<Search>;
+}) {
+  await searchParams;
   // Pick a random hero photo per request (server-side — no hydration mismatch).
   const comparePhoto = PHOTOS[Math.floor(Math.random() * PHOTOS.length)] ?? PHOTOS[0];
   // Exclude the hero from the peek strip so the same image never appears twice.
@@ -30,20 +36,14 @@ export default function Base() {
 
   const heroSrc = photoStandardSrc(comparePhoto, 1920);
   const heroSrcSet = photoStandardSrcset(comparePhoto);
+  preload(heroSrc, {
+    as: "image",
+    imageSrcSet: heroSrcSet,
+    imageSizes: "(min-width: 1280px) calc(100vw - 460px), 100vw",
+    fetchPriority: "high",
+  });
 
   return (
-    <>
-      {/* Preload the hero image chosen per request so LCP is not delayed */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <link
-        rel="preload"
-        as="image"
-        href={heroSrc}
-        // @ts-expect-error — React 18 hoists this to <head>; imagesrcset/imagesizes are valid
-        imagesrcset={heroSrcSet}
-        imagesizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
-        fetchPriority="high"
-      />
     <main>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:rounded-[var(--radius)] focus:bg-[var(--accent)] focus:px-4 focus:py-2 focus:text-[var(--accent-foreground)]">
         Skip to content
@@ -67,26 +67,7 @@ export default function Base() {
             </div>
           </div>
 
-          <div className="mt-10">
-            <h3 className="font-display text-xl font-semibold">Add Ultra text to your site</h3>
-            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-              A Claude Code skill, bundled in this repository, that teaches any agent how to add Ultra HDR letterforms to headlines and logotypes.
-            </p>
-            <div className="mt-4 flex items-center gap-2 max-w-md rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] px-4 py-2">
-              <code className="flex-1 truncate font-mono text-sm">npx skills add kirkstrobeck/gainmaps.com</code>
-              <CopyButton text="npx skills add kirkstrobeck/gainmaps.com" className="ml-2" />
-            </div>
-            <p className="mt-2 text-xs text-[var(--muted)]">
-              <a
-                href="https://github.com/kirkstrobeck/gainmaps.com/tree/main/.claude/skills/ultra-text"
-                className="underline underline-offset-2 hover:text-[var(--accent)] transition"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                View skill source on GitHub →
-              </a>
-            </p>
-          </div>
+          <UltraSkillCard />
         </div>
       </section>
 
@@ -202,6 +183,5 @@ export default function Base() {
         </div>
       </div>
     </main>
-    </>
   );
 }

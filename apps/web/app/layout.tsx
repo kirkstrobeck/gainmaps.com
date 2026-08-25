@@ -61,6 +61,12 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
       suppressHydrationWarning
     >
       <head>
+        {/* Hardcoded so the description is always in the initial <head> flush,
+            even for the dynamic homepage where RSC metadata resolves late. */}
+        <meta
+          name="description"
+          content="Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server."
+        />
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
       <body className={`${archivo.variable} ${bricolageGrotesque.variable} ${jetbrainsMono.variable}`}>
