@@ -1,7 +1,7 @@
 // Seam slider regression test — runs against the already-running dev/prod server.
 // Usage: node apps/web/verify-seam.mjs
 import { chromium } from '@playwright/test';
-import { mkdirSync } from 'fs';
+import { mkdirSync, readdirSync, existsSync } from 'fs';
 import path from 'path';
 
 const BASE      = 'http://127.0.0.1:3000';
@@ -62,6 +62,8 @@ async function runViewport(browser, w, h, label) {
     near(m0.handle.cx, mid,        2, 'handle≈midpoint (first paint)');
 
     // ── 2. Drag to 25% ──────────────────────────────────────────
+    await page.locator('.inst').nth(i).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(80);
     const ib = await page.locator('.inst').nth(i).boundingBox();
     const hb = await page.locator('.inst').nth(i).locator('.inst-handle').boundingBox();
     const sx  = hb.x + hb.width  / 2;
@@ -220,7 +222,25 @@ async function runViewport(browser, w, h, label) {
   await ctx.close();
 }
 
-const browser = await chromium.launch({ args: ['--no-sandbox'] });
+function findChromium() {
+  const base = '/ms-playwright';
+  if (!existsSync(base)) return undefined;
+  const dirs = readdirSync(base).filter(d => d.startsWith('chromium_headless_shell-'));
+  const sorted = dirs.sort((a, b) => b.localeCompare(a));
+  for (const dir of sorted) {
+    const p = `${base}/${dir}/chrome-linux/headless_shell`;
+    if (existsSync(p)) return p;
+  }
+  const cdirs = readdirSync(base).filter(d => d.startsWith('chromium-'));
+  const csorted = cdirs.sort((a, b) => b.localeCompare(a));
+  for (const dir of csorted) {
+    const p = `${base}/${dir}/chrome-linux/chrome`;
+    if (existsSync(p)) return p;
+  }
+  return undefined;
+}
+const CHROMIUM_EXEC = findChromium();
+const browser = await chromium.launch({ args: ['--no-sandbox'], ...(CHROMIUM_EXEC ? { executablePath: CHROMIUM_EXEC } : {}) });
 try {
   await runViewport(browser, 1440, 900, 'desktop');
   await runViewport(browser, 390,  844, 'mobile');

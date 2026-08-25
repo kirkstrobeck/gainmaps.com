@@ -68,3 +68,6 @@ reports/
 
 # tools local node_modules (symlink)
 tools/node_modules
+
+# Agent answer file
+.agent-answer.md

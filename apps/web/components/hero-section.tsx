@@ -1,11 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-
-import { ContentCopyIcon as CopyIcon, CheckIcon } from "@/components/icons";
 import { PhotoCredit } from "@/components/photo-pair";
 import { SeamComparePhoto, SeamCompareType } from "@/components/seam-compare";
-import { UltraIcon } from "@/components/ultra-icon";
 import { UltraWord } from "@/components/ultra-word";
 import type { Photo } from "@/lib/photos/catalog";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
@@ -14,32 +10,6 @@ import { cn } from "@/lib/utils";
 const H1_CLASS = "font-display text-[46px] font-[640] leading-[0.94] tracking-[-0.02em] [font-variation-settings:'wdth'_96] lg:text-[78px]";
 const TYPE_CLASS = "font-display font-bold [font-size:clamp(3rem,28vw,8rem)]";
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
-
-function NpxCopy() {
-  const [copied, setCopied] = useState(false);
-  const copy = useCallback(async () => {
-    await navigator.clipboard.writeText("npx gainmap ./photos");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, []);
-
-  return (
-    <button
-      type="button"
-      onClick={copy}
-      title="Copy npx command"
-      className={cn(
-        "inline-flex h-11 items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-transparent px-4 font-mono text-sm text-[var(--muted)] transition hover:border-[var(--accent)] hover:text-[var(--foreground)]",
-        FOCUS,
-      )}
-    >
-      <code>npx gainmap ./photos</code>
-      <UltraIcon size={14}>
-        {copied ? <CheckIcon /> : <CopyIcon />}
-      </UltraIcon>
-    </button>
-  );
-}
 
 export function HeroSection({ comparePhoto }: { comparePhoto: Photo }) {
   return (
@@ -79,7 +49,6 @@ export function HeroSection({ comparePhoto }: { comparePhoto: Photo }) {
           >
             Convert an image
           </a>
-          <NpxCopy />
         </div>
 
         {/* Photo instrument — col 2 spans all rows on desktop, order 3 on mobile */}

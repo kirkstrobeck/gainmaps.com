@@ -26,7 +26,11 @@ function filterFiles(list: FileList | File[]): File[] {
   );
 }
 
-export function HomeDropZone() {
+interface HomeDropZoneProps {
+  label?: string;
+}
+
+export function HomeDropZone({ label }: HomeDropZoneProps = {}) {
   const router = useRouter();
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +69,11 @@ export function HomeDropZone() {
       onDragLeave={() => setDragActive(false)}
       onDrop={handleDrop}
     >
+      {label && (
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+          {label}
+        </p>
+      )}
       <UltraIcon size={48}>
         <FileUploadFilled />
       </UltraIcon>

@@ -1,5 +1,5 @@
-import { BoltIcon, ThumbUpIcon } from "@/components/icons";
-import { BrewCopy } from "@/components/brew-copy";
+/* Ultra mode by Kirk Strobeck */
+import { ThumbUpIcon } from "@/components/icons";
 import { UltraDisplayCheck } from "@/components/ultra-display-check";
 import { HomeDropZone } from "@/components/home-drop-zone";
 import { SiteNav } from "@/components/site-nav";
@@ -9,10 +9,10 @@ import { COMPANIES } from "@/lib/logos/companies";
 import { PHOTOS, photoBySlug } from "@/lib/photos/catalog";
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
+import { InstallSwitcher } from "@/components/install-switcher";
 
 const LOGO_STRIP = COMPANIES.slice(0, 8);
 const PHOTO_PEEK = PHOTOS.slice(1, 4);
-
 
 export default function Base() {
   // Lens-flare Yosemite shot: bright sun creates obvious specular highlights
@@ -27,25 +27,32 @@ export default function Base() {
       </a>
       <SiteNav />
 
+      {/* ── Above the fold: Convert Images ── */}
+      <section id="main-content" className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <h2 className="font-display text-3xl font-bold">Convert Images</h2>
+          <div className="mt-6 max-w-md">
+            <HomeDropZone label="INSTANT IN BROWSER" />
+          </div>
+          <div className="mt-10">
+            <h3 className="font-display text-xl font-semibold">From the terminal</h3>
+            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+              Batch-encode gain map images without a browser.
+            </p>
+            <div className="mt-4">
+              <InstallSwitcher />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Photo instrument and type instrument ── */}
       <HeroSection comparePhoto={comparePhoto} />
 
       {/* Display check below the fold — not between nav and wordmark */}
       <UltraDisplayCheck />
 
-      <div id="main-content">
-        {/* ── Try it — conversion CTA ── */}
-        <div className="border-b border-[var(--border)]">
-          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-            <h2 className="font-display text-2xl font-bold">Try it</h2>
-            <p className="mt-2 max-w-md text-sm leading-6 text-[var(--muted)]">
-              Drop an image. Get a gain map image. Everything runs in your browser.
-            </p>
-            <div className="mt-6 max-w-md">
-              <HomeDropZone />
-            </div>
-          </div>
-        </div>
-
+      <div>
         <div className="mx-auto max-w-7xl space-y-20 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
           <ImageProofSection
             logoStrip={LOGO_STRIP}
@@ -123,17 +130,6 @@ export default function Base() {
                 Full glossary in the docs
               </a>
             </p>
-          </section>
-
-          {/* ── CLI ── */}
-          <section className="reveal border-t border-[var(--border)] pt-12">
-            <h2 className="font-display text-2xl font-bold">From the terminal</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-              Batch-encode gain map images without a browser.
-            </p>
-            <div className="mt-5 max-w-md">
-              <BrewCopy />
-            </div>
           </section>
 
           {/* ── Product Hunt — non-linking until URL exists ── */}

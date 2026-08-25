@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { SvgPreview } from "@/components/svg-preview";
-import { BrewCopy } from "@/components/brew-copy";
+import { InstallSwitcher } from "@/components/install-switcher";
 import { headroomFromBoost } from "@/lib/gain-map-encode";
 import { dequeueFiles } from "@/lib/file-queue";
 import { isSvgFile, rasterizeSvgToPng } from "@/lib/svg-raster";
@@ -498,9 +498,9 @@ export function HdrProcessor() {
             </div>
 
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-[var(--muted)]">
+          <div className="flex flex-col items-center gap-3 text-sm text-[var(--muted)]">
             <span>Or batch-encode from the terminal:</span>
-            <BrewCopy />
+            <InstallSwitcher />
           </div>
         </div>
       </section>
