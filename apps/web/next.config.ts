@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
 const nextConfig: NextConfig = {
+  // NEXT_DIST_DIR lets production/lighthouse builds write to .next-prod so they
+  // never clobber the dev server's .next directory.
+  distDir: process.env.NEXT_DIST_DIR ?? ".next",
   devIndicators: false,
   outputFileTracingRoot: root,
   reactStrictMode: true,

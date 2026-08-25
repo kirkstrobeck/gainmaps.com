@@ -10,6 +10,7 @@ import { PHOTOS, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/cata
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
+import { CopyButton } from "@/components/copy-button";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,27 @@ export default function Base() {
             <div className="mt-4">
               <InstallSwitcher />
             </div>
+          </div>
+
+          <div className="mt-10">
+            <h3 className="font-display text-xl font-semibold">Add Ultra text to your site</h3>
+            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+              Install the Claude Code skill that teaches any agent how to apply the Ultra HDR text effect.
+            </p>
+            <div className="mt-4 flex items-center gap-2 max-w-md rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] px-4 py-2">
+              <code className="flex-1 truncate font-mono text-sm">npx skills add kirkstrobeck/gainmaps.com</code>
+              <CopyButton text="npx skills add kirkstrobeck/gainmaps.com" className="ml-2" />
+            </div>
+            <p className="mt-2 text-xs text-[var(--muted)]">
+              <a
+                href="https://github.com/kirkstrobeck/gainmaps.com/tree/main/.claude/skills/ultra-text"
+                className="underline underline-offset-2 hover:text-[var(--accent)] transition"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                View skill source on GitHub →
+              </a>
+            </p>
           </div>
         </div>
       </section>
