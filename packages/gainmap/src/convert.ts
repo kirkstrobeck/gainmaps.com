@@ -1,5 +1,5 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { dirname, extname } from "node:path";
 
 import { decodeImage } from "#src/decode.js";
 import { encodeRgbaToUltraHdrJpeg } from "#src/encode.js";
@@ -89,14 +89,16 @@ export async function convertPlan(
   const inputBytes = await inputBytesFor(plan.input, stdinBytes);
   const raster = await decodeImage(inputBytes, plan.input, options.maxSize);
   const encoded = encodeRgbaToUltraHdrJpeg(raster.pixels, raster.width, raster.height, options);
+  const outExt = plan.output != null ? extname(plan.output) : "";
+  const note = outExt ? encoded.note.replace(/^Gain map JPEG\b/, `Gain map ${outExt}`) : encoded.note;
   if (plan.stdout) {
     writeStdout(encoded.output);
-    return { input: plan.input, output: null, skipped: false, bytesOut: encoded.output.byteLength, note: encoded.note };
+    return { input: plan.input, output: null, skipped: false, bytesOut: encoded.output.byteLength, note };
   }
   await mkdir(dirname(plan.output!), { recursive: true });
   await writeFile(plan.output!, encoded.output);
   log(plan.input + " -> " + plan.output);
-  return { input: plan.input, output: plan.output, skipped: false, bytesOut: encoded.output.byteLength, note: encoded.note };
+  return { input: plan.input, output: plan.output, skipped: false, bytesOut: encoded.output.byteLength, note };
 }
 
 async function exists(path: string): Promise<boolean> {

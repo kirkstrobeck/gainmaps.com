@@ -42,14 +42,17 @@ describe("output-path", () => {
     assert.equal(dir[0]!.output, "/tmp/out/a-gainmap.JPG");
   });
 
-  it("defaults to .jpg for a filename with no extension", () => {
-    assert.match(defaultOutputPath("/tmp/photo"), /photo-gainmap\.jpg$/);
-    const plan = planOutputs(["/tmp/photo"], { suffix: "-gainmap", stdout: false, outputIsDirectory: false });
-    assert.match(plan[0]!.output ?? "", /photo-gainmap\.jpg$/);
+  it("throws for a filename with no extension", () => {
+    assert.throws(() => defaultOutputPath("/tmp/photo"), /cannot carry a gain map/);
+    assert.throws(
+      () => planOutputs(["/tmp/photo"], { suffix: "-gainmap", stdout: false, outputIsDirectory: false }),
+      /cannot carry a gain map/,
+    );
   });
 
   it("throws for non-JPEG inputs (.png)", () => {
     assert.throws(() => defaultOutputPath("/tmp/photo.png"), /cannot carry a gain map/);
+    assert.throws(() => defaultOutputPath("/tmp/photo.png"), (err) => err instanceof Error && err.message.includes("PNG") && err.message.includes("JPEG container"));
     assert.throws(
       () => planOutputs(["/tmp/a.PNG"], { suffix: "-gainmap", stdout: false, outputIsDirectory: false }),
       /cannot carry a gain map/,
@@ -61,5 +64,25 @@ describe("output-path", () => {
     assert.match(path, /photo-gainmap\.jpeg$/);
     const plan = planOutputs(["/tmp/a.jpeg"], { suffix: "-gainmap", stdout: false, outputIsDirectory: false });
     assert.match(plan[0]!.output ?? "", /a-gainmap\.jpeg$/);
+  });
+
+  it("throws for .webp and .heic inputs", () => {
+    assert.throws(() => defaultOutputPath("/tmp/photo.webp"), /cannot carry a gain map/);
+    assert.throws(() => defaultOutputPath("/tmp/photo.heic"), /cannot carry a gain map/);
+    assert.throws(
+      () => planOutputs(["/tmp/a.webp"], { suffix: "-gainmap", stdout: false, outputIsDirectory: false }),
+      /cannot carry a gain map/,
+    );
+  });
+
+  it("preserves uppercase JPEG extension (.JPEG)", () => {
+    assert.match(defaultOutputPath("/tmp/photo.JPEG"), /photo-gainmap\.JPEG$/);
+    const plan = planOutputs(["/tmp/a.JPEG"], { suffix: "-gainmap", stdout: false, outputIsDirectory: false });
+    assert.match(plan[0]!.output ?? "", /a-gainmap\.JPEG$/);
+  });
+
+  it("accepts .png with explicit .jpg output path (escape hatch)", () => {
+    const plan = planOutputs(["/tmp/photo.png"], { output: "/tmp/out.jpg", suffix: "-gainmap", stdout: false, outputIsDirectory: false });
+    assert.equal(plan[0]!.output, "/tmp/out.jpg");
   });
 });

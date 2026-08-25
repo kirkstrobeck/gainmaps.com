@@ -17,12 +17,12 @@ export function stripExtension(name: string): string {
 function preservedOrJpegExt(input: string): string {
   const ext = extname(input);
   const lower = ext.toLowerCase();
-  if (lower === "") return ".jpg";
   if (lower === ".jpg" || lower === ".jpeg") return ext;
+  const label = ext === "" ? "Files with no extension" : ext.slice(1).toUpperCase();
   throw Object.assign(
     new Error(
-      `input format '${ext}' cannot carry a gain map (Ultra HDR requires a JPEG container); ` +
-      `supply a JPEG-family input file (.jpg / .jpeg) or pass an explicit output path with -o`,
+      `${label} cannot carry a gain map. Ultra HDR requires a JPEG container. ` +
+      `Convert the source to JPEG first, or pass an explicit output path (-o) ending in .jpg.`,
     ),
     { code: "UNSUPPORTED" },
   );

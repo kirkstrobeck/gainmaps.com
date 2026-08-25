@@ -107,4 +107,26 @@ describe("convert", () => {
     const empty = await convertPlans([], { ...options, jobs: 1 });
     assert.equal(empty.results.length, 0);
   });
+
+  it("note contains actual output extension and log contains .jpeg for .jpeg input", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-jpeg-ext-"));
+    const jpegInput = await tinyJpeg(dir, "photo.jpeg");
+    const output = join(dir, "photo-gainmap.jpeg");
+    const logs: string[] = [];
+    const result = await convertPlan({ input: jpegInput, output, stdout: false }, options, undefined, () => undefined, (m) => { logs.push(m); });
+    // log must contain the real output extension
+    assert.ok(logs.some((l) => l.includes(".jpeg")));
+    // note must contain the real output extension, not hardcoded "JPEG"
+    assert.ok(result.note.includes(".jpeg"));
+    assert.ok(!result.note.startsWith("Gain map JPEG"));
+  });
+
+  it("accepts .png input when explicit .jpg output path is given", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-png-escape-"));
+    const pngInput = await tinyPng(dir, "photo.png");
+    const output = join(dir, "photo-gainmap.jpg");
+    const result = await convertPlan({ input: pngInput, output, stdout: false }, options, undefined, () => undefined, () => undefined);
+    assert.equal(result.skipped, false);
+    assert.ok(result.bytesOut > 0);
+  });
 });

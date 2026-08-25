@@ -137,7 +137,9 @@ async function processGainMapPhoto(args: {
     progress: 48,
     phase: "Building gain map",
   });
-  post({ type: "progress", progress: 84, phase: "Writing gain map JPEG" });
+  const outName = `${stripExtension(file.name)}-gainmap.jpg`;
+  const outExt = outName.slice(outName.lastIndexOf("."));
+  post({ type: "progress", progress: 84, phase: `Writing gain map ${outExt}` });
   const encoded = encodeRgbaToUltraHdrJpeg(raster.pixels, raster.width, raster.height, { boost });
 
   return {

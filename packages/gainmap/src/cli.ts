@@ -66,7 +66,7 @@ Examples
   gainmap -R ./shots -o ./out
   gainmap -R --exclude "**/raw/**" ./shots
   cat photo.png | gainmap --stdin --stdout > photo-gainmap.jpg
-  gainmap --boost 1 --matte checkerboard logo.png
+  gainmap --boost 1 --matte checkerboard logo.jpg
   gainmap -n -R ./shots
   gainmap update
 

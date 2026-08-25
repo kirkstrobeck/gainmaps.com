@@ -83,7 +83,7 @@ gainmap convert [options] <input...>
 
 Input is a file, a directory, or `-` for stdin. Directories convert matching images in that folder. Use `-R`/`--recursive` for nested trees. Without `-R`, a directory is **flat-only**.
 
-Default output: `photo.jpg` → `photo-gainmap.jpg` next to the input. Existing files are skipped unless `-f`/`--force`. Two inputs that share a stem (`shot.png` and `shot.jpg`) map to the same output path.
+Default output: `photo.jpg` → `photo-gainmap.jpg` next to the input. Existing files are skipped unless `-f`/`--force`.
 
 ### Output
 
@@ -140,7 +140,7 @@ gainmap ./shots
 gainmap -R ./shots -o ./out
 gainmap -R --exclude '**/raw/**' ./shots
 cat photo.png | gainmap --stdin --stdout > photo-gainmap.jpg
-gainmap --boost 1 --matte checkerboard logo.png
+gainmap --boost 1 --matte checkerboard logo.jpg
 gainmap -n -R ./shots
 ```
 
