@@ -11,7 +11,7 @@
  */
 
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -95,9 +95,11 @@ async function main(): Promise<void> {
   process.env.LHCI_PORT = String(PORT);
   console.log(`Using port: ${PORT}`);
 
-  // Pre-create distDir with open permissions so Next.js worker processes can write to it.
-  // Spawned workers inherit a restrictive umask in this environment and fail otherwise.
+  // Remove any stale distDir so a prior build (potentially run as root or a different uid)
+  // cannot leave files that the current user cannot overwrite, then recreate with open
+  // permissions so Next.js worker processes can write to it.
   const distDir = resolve(webDir, ".next-prod");
+  rmSync(distDir, { recursive: true, force: true });
   mkdirSync(distDir, { recursive: true, mode: 0o777 });
 
   console.log("\n=== Step 1: build ===");
