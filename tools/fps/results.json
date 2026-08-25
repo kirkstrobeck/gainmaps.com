@@ -1,0 +1,208 @@
+{
+  "env": {
+    "headless": true,
+    "gpuRasterOn": false,
+    "webGpuAvailable": false,
+    "chromeVersion": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/140.0.0.0 Safari/537.36"
+  },
+  "results": [
+    {
+      "scenario": "/photos scroll",
+      "run": 1,
+      "metrics": {
+        "frameCount": 429,
+        "wallDurationMs": 7382.984,
+        "meanFps": 58.10658671344811,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.799999999999955,
+        "p99Ms": 33.37199999999979,
+        "framesOver16_7": 109,
+        "framesOver33_3": 6,
+        "worstFrameMs": 83.30000000000018
+      }
+    },
+    {
+      "scenario": "/photos scroll",
+      "run": 2,
+      "metrics": {
+        "frameCount": 427,
+        "wallDurationMs": 7433.099999999999,
+        "meanFps": 57.44574941814317,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.799999999999955,
+        "p99Ms": 28.936000000000064,
+        "framesOver16_7": 94,
+        "framesOver33_3": 4,
+        "worstFrameMs": 249.9000000000001
+      }
+    },
+    {
+      "scenario": "/photos scroll",
+      "run": 3,
+      "metrics": {
+        "frameCount": 439,
+        "wallDurationMs": 7349.6,
+        "meanFps": 59.73114183084793,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.799999999999272,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 122,
+        "framesOver33_3": 2,
+        "worstFrameMs": 33.30000000000018
+      }
+    },
+    {
+      "scenario": "/ seam drag",
+      "run": 1,
+      "metrics": {
+        "frameCount": 123,
+        "wallDurationMs": 2050,
+        "meanFps": 60.00000000000001,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.700000000000273,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 55,
+        "framesOver33_3": 0,
+        "worstFrameMs": 16.800000000000182
+      }
+    },
+    {
+      "scenario": "/ seam drag",
+      "run": 2,
+      "metrics": {
+        "frameCount": 123,
+        "wallDurationMs": 2049.868,
+        "meanFps": 60.003863663416375,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.700000000000273,
+        "p99Ms": 16.799999999999955,
+        "framesOver16_7": 45,
+        "framesOver33_3": 0,
+        "worstFrameMs": 16.800000000000182
+      }
+    },
+    {
+      "scenario": "/ seam drag",
+      "run": 3,
+      "metrics": {
+        "frameCount": 120,
+        "wallDurationMs": 1999.9,
+        "meanFps": 60.0030001500075,
+        "p50Ms": 16.699999999999932,
+        "p95Ms": 16.705000000000247,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 59,
+        "framesOver33_3": 0,
+        "worstFrameMs": 16.800000000000182
+      }
+    },
+    {
+      "scenario": "/text idle 5s",
+      "run": 1,
+      "metrics": null,
+      "error": "NOT MEASURED: WebGPU unavailable in this environment"
+    },
+    {
+      "scenario": "/text idle 5s",
+      "run": 2,
+      "metrics": null,
+      "error": "NOT MEASURED: WebGPU unavailable in this environment"
+    },
+    {
+      "scenario": "/text idle 5s",
+      "run": 3,
+      "metrics": null,
+      "error": "NOT MEASURED: WebGPU unavailable in this environment"
+    },
+    {
+      "scenario": "/ home idle 5s",
+      "run": 1,
+      "metrics": {
+        "frameCount": 298,
+        "wallDurationMs": 4983.1,
+        "meanFps": 59.80213120346772,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.799999999999727,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 75,
+        "framesOver33_3": 1,
+        "worstFrameMs": 33.399999999999636
+      }
+    },
+    {
+      "scenario": "/ home idle 5s",
+      "run": 2,
+      "metrics": {
+        "frameCount": 301,
+        "wallDurationMs": 5016.5,
+        "meanFps": 60.00199342170836,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 95,
+        "framesOver33_3": 0,
+        "worstFrameMs": 16.800000000000182
+      }
+    },
+    {
+      "scenario": "/ home idle 5s",
+      "run": 3,
+      "metrics": {
+        "frameCount": 258,
+        "wallDurationMs": 4983.2,
+        "meanFps": 51.773960507304544,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.800000000000182,
+        "p99Ms": 73.78099999999988,
+        "framesOver16_7": 52,
+        "framesOver33_3": 8,
+        "worstFrameMs": 450
+      }
+    },
+    {
+      "scenario": "/convert drop",
+      "run": 1,
+      "metrics": {
+        "frameCount": 603,
+        "wallDurationMs": 10049.5,
+        "meanFps": 60.00298522314543,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 172,
+        "framesOver33_3": 0,
+        "worstFrameMs": 16.80000000000109
+      }
+    },
+    {
+      "scenario": "/convert drop",
+      "run": 2,
+      "metrics": {
+        "frameCount": 603,
+        "wallDurationMs": 10066.2,
+        "meanFps": 59.90343923228229,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.799999999999272,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 168,
+        "framesOver33_3": 1,
+        "worstFrameMs": 33.30000000000018
+      }
+    },
+    {
+      "scenario": "/convert drop",
+      "run": 3,
+      "metrics": {
+        "frameCount": 601,
+        "wallDurationMs": 10049.599999999999,
+        "meanFps": 59.80337525871678,
+        "p50Ms": 16.699999999999818,
+        "p95Ms": 16.700000000000728,
+        "p99Ms": 16.800000000000182,
+        "framesOver16_7": 171,
+        "framesOver33_3": 2,
+        "worstFrameMs": 33.399999999999636
+      }
+    }
+  ]
+}
