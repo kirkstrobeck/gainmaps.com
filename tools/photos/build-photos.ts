@@ -5,11 +5,13 @@
  * Build Ultra HDR gain map JPEGs for /photos.
  *
  * For every entry in apps/web/lib/photos/catalog.ts:
- *   1. skip if public/photos/<slug>/gainmap.jpg already exists (resume),
+ *   1. skip if all four variants (gainmap-400.jpg, gainmap-800.jpg, gainmap-1280.jpg,
+ *      gainmap.jpg) already exist under public/photos/<slug>/ (resume),
  *   2. download the Unsplash CDN JPEG (long edge capped — see MAX_EDGE),
  *   3. decode to RGBA with sharp,
  *   4. encode with encodeRgbaToUltraHdrJpeg (boost 1.0 max, highlight model),
- *   5. write apps/web/public/photos/<slug>/gainmap.jpg.
+ *   5. write gainmap-400.jpg, gainmap-800.jpg, gainmap-1280.jpg, and gainmap.jpg
+ *      into apps/web/public/photos/<slug>/.
  *
  * Standard SDR stays on images.unsplash.com; only Ultra is local so the
  * gain-map metadata is under our control and never passes through Next's

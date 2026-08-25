@@ -121,3 +121,7 @@ export const COMPANIES: readonly Company[] = [
 export function companyBySlug(slug: string): Company | undefined {
   return COMPANIES.find((company) => company.slug === slug);
 }
+
+export function logoGainmapSrcset(company: Company): string {
+  return [128, 256, 512].map(w => `/logos/${company.slug}/logo-gainmap-${w}.jpg ${w}w`).join(", ");
+}

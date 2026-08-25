@@ -1,6 +1,7 @@
 /**
  * 100 Unsplash photographs for /photos. Standard tiles hotlink the CDN;
  * Ultra tiles are local gain map JPEGs at /photos/{slug}/gainmap.jpg (boost 1.0 max).
+ * Responsive variants: gainmap-400.jpg, gainmap-800.jpg, gainmap-1280.jpg.
  *
  * Rebuild Ultra files: npx tsx tools/photos/build-photos.ts
  */
@@ -138,6 +139,10 @@ export function photoStandardSrcset(photo: Photo): string {
 
 export function photoGainmapSrc(photo: Photo): string {
   return `/photos/${photo.slug}/gainmap.jpg`;
+}
+
+export function photoGainmapSrcset(photo: Photo): string {
+  return [400, 800, 1280].map(w => `/photos/${photo.slug}/gainmap-${w}.jpg ${w}w`).join(", ");
 }
 
 export function withUnsplashReferral(url: string): string {

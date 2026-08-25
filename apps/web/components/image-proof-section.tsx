@@ -23,6 +23,8 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
       <div className="mt-8 space-y-8">
         <ImageComparePair
           src="/logos/coca-cola/logo-gainmap.jpg"
+          srcSet="/logos/coca-cola/logo-gainmap-128.jpg 128w, /logos/coca-cola/logo-gainmap-256.jpg 256w, /logos/coca-cola/logo-gainmap-512.jpg 512w"
+          sizes="(max-width: 640px) 224px, 256px"
           alt="Coca-Cola logo gain map image"
           caption={
             <>
@@ -39,6 +41,8 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
         />
         <ImageComparePair
           src="/logos/nvidia/logo-gainmap.jpg"
+          srcSet="/logos/nvidia/logo-gainmap-128.jpg 128w, /logos/nvidia/logo-gainmap-256.jpg 256w, /logos/nvidia/logo-gainmap-512.jpg 512w"
+          sizes="(max-width: 640px) 224px, 256px"
           alt="NVIDIA logo gain map image"
         />
       </div>

@@ -1,10 +1,15 @@
-import type { Company } from "@/lib/logos/companies";
+import { logoGainmapSrcset, type Company } from "@/lib/logos/companies";
 
 type LogoPairSize = "card" | "detail";
 
 const TILE_PAD: Record<LogoPairSize, string> = {
   card: "p-4",
   detail: "p-6 sm:p-12",
+};
+
+const LOGO_SIZES: Record<LogoPairSize, string> = {
+  card: "(max-width: 640px) 128px, 256px",
+  detail: "(max-width: 640px) 256px, 512px",
 };
 
 /**
@@ -31,6 +36,7 @@ export function LogoPair({ company, size }: { company: Company; size: LogoPairSi
       />
       <LogoTile
         src={company.gainmapPath}
+        srcSet={logoGainmapSrcset(company)}
         alt={`${company.name} logo as a gain map image`}
         label="Ultra"
         size={size}
@@ -42,12 +48,14 @@ export function LogoPair({ company, size }: { company: Company; size: LogoPairSi
 
 function LogoTile({
   src,
+  srcSet,
   alt,
   label,
   size,
   gainmap = false,
 }: {
   src: string;
+  srcSet?: string;
   alt: string;
   label: string;
   size: LogoPairSize;
@@ -62,6 +70,10 @@ function LogoTile({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={src}
+          srcSet={srcSet}
+          sizes={gainmap ? LOGO_SIZES[size] : undefined}
+          width={gainmap ? 512 : undefined}
+          height={gainmap ? 512 : undefined}
           alt={alt}
           className={`size-full object-contain${gainmap ? " gainmap-image" : ""}`}
           loading="lazy"

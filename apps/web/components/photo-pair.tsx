@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import {
   photoGainmapSrc,
+  photoGainmapSrcset,
   photoStandardSrc,
   withUnsplashReferral,
   type Photo,
@@ -42,6 +43,9 @@ export function PhotoPair({ photo, size, priority = false }: { photo: Photo; siz
       />
       <PhotoTile
         src={photoGainmapSrc(photo)}
+        srcSet={photoGainmapSrcset(photo)}
+        imgWidth={photo.width}
+        imgHeight={photo.height}
         alt={`${photo.alt}, Ultra`}
         label="Ultra"
         size={size}
@@ -88,6 +92,9 @@ export function PhotoCredit({ photo }: { photo: Photo }) {
 
 function PhotoTile({
   src,
+  srcSet,
+  imgWidth,
+  imgHeight,
   alt,
   label,
   size,
@@ -95,6 +102,9 @@ function PhotoTile({
   priority,
 }: {
   src: string;
+  srcSet?: string;
+  imgWidth?: number;
+  imgHeight?: number;
   alt: string;
   label: string;
   size: PhotoPairSize;
@@ -106,7 +116,7 @@ function PhotoTile({
       <div
         className={`relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] ${FRAME[size]}`}
       >
-        <PhotoImage src={src} alt={alt} size={size} optimized={optimized} priority={priority} />
+        <PhotoImage src={src} srcSet={srcSet} imgWidth={imgWidth} imgHeight={imgHeight} alt={alt} size={size} optimized={optimized} priority={priority} />
       </div>
       {/* Always-visible label — accessible at both card and detail sizes */}
       <figcaption className="mt-1.5 text-center text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--muted)]">
@@ -118,12 +128,18 @@ function PhotoTile({
 
 function PhotoImage({
   src,
+  srcSet,
+  imgWidth,
+  imgHeight,
   alt,
   size,
   optimized,
   priority,
 }: {
   src: string;
+  srcSet?: string;
+  imgWidth?: number;
+  imgHeight?: number;
   alt: string;
   size: PhotoPairSize;
   optimized: boolean;
@@ -134,6 +150,10 @@ function PhotoImage({
     return (
       <img
         src={src}
+        srcSet={srcSet}
+        sizes={TILE_SIZES[size]}
+        width={imgWidth}
+        height={imgHeight}
         alt={alt}
         className="gainmap-image absolute inset-0 size-full object-cover"
         loading={priority ? "eager" : "lazy"}

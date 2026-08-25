@@ -6,7 +6,7 @@ import { UltraWord } from "@/components/ultra-word";
 import { SeamCornerButtons } from "@/components/seam-corner-buttons";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 import type { Photo } from "@/lib/photos/catalog";
-import { photoGainmapSrc, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/catalog";
+import { photoGainmapSrc, photoGainmapSrcset, photoStandardSrc, photoStandardSrcset } from "@/lib/photos/catalog";
 
 type InstrumentProps = {
   width?: number | string;
@@ -137,6 +137,8 @@ export function SeamComparePhoto({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           src={gainSrc}
+          srcSet={photoGainmapSrcset(photo)}
+          sizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
           alt={`${photo.alt}, Ultra`}
           width={photo.width}
           height={photo.height}
