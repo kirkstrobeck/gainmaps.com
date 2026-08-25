@@ -71,3 +71,6 @@ tools/node_modules
 
 # Agent answer file
 .agent-answer.md
+
+# Local Product Hunt launch kit
+misc/product-hunt/
