@@ -22,8 +22,8 @@ export default async function Base({
   searchParams: Promise<Search>;
 }) {
   await searchParams;
-  // Pick a random hero photo per request (server-side — no hydration mismatch).
-  const comparePhoto = PHOTOS[Math.floor(Math.random() * PHOTOS.length)] ?? PHOTOS[0];
+  // Daily rotation: same photo for every request on a given UTC day, changes each day.
+  const comparePhoto = PHOTOS[Math.floor(Date.now() / 86400000) % PHOTOS.length] ?? PHOTOS[0];
   // Exclude the hero from the peek strip so the same image never appears twice.
   const PHOTO_PEEK = PHOTOS.filter((p) => p !== comparePhoto).slice(0, 3);
 
