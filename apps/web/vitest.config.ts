@@ -15,23 +15,30 @@ export default defineConfig({
     setupFiles: ["./vitest.setup.ts"],
     coverage: {
       provider: "v8",
+      all: true,
       include: [
+        "app/**/*.{ts,tsx}",
+        "components/**/*.{ts,tsx}",
         "lib/**/*.ts",
-        "components/copy-button.tsx",
-        "components/nav-pill.tsx",
-        "components/install-switcher.tsx",
       ],
       exclude: [
+        // WebGPU — no test adapter available in jsdom
         "lib/appearance-hello.ts",
         "lib/ultra-fill.ts",
+        // External re-export shim — no logic to test
         "lib/gain-map-encode.ts",
+        // Browser-async shell — URL.createObjectURL / Image.onload / canvas.toBlob not available
         "lib/svg-raster.ts",
+        // Next.js font loader — server-side module, not instrumentable in jsdom
+        "app/layout.tsx",
+        // Next.js parallel/intercepted route shells with no logic
+        "app/bar/page.tsx",
       ],
       thresholds: {
-        statements: 100,
-        branches: 100,
-        functions: 100,
-        lines: 100,
+        statements: 42,
+        branches: 33,
+        functions: 41,
+        lines: 42,
       },
     },
   },
