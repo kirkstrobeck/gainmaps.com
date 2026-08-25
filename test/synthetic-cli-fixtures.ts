@@ -1,11 +1,13 @@
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { serializePng } from "../src/png/chunks.js";
 import { encodeIdat } from "../src/png/encode.js";
 import type { RasterImage } from "../src/png/decode.js";
-import { serializeJpeg } from "../src/jpeg/structure.js";
+import { parseJpeg, serializeJpeg } from "../src/jpeg/structure.js";
+import { APP0, APP1 } from "../src/jpeg/markers.js";
+import { setIccProfile } from "../src/jpeg/icc-segments.js";
 
 export const LETTER = [255, 253, 242, 255] as const;
 export const BLEND = [78, 93, 166, 255] as const;
@@ -79,9 +81,21 @@ function sof444(): Buffer {
   return payload;
 }
 
+function jfifApp0(): Buffer {
+  const payload = Buffer.alloc(14);
+  payload.write("JFIF\0", 0, "latin1");
+  payload.writeUInt8(1, 5);
+  payload.writeUInt8(1, 6);
+  payload.writeUInt16BE(1, 8);
+  payload.writeUInt16BE(1, 10);
+  return payload;
+}
+
 export function syntheticJpeg(): Buffer {
   return serializeJpeg({
     segments: [
+      { marker: APP0, payload: jfifApp0() },
+      { marker: APP1, payload: Buffer.from("Exif\0\0", "latin1") },
       { marker: 0xdb, payload: dqtNearLossless() },
       { marker: 0xc0, payload: sof444() },
     ],
@@ -89,11 +103,17 @@ export function syntheticJpeg(): Buffer {
   });
 }
 
-export async function writeSyntheticCliFixtures(): Promise<{ png: string; jpeg: string }> {
+export function syntheticJpegWithProfile(profile: Buffer): Buffer {
+  return serializeJpeg(setIccProfile(parseJpeg(syntheticJpeg()), profile));
+}
+
+export async function writeSyntheticCliFixtures(): Promise<{ png: string; jpeg: string; donor: string }> {
   const dir = await mkdtemp(join(tmpdir(), "cli-fix-"));
   const png = join(dir, "edge.png");
   const jpeg = join(dir, "edge.jpg");
+  const donor = join(dir, "donor.jpg");
   await writeFile(png, syntheticRgbaPng());
   await writeFile(jpeg, syntheticJpeg());
-  return { png, jpeg };
+  await writeFile(donor, syntheticJpegWithProfile(await readFile("profiles/rec2020-pq.icc")));
+  return { png, jpeg, donor };
 }

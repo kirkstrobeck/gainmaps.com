@@ -82,12 +82,21 @@ test("encodes indexed PNGs as gain map JPEGs", async ({ page }) => {
   expect(bytes[1]).toBe(0xd8);
 });
 
+const tinyJpeg = Buffer.from(
+  "/9j/2wBDAAMCAgMCAgMDAwMEAwMEBQgFBQQEBQoHBwYIDAoMDAsKCwsNDhIQDQ4RDgsLEBYQERMUFRUVDA8XGBYUGBIUFRT/2wBDAQMEBAUEBQkFBQkUDQsNFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBT/wAARCAAIAAgDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAL/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFAEBAAAAAAAAAAAAAAAAAAAAB//EABQRAQAAAAAAAAAAAAAAAAAAAAD/2gAMAwEAAhEDEQA/ALANYif/2Q==",
+  "base64",
+);
+
 test("encodes JPEGs as gain map JPEGs", async ({ page }) => {
-  await page.locator("input[type=file]").setInputFiles("../../fixtures/window/window.jpeg");
+  await page.locator("input[type=file]").setInputFiles({
+    name: "photo.jpg",
+    mimeType: "image/jpeg",
+    buffer: tinyJpeg,
+  });
   await expect(page.getByText(/Gain map JPEG/)).toBeVisible({ timeout: 30000 });
 
   const download = await downloadJob(page);
-  expect(download.suggestedFilename()).toBe("window-gainmap.jpg");
+  expect(download.suggestedFilename()).toBe("photo-gainmap.jpg");
 });
 
 test("encodes animated SMIL SVGs as gain map JPEGs", async ({ page }) => {

@@ -39,7 +39,6 @@ import { resolveProfile, readProfileFromImage } from '../src/profile/resolve.js'
 
 import { HEIGHT, WIDTH, syntheticJpeg, syntheticRgbaPng, writeSyntheticCliFixtures } from './synthetic-cli-fixtures.js';
 
-const DONOR = 'fixtures/window/window-donor.jpg';
 const PQ = 'profiles/rec2020-pq.icc';
 const GAMUT = 'profiles/rec2020.icc';
 
@@ -152,7 +151,7 @@ describe('commands', () => {
 
   it('assigns, extracts, inspects, edges, and softens while preserving encoded payload invariants', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'hdr-lab-'));
-    const { png: PNG, jpeg: JPEG } = await writeSyntheticCliFixtures();
+    const { png: PNG, jpeg: JPEG, donor: DONOR } = await writeSyntheticCliFixtures();
     const pngOut = await assign(PNG, { output: join(dir, 'edge-pq.png'), preset: 'pq' });
     const jpgOut = await assign(JPEG, { output: join(dir, 'edge-pq.jpg'), fromImage: DONOR });
     await assign(DONOR, { output: join(dir, 'donor-gamut.jpg'), preset: 'gamut' });
@@ -206,7 +205,7 @@ describe('commands', () => {
     await edges(input, 'gamut');
     await edges(grayEdge, 'gamut');
 
-    const { png: PNG, jpeg: JPEG } = await writeSyntheticCliFixtures();
+    const { png: PNG, jpeg: JPEG, donor: DONOR } = await writeSyntheticCliFixtures();
     await assert.rejects(edges(JPEG), /PNG only/);
     await assert.rejects(edges(PNG, 'bogus'), /No transfer curve/);
     await assert.rejects(soften(JPEG, {}), /PNG only/);
@@ -362,8 +361,8 @@ describe('icc and profile edge cases', () => {
 
   it('resolves every profile source and rejects missing embedded profiles', async () => {
     assert.equal((await resolveProfile({ profilePath: GAMUT })).origin, GAMUT);
+    const { png: PNG, donor: DONOR } = await writeSyntheticCliFixtures();
     assert.match((await resolveProfile({ fromImage: DONOR })).origin, /embedded/);
-    const { png: PNG } = await writeSyntheticCliFixtures();
     await assert.rejects(readProfileFromImage(PNG), /No embedded ICC/);
     await assert.rejects(resolveProfile({ preset: 'missing' }), /Unknown preset/);
     PRESETS.push({ name: 'missing-file', file: 'missing.icc', suffix: '-missing', summary: 'missing' });

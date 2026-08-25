@@ -157,7 +157,6 @@ ICC v4.0.0, 556 bytes, parametric TRC.
 | `src/profile/resolve.ts` | pick the profile: flag, donor image, or preset |
 | `src/commands/*.ts` | `assign`, `inspect`, `extract`, `edges`, `soften` |
 | `src/cli.ts` | argument dispatch |
-| `fixtures/window/` | Ground-truth Ultra HDR pair: `window.jpeg` (source) → `window-gain.HEIC` (reference) |
 
 Everything is TypeScript, run through `tsx`. No Python, no shell helpers.
 
@@ -168,10 +167,9 @@ pnpm test
 pnpm typecheck
 ```
 
-`test/window-gain.test.ts` encodes `fixtures/window/window.jpeg` with the
-calibrated keep-base Ultra HDR path and compares it point-for-point (ImageIO
-HDR expand, extended-linear Display P3) against `window-gain.HEIC`. On macOS
-the mean absolute RGB error must stay within the committed budget.
+`test/window-gain.test.ts` compares a local Ultra HDR encode against an Apple
+HEIC reference when `fixtures/window/` is present on disk. Those files are not
+in git.
 
 ## Caveats
 

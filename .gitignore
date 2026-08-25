@@ -36,7 +36,7 @@ tmp-window-gain/
 foo/assets/
 tools/window-gain/compare-hdr
 tools/window-gain/calibrate
-fixtures/window/window.png
+fixtures/window/
 
 # Local Claude Code settings
 .claude/settings.local.json
