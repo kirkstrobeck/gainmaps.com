@@ -84,15 +84,18 @@ const ITEM_AUDITS = [
 const sep = "─".repeat(72);
 
 function fmtItem(item: LhrItem): string {
+  const node = item["node"] as { snippet?: string; nodeLabel?: string; selector?: string } | undefined;
   const rawUrl = (item["url"] as string | undefined)
-    ?? (item["node"] as { snippet?: string } | undefined)?.snippet
+    ?? node?.snippet
     ?? (item["source"] as { url?: string } | undefined)?.url
     ?? "";
   const parts: string[] = [];
   if (rawUrl) parts.push(rawUrl.length > 120 ? "…" + rawUrl.slice(-119) : rawUrl);
-  for (const f of ["totalBytes", "wastedBytes", "wastedMs", "cacheLifetimeMs"]) {
+  for (const f of ["totalBytes", "wastedBytes", "wastedMs", "cacheLifetimeMs", "reason", "failureType", "score"]) {
     if (item[f] != null) parts.push(`${f}=${item[f]}`);
   }
+  if (node?.nodeLabel) parts.push(`nodeLabel=${node.nodeLabel}`);
+  if (node?.selector) parts.push(`selector=${node.selector}`);
   return parts.join("  ");
 }
 
