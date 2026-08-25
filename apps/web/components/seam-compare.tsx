@@ -125,6 +125,8 @@ export function SeamComparePhoto({
           srcSet={photoStandardSrcset(photo)}
           sizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
           alt={`${photo.alt}, Standard`}
+          width={photo.width}
+          height={photo.height}
           className="inst-img gainmap-image"
           loading="eager"
           fetchPriority="high"
@@ -136,6 +138,8 @@ export function SeamComparePhoto({
         <img
           src={gainSrc}
           alt={`${photo.alt}, Ultra`}
+          width={photo.width}
+          height={photo.height}
           className="inst-img gainmap-image"
           loading="eager"
           fetchPriority="high"

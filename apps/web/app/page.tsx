@@ -15,11 +15,12 @@ import { CopyButton } from "@/components/copy-button";
 export const dynamic = "force-dynamic";
 
 const LOGO_STRIP = COMPANIES.slice(0, 8);
-const PHOTO_PEEK = PHOTOS.slice(1, 4);
 
 export default function Base() {
   // Pick a random hero photo per request (server-side — no hydration mismatch).
   const comparePhoto = PHOTOS[Math.floor(Math.random() * PHOTOS.length)] ?? PHOTOS[0];
+  // Exclude the hero from the peek strip so the same image never appears twice.
+  const PHOTO_PEEK = PHOTOS.filter((p) => p !== comparePhoto).slice(0, 3);
 
   const heroSrc = photoStandardSrc(comparePhoto, 1920);
   const heroSrcSet = photoStandardSrcset(comparePhoto);
@@ -63,7 +64,7 @@ export default function Base() {
           <div className="mt-10">
             <h3 className="font-display text-xl font-semibold">Add Ultra text to your site</h3>
             <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-              Install the Claude Code skill that teaches any agent how to apply the Ultra HDR text effect.
+              A Claude Code skill, bundled in this repository, that teaches any agent how to add Ultra HDR letterforms to headlines and logotypes.
             </p>
             <div className="mt-4 flex items-center gap-2 max-w-md rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] px-4 py-2">
               <code className="flex-1 truncate font-mono text-sm">npx skills add kirkstrobeck/gainmaps.com</code>

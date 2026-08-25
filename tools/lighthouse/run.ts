@@ -11,7 +11,7 @@
  */
 
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync } from "node:fs";
 import { createServer } from "node:net";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -37,8 +37,8 @@ async function findFreePort(start: number): Promise<number> {
   });
 }
 
-function run(cmd: string, cwd = root): void {
-  execSync(cmd, { stdio: "inherit", cwd });
+function run(cmd: string, cwd = root, env?: NodeJS.ProcessEnv): void {
+  execSync(cmd, { stdio: "inherit", cwd, env: env ?? process.env });
 }
 
 function lhci(configFile: string): void {
@@ -95,14 +95,19 @@ async function main(): Promise<void> {
   process.env.LHCI_PORT = String(PORT);
   console.log(`Using port: ${PORT}`);
 
+  // Pre-create distDir with open permissions so Next.js worker processes can write to it.
+  // Spawned workers inherit a restrictive umask in this environment and fail otherwise.
+  const distDir = resolve(webDir, ".next-prod");
+  mkdirSync(distDir, { recursive: true, mode: 0o777 });
+
   console.log("\n=== Step 1: build ===");
-  run("pnpm -C apps/web build", root);
+  run("pnpm -C apps/web build", root, { ...process.env, NEXT_DIST_DIR: ".next-prod" });
 
   console.log("\n=== Step 2: start production server ===");
   const server: ChildProcess = spawn(
-    "node",
-    ["node_modules/.bin/next", "start", "-p", String(PORT), "--hostname", "127.0.0.1"],
-    { cwd: webDir, stdio: "pipe", detached: false, env: { ...process.env, NODE_ENV: "production" } },
+    "node_modules/.bin/next",
+    ["start", "-p", String(PORT), "--hostname", "127.0.0.1"],
+    { cwd: webDir, shell: true, stdio: "inherit", detached: false, env: { ...process.env, NODE_ENV: "production", NEXT_DIST_DIR: ".next-prod" } },
   );
 
   const cleanup = () => {

@@ -1,6 +1,6 @@
 ---
 name: ultra-text
-description: Add the Ultra HDR text effect to a site — transparent foreground text masked over a WebGPU-backed canvas that paints above SDR reference white.
+description: Add Ultra-white HDR letterforms to headlines and logotypes — a WebGPU canvas paints above SDR reference white using HDR headroom; the text layer stays real, selectable, and copyable. Reach for this skill when the task involves an Ultra white headline, a glowing logotype, displaying above SDR on HDR displays, or wiring up a WebGPU-backed canvas masked to letterforms.
 ---
 
 # Ultra Text Effect
@@ -14,16 +14,18 @@ The canvas sits on top; a plain white `ultra-backdrop` sits beneath it so the wo
 
 ## Reference implementation
 
-All source lives in this repo under `apps/web/`:
+Bundled source lives in `src/` alongside this file (install via `npx skills add`):
 
 | File | Role |
 |---|---|
-| `components/ultra-word.tsx` | Three-layer component. Accepts `word`, `typeClassName`, `intensity`. |
-| `components/ultra-fill-canvas.tsx` | Renders the WebGPU canvas rectangle. Restarts on appearance-change events. |
-| `lib/ultra-fill.ts` | `startUltraFill(canvas, { intensity })` — WebGPU session, 1×1 `rgba16float` surface, `toneMapping: { mode: "extended" }`. |
-| `lib/text-ultra.ts` | Constants: `TEXT_ULTRA_INTENSITY = 4.0` (max headroom), `TEXT_ULTRA_HEADROOM_MIN/MAX`. |
-| `lib/ultra-overlay.ts` | `ultraOverlayGeometry()` — returns `position:absolute; inset:-50%; width:200%; height:200%` so ink that escapes the text box (accents, overshoot) still has mask. |
-| `app/globals.css` | `html[data-ultra="on"]` gate — `.ultra-fill` is hidden when Ultra is off; `.ultra-backdrop` provides SDR fallback. |
+| `src/ultra-word.tsx` | Three-layer component. Accepts `word`, `typeClassName`, `intensity`. |
+| `src/ultra-fill-canvas.tsx` | Renders the WebGPU canvas rectangle. Restarts on appearance-change events. |
+| `src/ultra-fill.ts` | `startUltraFill(canvas, { intensity })` — WebGPU session, 1×1 `rgba16float` surface, `toneMapping: { mode: "extended" }`. |
+| `src/text-ultra.ts` | Constants: `TEXT_ULTRA_INTENSITY = 4.0` (max headroom), `TEXT_ULTRA_HEADROOM_MIN/MAX`. |
+| `src/ultra-overlay.ts` | `ultraOverlayGeometry()` — returns `position:absolute; inset:-50%; width:200%; height:200%` so ink that escapes the text box (accents, overshoot) still has mask. |
+| `src/global.d.ts` | WebGPU type declarations needed by `ultra-fill.ts`. |
+| `src/site-appearance.ts` | Minimal stub: `SITE_APPEARANCE_EVENT` + `readSiteUltra()`. Replace with your project's appearance system if you have one. |
+| `src/ultra.css` | CSS gate — `.ultra-fill` hidden by default; shown when `html[data-ultra="on"]`. |
 
 ## How the layers work
 
@@ -89,14 +91,16 @@ import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
 ### 3. Copy the required files
 
-Copy from `apps/web/`:
-- `components/ultra-word.tsx`
-- `components/ultra-fill-canvas.tsx`
-- `lib/ultra-fill.ts`
-- `lib/text-ultra.ts`
-- `lib/ultra-overlay.ts`
+Copy from `src/` (the directory next to this SKILL.md):
+- `src/ultra-word.tsx`
+- `src/ultra-fill-canvas.tsx`
+- `src/ultra-fill.ts`
+- `src/text-ultra.ts`
+- `src/ultra-overlay.ts`
+- `src/global.d.ts` (WebGPU type declarations; merge into your existing `global.d.ts` if one exists)
+- `src/site-appearance.ts` (stub — replace with your own appearance system if you have one)
 
-Add to `globals.css`:
+Add to `globals.css` (or copy from `src/ultra.css`):
 
 ```css
 html[data-ultra="on"] .ultra-fill { display: block; }
@@ -107,7 +111,7 @@ html[data-ultra="on"] .ultra-backdrop { background: white; }
 .ultra-backdrop {
   position: absolute;
   pointer-events: none;
-  select: none;
+  user-select: none;
 }
 ```
 

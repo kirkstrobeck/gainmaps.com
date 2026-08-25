@@ -13,6 +13,14 @@ CACHE_DIR="$SANDBOX_DIR/.cache"
 # shellcheck source=config.sh
 . "$SANDBOX_DIR/config.sh"
 
+# Colima (and other VMs) may not see this process's /workspace. sandbox.local.conf
+# can point docker bind mounts at the host path the daemon actually has.
+if [ -n "${SANDBOX_HOST_REPO_ROOT:-}" ]; then
+  REPO_ROOT="$SANDBOX_HOST_REPO_ROOT"
+  SANDBOX_DIR="$REPO_ROOT/tools/sandbox"
+  CACHE_DIR="$SANDBOX_DIR/.cache"
+fi
+
 # Hashed suffix, so two worktrees of the same repo get two containers instead of
 # fighting over one. Same repo path always yields the same name.
 SANDBOX_NAME="${SANDBOX_PROJECT}-sandbox-$(printf '%s' "$REPO_ROOT" | shasum | cut -c1-8)"
