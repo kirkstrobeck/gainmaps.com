@@ -1,5 +1,5 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, extname } from "node:path";
+import { dirname } from "node:path";
 
 import { decodeImage } from "#src/decode.js";
 import { encodeRgbaToUltraHdrJpeg } from "#src/encode.js";
@@ -95,12 +95,7 @@ export async function convertPlan(
   }
   await mkdir(dirname(plan.output!), { recursive: true });
   await writeFile(plan.output!, encoded.output);
-  const inputExt = plan.input === "-" ? "" : extname(plan.input).toLowerCase();
-  const isJpegInput = inputExt === ".jpg" || inputExt === ".jpeg";
-  const containerNote = !isJpegInput && extname(plan.output!).toLowerCase() === ".jpg"
-    ? " (gain map requires a JPEG container)"
-    : "";
-  log(plan.input + " -> " + plan.output + containerNote);
+  log(plan.input + " -> " + plan.output);
   return { input: plan.input, output: plan.output, skipped: false, bytesOut: encoded.output.byteLength, note: encoded.note };
 }
 

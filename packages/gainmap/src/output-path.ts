@@ -17,8 +17,15 @@ export function stripExtension(name: string): string {
 function preservedOrJpegExt(input: string): string {
   const ext = extname(input);
   const lower = ext.toLowerCase();
+  if (lower === "") return ".jpg";
   if (lower === ".jpg" || lower === ".jpeg") return ext;
-  return ".jpg";
+  throw Object.assign(
+    new Error(
+      `input format '${ext}' cannot carry a gain map (Ultra HDR requires a JPEG container); ` +
+      `supply a JPEG-family input file (.jpg / .jpeg) or pass an explicit output path with -o`,
+    ),
+    { code: "UNSUPPORTED" },
+  );
 }
 
 export function defaultOutputPath(input: string, suffix = DEFAULT_SUFFIX): string {

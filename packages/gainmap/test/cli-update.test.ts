@@ -27,8 +27,8 @@ describe("cli auto-update failure", () => {
     vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const dir = await mkdtemp(join(tmpdir(), "gainmap-failupd-"));
-    const input = join(dir, "shot.png");
-    await writeFile(input, await sharp({ create: { width: 2, height: 2, channels: 3, background: "red" } }).png().toBuffer());
+    const input = join(dir, "shot.jpg");
+    await writeFile(input, await sharp({ create: { width: 2, height: 2, channels: 3, background: "red" } }).jpeg().toBuffer());
     assert.equal(await run([input, "-n", "--auto-update"]), 1);
   });
 });

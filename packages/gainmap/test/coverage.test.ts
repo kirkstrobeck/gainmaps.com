@@ -27,7 +27,7 @@ describe("coverage leftovers", () => {
     assert.deepEqual(flagStrings(twice.flags, "exclude"), ["a/**", "b/**"]);
     const triple = parseArgs(["--exclude", "a/**", "--exclude", "b/**", "--exclude", "c/**"]);
     assert.equal(flagStrings(triple.flags, "exclude").length, 3);
-    const planned = planOutputs(["/tmp/a.png", "/tmp/b.png"], {
+    const planned = planOutputs(["/tmp/a.jpg", "/tmp/b.jpg"], {
       output: "/tmp/out",
       suffix: "-gainmap",
       stdout: false,
@@ -103,7 +103,7 @@ describe("coverage leftovers", () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-bad-"));
     const bad = join(dir, "bad.png");
     await writeFile(bad, Buffer.from("not-a-png"));
-    const code = await run([bad]);
+    const code = await run([bad, "-o", join(dir, "bad-out.jpg")]);
     assert.equal(code, 1);
     startIfMain(undefined, import.meta.url);
     const started: string[] = [];
@@ -129,11 +129,11 @@ describe("coverage leftovers", () => {
     assert.equal(exitCodeFor("weird"), 1);
     assert.equal(exitCodeFor(null), 1);
     const dir = await mkdtemp(join(tmpdir(), "gainmap-more-"));
-    const png = await sharp({ create: { width: 2, height: 2, channels: 3, background: "white" } }).png().toBuffer();
-    const a = join(dir, "a.png");
-    const b = join(dir, "b.png");
-    await writeFile(a, png);
-    await writeFile(b, png);
+    const jpeg = await sharp({ create: { width: 2, height: 2, channels: 3, background: "white" } }).jpeg().toBuffer();
+    const a = join(dir, "a.jpg");
+    const b = join(dir, "b.jpg");
+    await writeFile(a, jpeg);
+    await writeFile(b, jpeg);
     const out = join(dir, "out");
     await mkdir(out);
     vi.spyOn(process.stderr, "write").mockImplementation(() => true);

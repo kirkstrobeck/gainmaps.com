@@ -33,6 +33,12 @@ async function png(dir: string, name: string) {
   return path;
 }
 
+async function jpeg(dir: string, name: string) {
+  const path = join(dir, name);
+  await writeFile(path, await sharp({ create: { width: 2, height: 2, channels: 3, background: "red" } }).jpeg().toBuffer());
+  return path;
+}
+
 describe("cli", () => {
   it("prints help and version", async () => {
     capture();
@@ -62,8 +68,9 @@ describe("cli", () => {
   it("converts a file, convert alias, dry-run, and empty directory", async () => {
     capture();
     const dir = await mkdtemp(join(tmpdir(), "gainmap-cli-"));
-    const input = await png(dir, "shot.png");
-    assert.equal(await run(["convert", input, "-o", join(dir, "out.jpg"), "-v"]), 0);
+    const pngInput = await png(dir, "shot.png");
+    const input = await jpeg(dir, "shot.jpg");
+    assert.equal(await run(["convert", pngInput, "-o", join(dir, "out.jpg"), "-v"]), 0);
     assert.equal(await run([input, "-n"]), 0);
     assert.ok(logs.stderr.includes("->"));
     const empty = join(dir, "empty");
@@ -77,14 +84,14 @@ describe("cli", () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-tree-"));
     const nested = join(dir, "nested");
     await mkdir(nested);
-    await png(dir, "a.png");
-    await png(nested, "b.png");
+    await jpeg(dir, "a.jpg");
+    await jpeg(nested, "b.jpg");
     const out = join(dir, "out");
     await mkdir(out);
     assert.equal(await run(["-R", dir, "-o", out + "/", "--exclude", "**/nested/**", "--quiet", "-j", "1"]), 0);
     assert.equal(await run(["-r", dir, "-o", out, "-f", "--quality", "80", "--boost", "0.2", "--headroom", "3", "--model", "window", "--matte", "checkerboard", "--max-size", "64", "--suffix", "-hdr"]), 0);
     await writeFile(join(dir, "bad.png"), Buffer.from("not-a-png"));
-    assert.equal(await run([join(dir, "bad.png"), "--continue", "-o", out, "-f"]), 1);
+    assert.equal(await run([join(dir, "bad.png"), "--continue", "-o", join(out, "bad.jpg"), "-f"]), 1);
   });
 
   it("covers main helpers and Base", async () => {
@@ -113,7 +120,7 @@ describe("cli", () => {
     assert.ok(logs.stderr.includes("9.9.9"));
     assert.equal(await run(["--self-update"]), 0);
     const dir = await mkdtemp(join(tmpdir(), "gainmap-auto-"));
-    const input = await png(dir, "shot.png");
+    const input = await jpeg(dir, "shot.jpg");
     assert.equal(await run([input, "-n", "--auto-update"]), 0);
     assert.ok(logs.stderr.includes("Updated") || logs.stderr.includes("Re-run"));
     assert.equal(await run([input, "-n", "--offline"]), 0);
