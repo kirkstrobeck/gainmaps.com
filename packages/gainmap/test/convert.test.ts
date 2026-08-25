@@ -23,6 +23,12 @@ async function tinyPng(dir: string, name: string): Promise<string> {
   return path;
 }
 
+async function tinyJpeg(dir: string, name: string): Promise<string> {
+  const path = join(dir, name);
+  await writeFile(path, await sharp({ create: { width: 2, height: 2, channels: 3, background: "white" } }).jpeg().toBuffer());
+  return path;
+}
+
 describe("convert", () => {
   it("writes, skips, forces, dry-runs, and streams stdout", async () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-cvt-"));
@@ -63,6 +69,27 @@ describe("convert", () => {
     assert.equal(failures, 1);
     assert.equal(results.length, 2);
     await assert.rejects(convertPlans([{ input: bad, output: join(dir, "x.jpg"), stdout: false }], { ...options, continueOnError: false, quiet: true, jobs: 1 }));
+  });
+
+  it("logs without container note for JPEG input and covers stdin-to-file path", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-jpg-"));
+    const jpegInput = await tinyJpeg(dir, "a.jpg");
+    const output = join(dir, "a-gainmap.jpg");
+    const logs: string[] = [];
+    await convertPlan({ input: jpegInput, output, stdout: false }, options, undefined, () => undefined, (m) => { logs.push(m); });
+    assert.ok(logs.some((l) => l.includes("a.jpg") && l.includes("a-gainmap.jpg") && !l.includes("JPEG container")));
+    const pngInput = await tinyPng(dir, "b.png");
+    const stdinBytes = new Uint8Array(await import("node:fs/promises").then((fs) => fs.readFile(pngInput)));
+    const stdinLogs: string[] = [];
+    const stdinResult = await convertPlan(
+      { input: "-", output: join(dir, "stdin-out.jpg"), stdout: false },
+      options,
+      stdinBytes,
+      () => undefined,
+      (m) => { stdinLogs.push(m); },
+    );
+    assert.ok(stdinResult.bytesOut > 0);
+    assert.ok(stdinLogs.some((l) => l.includes("stdin-out.jpg")));
   });
 
   it("runs jobs in batches", async () => {

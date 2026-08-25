@@ -14,8 +14,15 @@ export function stripExtension(name: string): string {
   return name.slice(0, -ext.length);
 }
 
+function preservedOrJpegExt(input: string): string {
+  const ext = extname(input);
+  const lower = ext.toLowerCase();
+  if (lower === ".jpg" || lower === ".jpeg") return ext;
+  return ".jpg";
+}
+
 export function defaultOutputPath(input: string, suffix = DEFAULT_SUFFIX): string {
-  return join(dirname(input), stripExtension(basename(input)) + suffix + ".jpg");
+  return join(dirname(input), stripExtension(basename(input)) + suffix + preservedOrJpegExt(input));
 }
 
 export function planOutputs(
@@ -50,7 +57,7 @@ export function planOutputs(
 }
 
 function relativeOutput(input: string, root: string | undefined, suffix: string): string {
-  const base = stripExtension(basename(input)) + suffix + ".jpg";
+  const base = stripExtension(basename(input)) + suffix + preservedOrJpegExt(input);
   if (root == null) return base;
   const rel = relative(root, dirname(input));
   if (!rel) return base;
