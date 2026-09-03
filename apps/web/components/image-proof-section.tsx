@@ -50,7 +50,7 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
       {/* Logo strip */}
       <div className="mt-10">
         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--muted)]">
-          100 brand logos
+          {logoStrip.length} brand logos
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {logoStrip.map((company) => (
@@ -58,7 +58,7 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
               key={company.slug}
               href={`/logos/${company.slug}`}
               aria-label={company.name}
-              className="checkerboard flex h-11 w-14 items-center justify-center overflow-hidden rounded-[var(--radius)] border border-[var(--border)] p-2 transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="checkerboard flex aspect-video w-14 items-center justify-center overflow-hidden rounded-[var(--radius)] border border-[var(--border)] p-[4px] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -92,7 +92,7 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
             <a
               key={p.id}
               href={`/photos/${p.slug}`}
-              className="relative aspect-[3/2] flex-1 overflow-hidden rounded-[var(--radius)] border border-[var(--border)] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="relative aspect-video flex-1 overflow-hidden rounded-[var(--radius)] border border-[var(--border)] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
               aria-label={p.alt}
             >
               <Image

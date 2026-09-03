@@ -16,8 +16,8 @@ const TILE_SIZES: Record<PhotoPairSize, string> = {
 };
 
 const FRAME: Record<PhotoPairSize, string> = {
-  card: "aspect-[4/3]",
-  detail: "aspect-[3/2] sm:aspect-[4/3]",
+  card: "aspect-video",
+  detail: "aspect-video",
 };
 
 /**
@@ -114,7 +114,7 @@ function PhotoTile({
   return (
     <figure className="m-0 grid gap-0">
       <div
-        className={`relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] ${FRAME[size]}`}
+        className={`relative overflow-hidden rounded-[var(--radius)] border border-[var(--border)] ${FRAME[size]}`}
       >
         <PhotoImage src={src} srcSet={srcSet} imgWidth={imgWidth} imgHeight={imgHeight} alt={alt} size={size} optimized={optimized} priority={priority} />
       </div>

@@ -3,8 +3,8 @@ import { logoGainmapSrcset, type Company } from "@/lib/logos/companies";
 type LogoPairSize = "card" | "detail";
 
 const TILE_PAD: Record<LogoPairSize, string> = {
-  card: "p-4",
-  detail: "p-6 sm:p-12",
+  card: "p-[4px]",
+  detail: "p-[4px]",
 };
 
 const LOGO_SIZES: Record<LogoPairSize, string> = {
@@ -65,7 +65,7 @@ function LogoTile({
   return (
     <figure className="m-0 grid flex-1 gap-2">
       <div
-        className={`checkerboard grid aspect-square w-full place-items-center overflow-hidden rounded-[var(--radius)] ${TILE_PAD[size]}`}
+        className={`checkerboard grid aspect-video w-full place-items-center overflow-hidden rounded-[var(--radius)] ${TILE_PAD[size]}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

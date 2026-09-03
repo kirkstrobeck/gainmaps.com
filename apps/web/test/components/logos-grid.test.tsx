@@ -12,9 +12,8 @@ function makeCompanies(count: number): Company[] {
     slug: `company-${i}`,
     name: `Company ${i}`,
     rank: i + 1,
-    description: `Desc ${i}`,
-    colors: { primary: "#000", on: "#fff" },
-    svg: "icon.svg",
+    svgPath: `/logos/company-${i}/logo.svg`,
+    gainmapPath: `/logos/company-${i}/logo-gainmap.jpg`,
   }));
 }
 

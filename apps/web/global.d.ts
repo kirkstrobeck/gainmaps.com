@@ -1,5 +1,15 @@
 declare module "*.css";
 
+// WebGPU type stubs — only what the app actually uses
+interface GPURenderPipeline {
+  getBindGroupLayout(index: number): unknown;
+}
+// Use unknown so createBuffer/createSampler (which return unknown) are assignable
+type GPUBuffer = unknown;
+type GPUSampler = unknown;
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+interface GPUDevice extends GpuDevice {}
+
 interface GPUCanvasContext {
   configure(descriptor: Record<string, unknown>): void;
   getCurrentTexture(): { createView(): unknown };

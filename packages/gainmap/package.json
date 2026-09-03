@@ -24,7 +24,10 @@
   ],
   "exports": {
     ".": "./dist/cli.js",
-    "./encode": "./dist/encode.js"
+    "./encode": {
+      "types": "./dist/encode.d.ts",
+      "default": "./dist/encode.js"
+    }
   },
   "imports": {
     "#src/*": "./dist/*"

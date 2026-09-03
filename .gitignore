@@ -78,3 +78,4 @@ apps/web/.next-prod.pid
 
 # Local Product Hunt launch kit
 misc/product-hunt/
+.sandbox-shots/
