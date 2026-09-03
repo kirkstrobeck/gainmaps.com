@@ -25,7 +25,14 @@ let totalPassed = 0;
 let totalFailed = 0;
 const results = [];
 
-const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+// reducedMotion: 'reduce' disables the @media(prefers-reduced-motion:no-preference) block,
+// which contains animation-timeline:view() scroll-driven animations. Without this,
+// fullPage screenshots capture below-fold sections at opacity:0 (their initial scroll-
+// animated state), producing hundreds of pixels of apparent black space.
+const context = await browser.newContext({
+  viewport: { width: 1440, height: 900 },
+  reducedMotion: "reduce",
+});
 
 for (const { name, url } of PAGES) {
   const page = await context.newPage();
