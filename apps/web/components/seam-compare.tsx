@@ -11,11 +11,13 @@ export function SeamComparePhoto({
   width,
   height,
   className,
+  sizes = "(min-width: 1280px) calc(100vw - 460px), 100vw",
 }: {
   photo: Photo;
   width?: number | string;
   height?: number | string;
   className?: string;
+  sizes?: string;
 }) {
   const stdSrc = photoStandardSrc(photo);
   const gainSrc = photoGainmapSrc(photo);
@@ -30,7 +32,7 @@ export function SeamComparePhoto({
         <img
           src={stdSrc}
           srcSet={photoStandardSrcset(photo)}
-          sizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
+          sizes={sizes}
           alt={`${photo.alt}, Standard`}
           width={photo.width}
           height={photo.height}
@@ -45,7 +47,7 @@ export function SeamComparePhoto({
         <img
           src={gainSrc}
           srcSet={photoGainmapSrcset(photo)}
-          sizes="(min-width: 1280px) calc(100vw - 460px), 100vw"
+          sizes={sizes}
           alt={`${photo.alt}, Ultra`}
           width={photo.width}
           height={photo.height}

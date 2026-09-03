@@ -183,6 +183,38 @@ for (const { name, url } of PAGES) {
     }
   }
 
+  // Assert every img inside a seam instrument loaded (naturalWidth > 0)
+  const instImgs = await page.locator(".inst img").all();
+  let instImgFailed = 0;
+  for (const img of instImgs) {
+    const src = await img.getAttribute("src") ?? "";
+    const natW = await img.evaluate(el => el.naturalWidth);
+    if (natW === 0) {
+      console.log(`  FAIL inst img naturalWidth=0 src=...${src.slice(-50)}`);
+      failed++;
+      instImgFailed++;
+    }
+  }
+  // Also check currentSrc for local files (skip external URLs)
+  for (const img of instImgs) {
+    const currentSrc = await img.evaluate(el => el.currentSrc ?? "");
+    if (!currentSrc || !currentSrc.startsWith("/")) continue;
+    try {
+      const res = await page.request.get(currentSrc);
+      if (res.status() !== 200) {
+        console.log(`  FAIL inst img currentSrc=${currentSrc.slice(-50)} status=${res.status()}`);
+        failed++;
+      } else {
+        passed++;
+      }
+    } catch {
+      // ignore network errors for local file checks
+    }
+  }
+  if (instImgFailed === 0) {
+    console.log(`  inst imgs: all ${instImgs.length} have naturalWidth>0`);
+  }
+
   console.log(`  [${name}] tiles=${tiles.length} passed=${passed} failed=${failed}`);
   totalPassed += passed;
   totalFailed += failed;

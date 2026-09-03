@@ -58,6 +58,7 @@ export function ImageProofSection({ logos, photos }: Props) {
                 photo={p}
                 width="100%"
                 className="aspect-video"
+                sizes="(min-width: 640px) 33vw, 100vw"
               />
               <figcaption className="truncate text-xs text-[var(--muted)]">
                 {p.alt}
