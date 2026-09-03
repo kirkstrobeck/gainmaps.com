@@ -8,6 +8,7 @@ import { mkdirSync } from "fs";
 const BASE = "http://localhost:3000";
 const SHOTS_DIR = "/workspace/.sandbox-shots";
 const RATIO_16_9 = 16 / 9;
+const RATIO_1_1 = 1;
 
 const PAGES = [
   { name: "home", url: "/" },
@@ -127,6 +128,25 @@ for (const { name, url } of PAGES) {
         console.log(`  FAIL logo tile padding-top=${tilePad} (expected 4px) class="${tileClass.slice(0, 60)}"`);
         failed++;
       }
+    }
+  }
+
+  // Find all aspect-square containers (logo tiles)
+  const squareTiles = await page.locator("[class*='aspect-square']").all();
+  console.log(`  Found ${squareTiles.length} aspect-square tiles`);
+
+  for (const tile of squareTiles) {
+    const box = await tile.boundingBox();
+    if (!box || box.width < 10) continue;
+
+    const ratio = box.width / box.height;
+    const tolerance = 0.01; // 1%
+
+    if (Math.abs(ratio - RATIO_1_1) > tolerance) {
+      console.log(`  FAIL square tile ratio=${ratio.toFixed(4)} expected≈1.0000 w=${box.width.toFixed(0)} h=${box.height.toFixed(0)}`);
+      failed++;
+    } else {
+      passed++;
     }
   }
 

@@ -8,7 +8,7 @@
  *   1. resolve a premium full-color brand SVG — api.svgl.app first, then the
  *      Wikimedia file behind the brand's Wikidata P154 claim,
  *   2. save it to apps/web/public/logos/<slug>/logo.svg,
- *   3. rasterize it with sharp onto a transparent 512×288 (16:9) canvas,
+ *   3. rasterize it with sharp onto a transparent 512×512 (1:1) canvas,
  *      fitting the mark inside 88% of each frame dimension and centring it,
  *   4. encode that with encodeRgbaToUltraHdrJpeg (boost 0.5, checkerboard
  *      matte) to apps/web/public/logos/<slug>/logo-gainmap.jpg — JPEG has no
@@ -37,9 +37,9 @@ const listPath = join(repo, "apps/web/lib/logos/companies.ts");
 
 /** Wikimedia asks automated clients to identify themselves with a contact. */
 const USER_AGENT = "gainmaps-logo-pipeline/1.0 (https://gainmaps.com; kirk@strobeck.com)";
-/** Output frame dimensions (16:9). */
+/** Output frame dimensions (1:1). */
 const CANVAS_W = 512;
-const CANVAS_H = Math.round(CANVAS_W * 9 / 16); // 288
+const CANVAS_H = CANVAS_W; // 512
 
 /**
  * The mark is fitted inside this box (88% of each frame dimension), centred.
@@ -47,7 +47,7 @@ const CANVAS_H = Math.round(CANVAS_W * 9 / 16); // 288
  * the browser's gain-map compositor bypasses CSS object-fit.
  */
 const LOGO_BOX_W = Math.round(CANVAS_W * 0.88); // 450
-const LOGO_BOX_H = Math.round(CANVAS_H * 0.88); // 253
+const LOGO_BOX_H = Math.round(CANVAS_W * 0.88); // 450
 const BOOST = 0.5;
 const MAX_SVG_BYTES = 3 * 1024 * 1024;
 const FETCH_CONCURRENCY = 4;

@@ -16,9 +16,9 @@ const repo = resolve(here, "../..");
 const publicRoot = join(repo, "apps/web/public/logos");
 
 const CANVAS_W = 512;
-const CANVAS_H = Math.round(CANVAS_W * 9 / 16); // 288
+const CANVAS_H = CANVAS_W; // 512
 const LOGO_BOX_W = Math.round(CANVAS_W * 0.88); // 450
-const LOGO_BOX_H = Math.round(CANVAS_H * 0.88); // 253
+const LOGO_BOX_H = Math.round(CANVAS_W * 0.88); // 450
 const BOOST = 0.5;
 
 async function rasterize(svg: Buffer): Promise<Uint8Array> {

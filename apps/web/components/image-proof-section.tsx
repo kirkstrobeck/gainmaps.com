@@ -1,9 +1,7 @@
-import Image from "next/image";
-
-import { ImageComparePair } from "@/components/compare-pair";
+import { SeamCompareLogo } from "@/components/seam-compare-logo";
+import { SeamComparePhoto } from "@/components/seam-compare";
 import { COMPANIES, type Company } from "@/lib/logos/companies";
 import type { Photo } from "@/lib/photos/catalog";
-import { photoStandardSrc } from "@/lib/photos/catalog";
 
 type Props = {
   logoStrip: readonly Company[];
@@ -11,6 +9,9 @@ type Props = {
 };
 
 export function ImageProofSection({ logoStrip, photoPeek }: Props) {
+  const cocaCola = COMPANIES.find((c) => c.slug === "coca-cola")!;
+  const nvidia = COMPANIES.find((c) => c.slug === "nvidia")!;
+
   return (
     <section className="reveal border-t border-[var(--border)] pt-12">
       <h2 className="font-display text-2xl font-bold">
@@ -21,30 +22,19 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
       </p>
 
       <div className="mt-8 space-y-8">
-        <ImageComparePair
-          src="/logos/coca-cola/logo-gainmap.jpg"
-          srcSet="/logos/coca-cola/logo-gainmap-128.jpg 128w, /logos/coca-cola/logo-gainmap-256.jpg 256w, /logos/coca-cola/logo-gainmap-512.jpg 512w"
-          sizes="(max-width: 640px) 224px, 256px"
-          alt="Coca-Cola logo gain map image"
-          caption={
-            <>
-              Standard clamps to SDR reference white; Ultra keeps display headroom.{" "}
-              <a
-                href="/logos"
-                className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75"
-              >
-                Browse all logos
-              </a>
-              .
-            </>
-          }
-        />
-        <ImageComparePair
-          src="/logos/nvidia/logo-gainmap.jpg"
-          srcSet="/logos/nvidia/logo-gainmap-128.jpg 128w, /logos/nvidia/logo-gainmap-256.jpg 256w, /logos/nvidia/logo-gainmap-512.jpg 512w"
-          sizes="(max-width: 640px) 224px, 256px"
-          alt="NVIDIA logo gain map image"
-        />
+        <figure>
+          <SeamCompareLogo company={cocaCola} width="100%" className="aspect-square max-w-sm" />
+          <figcaption className="mt-4 text-sm leading-6 text-[var(--muted)]">
+            Standard clamps to SDR reference white; Ultra keeps display headroom.{" "}
+            <a href="/logos" className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75">
+              Browse all logos
+            </a>
+            .
+          </figcaption>
+        </figure>
+        <figure>
+          <SeamCompareLogo company={nvidia} width="100%" className="aspect-square max-w-sm" />
+        </figure>
       </div>
 
       {/* Logo strip */}
@@ -58,7 +48,7 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
               key={company.slug}
               href={`/logos/${company.slug}`}
               aria-label={company.name}
-              className="checkerboard flex aspect-video w-14 items-center justify-center overflow-hidden rounded-[var(--radius)] border border-[var(--border)] p-[4px] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="checkerboard flex aspect-square w-14 items-center justify-center overflow-hidden rounded-[var(--radius)] border border-[var(--border)] p-[4px] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -89,22 +79,12 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
         </p>
         <div className="mt-3 flex gap-2 overflow-hidden">
           {photoPeek.map((p) => (
-            <a
+            <SeamComparePhoto
               key={p.id}
-              href={`/photos/${p.slug}`}
-              className="relative aspect-video flex-1 overflow-hidden rounded-[var(--radius)] border border-[var(--border)] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-              aria-label={p.alt}
-            >
-              <Image
-                src={photoStandardSrc(p, 400)}
-                alt=""
-                aria-hidden
-                fill
-                sizes="(max-width: 768px) 33vw, 240px"
-                quality={75}
-                className="object-cover"
-              />
-            </a>
+              photo={p}
+              width="100%"
+              className="aspect-video flex-1 min-w-0"
+            />
           ))}
           <a
             href="/photos"

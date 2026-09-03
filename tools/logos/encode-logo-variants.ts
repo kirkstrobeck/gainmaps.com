@@ -43,9 +43,9 @@ async function resizeRgba(
 /**
  * Encode and write logo gain map JPEGs at each LOGO_WIDTHS breakpoint into outDir.
  *
- * @param pixels  Raw RGBA at canvasW×canvasH (16:9 from build-logos rasterize).
+ * @param pixels  Raw RGBA at canvasW×canvasH (1:1 from build-logos rasterize).
  * @param canvasW Source canvas width in pixels (512 in the current pipeline).
- * @param canvasH Source canvas height in pixels (288 in the current pipeline).
+ * @param canvasH Source canvas height in pixels (512 in the current pipeline).
  * @param boost   HDR boost level — use the same constant as the caller.
  */
 export async function encodeLogoVariants(
@@ -59,7 +59,7 @@ export async function encodeLogoVariants(
 
   const resized = await Promise.all(
     LOGO_WIDTHS.map((w) => {
-      const h = Math.round(w * 9 / 16);
+      const h = w;
       return (w === canvasW && h === canvasH
         ? Promise.resolve(pixels)
         : resizeRgba(pixels, canvasW, canvasH, w, h)
