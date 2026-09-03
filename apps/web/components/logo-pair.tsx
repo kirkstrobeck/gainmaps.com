@@ -65,7 +65,7 @@ function LogoTile({
   return (
     <figure className="m-0 grid flex-1 gap-2">
       <div
-        className={`checkerboard grid aspect-video w-full place-items-center overflow-hidden rounded-[var(--radius)] ${TILE_PAD[size]}`}
+        className={`checkerboard flex aspect-video w-full items-center justify-center overflow-hidden rounded-[var(--radius)] ${TILE_PAD[size]}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

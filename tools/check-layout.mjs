@@ -12,6 +12,8 @@ const RATIO_16_9 = 16 / 9;
 const PAGES = [
   { name: "home", url: "/" },
   { name: "logos", url: "/logos" },
+  { name: "logos-tesla", url: "/logos/tesla" },
+  { name: "logos-lego", url: "/logos/lego" },
   { name: "photos", url: "/photos" },
 ];
 
@@ -123,6 +125,39 @@ for (const { name, url } of PAGES) {
         passed++;
       } else {
         console.log(`  FAIL logo tile padding-top=${tilePad} (expected 4px) class="${tileClass.slice(0, 60)}"`);
+        failed++;
+      }
+    }
+  }
+
+  // Clearance check: each img in a .checkerboard tile must have >= 4px margin on all sides
+  const checkerTiles = await page.locator(".checkerboard").all();
+  for (const tile of checkerTiles) {
+    const tileBox = await tile.boundingBox();
+    if (!tileBox || tileBox.width < 10) continue;
+    const imgs = await tile.locator("img").all();
+    for (const img of imgs) {
+      const imgBox = await img.boundingBox();
+      if (!imgBox) continue;
+      const src = await img.getAttribute("src") ?? "";
+      const clearL = imgBox.x - tileBox.x;
+      const clearR = (tileBox.x + tileBox.width) - (imgBox.x + imgBox.width);
+      const clearT = imgBox.y - tileBox.y;
+      const clearB = (tileBox.y + tileBox.height) - (imgBox.y + imgBox.height);
+      // Assert img element fits within tile (tile has 4px padding)
+      if (clearL >= 3.5 && clearR >= 3.5 && clearT >= 3.5 && clearB >= 3.5) {
+        passed++;
+      } else {
+        console.log(`  FAIL clearance L=${clearL.toFixed(1)} R=${clearR.toFixed(1)} T=${clearT.toFixed(1)} B=${clearB.toFixed(1)} src=...${src.slice(-40)}`);
+        failed++;
+      }
+      // Assert img rendered size fits within tile content area (tile - 8px padding)
+      const maxW = tileBox.width - 8;
+      const maxH = tileBox.height - 8;
+      if (imgBox.width <= maxW + 0.5 && imgBox.height <= maxH + 0.5) {
+        passed++;
+      } else {
+        console.log(`  FAIL img size ${imgBox.width.toFixed(1)}x${imgBox.height.toFixed(1)} exceeds tile content ${maxW.toFixed(1)}x${maxH.toFixed(1)} src=...${src.slice(-40)}`);
         failed++;
       }
     }
