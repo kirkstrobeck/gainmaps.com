@@ -38,7 +38,35 @@ for (const { name, url } of PAGES) {
   const page = await context.newPage();
   console.log(`\nChecking ${name} (${BASE}${url})...`);
   await page.goto(`${BASE}${url}`, { waitUntil: "load", timeout: 60000 });
-  await page.waitForTimeout(2000);
+
+  // Scroll the page from top to bottom so lazy-loaded images enter the viewport
+  // and the browser starts decoding them.
+  await page.evaluate(async () => {
+    await new Promise((resolve) => {
+      let y = 0;
+      const step = () => {
+        window.scrollBy(0, 400);
+        y += 400;
+        if (y < document.body.scrollHeight) {
+          requestAnimationFrame(step);
+        } else {
+          window.scrollTo(0, 0);
+          resolve(undefined);
+        }
+      };
+      requestAnimationFrame(step);
+    });
+  });
+
+  // Wait for every img to finish decoding (naturalWidth > 0 means not broken).
+  await page.waitForFunction(() => {
+    const imgs = Array.from(document.querySelectorAll("img"));
+    return imgs.every((img) => img.complete && img.naturalWidth > 0);
+  }, { timeout: 30000 }).catch(() => {
+    // If some images never load, continue anyway and let the layout checks surface it.
+  });
+
+  await page.waitForTimeout(500);
 
   let passed = 0;
   let failed = 0;

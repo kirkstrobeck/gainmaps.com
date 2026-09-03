@@ -8,8 +8,8 @@
  *   1. resolve a premium full-color brand SVG — api.svgl.app first, then the
  *      Wikimedia file behind the brand's Wikidata P154 claim,
  *   2. save it to apps/web/public/logos/<slug>/logo.svg,
- *   3. rasterize it with sharp onto a transparent 512x512 canvas, contain-fit
- *      and centred, so the mark keeps the holes the vector drew,
+ *   3. rasterize it with sharp onto a transparent 512×288 (16:9) canvas,
+ *      fitting the mark inside 88% of each frame dimension and centring it,
  *   4. encode that with encodeRgbaToUltraHdrJpeg (boost 0.5, checkerboard
  *      matte) to apps/web/public/logos/<slug>/logo-gainmap.jpg — JPEG has no
  *      alpha, so what was transparent becomes a soft gray checker rather than
@@ -37,13 +37,17 @@ const listPath = join(repo, "apps/web/lib/logos/companies.ts");
 
 /** Wikimedia asks automated clients to identify themselves with a contact. */
 const USER_AGENT = "gainmaps-logo-pipeline/1.0 (https://gainmaps.com; kirk@strobeck.com)";
-const CANVAS = 512;
+/** Output frame dimensions (16:9). */
+const CANVAS_W = 512;
+const CANVAS_H = Math.round(CANVAS_W * 9 / 16); // 288
+
 /**
- * The mark fills the canvas. Breathing room is the tile's job in CSS, and the
- * display mask is the same SVG contain-fitted to the same square — an inset
- * baked in here would land the mask a few percent off the ink it must cover.
+ * The mark is fitted inside this box (88% of each frame dimension), centred.
+ * Baking the margin into the JPEG ensures all four sides are clear even when
+ * the browser's gain-map compositor bypasses CSS object-fit.
  */
-const LOGO_BOX = CANVAS;
+const LOGO_BOX_W = Math.round(CANVAS_W * 0.88); // 450
+const LOGO_BOX_H = Math.round(CANVAS_H * 0.88); // 253
 const BOOST = 0.5;
 const MAX_SVG_BYTES = 3 * 1024 * 1024;
 const FETCH_CONCURRENCY = 4;
@@ -156,8 +160,8 @@ async function buildOne(entry: Resolved): Promise<Outcome> {
     return { ok: false, seed: entry.seed, reason: `rasterize failed — ${raster}` };
   }
 
-  await encodeLogoVariants(raster, CANVAS, directory, BOOST);
-  return { ok: true, seed: entry.seed, source: entry.source, note: `${CANVAS}×${CANVAS}` };
+  await encodeLogoVariants(raster, CANVAS_W, CANVAS_H, directory, BOOST);
+  return { ok: true, seed: entry.seed, source: entry.source, note: `${CANVAS_W}×${CANVAS_H}` };
 }
 
 /**
@@ -166,18 +170,19 @@ async function buildOne(entry: Resolved): Promise<Outcome> {
  */
 async function rasterize(svg: Buffer): Promise<Uint8Array> {
   const probe = await sharp(svg).metadata();
-  const longest = Math.max(probe.width ?? LOGO_BOX, probe.height ?? LOGO_BOX);
-  const density = Math.min(2400, Math.max(72, Math.round((72 * LOGO_BOX) / Math.max(longest, 1))));
+  const longest = Math.max(probe.width ?? LOGO_BOX_W, probe.height ?? LOGO_BOX_H);
+  const boxLongest = Math.max(LOGO_BOX_W, LOGO_BOX_H);
+  const density = Math.min(2400, Math.max(72, Math.round((72 * boxLongest) / Math.max(longest, 1))));
 
   const logo = await sharp(svg, { density })
-    .resize({ width: LOGO_BOX, height: LOGO_BOX, fit: "inside", withoutEnlargement: false })
+    .resize({ width: LOGO_BOX_W, height: LOGO_BOX_H, fit: "inside", withoutEnlargement: false })
     .png()
     .toBuffer();
 
   const { data } = await sharp({
     create: {
-      width: CANVAS,
-      height: CANVAS,
+      width: CANVAS_W,
+      height: CANVAS_H,
       channels: 4,
       background: { r: 0, g: 0, b: 0, alpha: 0 },
     },

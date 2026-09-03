@@ -73,7 +73,7 @@ function LogoTile({
           srcSet={srcSet}
           sizes={gainmap ? LOGO_SIZES[size] : undefined}
           width={gainmap ? 512 : undefined}
-          height={gainmap ? 512 : undefined}
+          height={gainmap ? 288 : undefined}
           alt={alt}
           className={`size-full object-contain${gainmap ? " gainmap-image" : ""}`}
           loading="lazy"

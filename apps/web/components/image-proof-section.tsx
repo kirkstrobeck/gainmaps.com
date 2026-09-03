@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 import { ImageComparePair } from "@/components/compare-pair";
-import type { Company } from "@/lib/logos/companies";
+import { COMPANIES, type Company } from "@/lib/logos/companies";
 import type { Photo } from "@/lib/photos/catalog";
 import { photoStandardSrc } from "@/lib/photos/catalog";
 
@@ -50,7 +50,7 @@ export function ImageProofSection({ logoStrip, photoPeek }: Props) {
       {/* Logo strip */}
       <div className="mt-10">
         <p className="text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--muted)]">
-          {logoStrip.length} brand logos
+          {COMPANIES.length} brand logos
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-2">
           {logoStrip.map((company) => (
