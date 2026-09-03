@@ -34,7 +34,7 @@ export function SeamComparePhoto({
           alt={`${photo.alt}, Standard`}
           width={photo.width}
           height={photo.height}
-          className="inst-img gainmap-image"
+          className="inst-img preview-original"
           loading="lazy"
           fetchPriority="low"
           decoding="async"

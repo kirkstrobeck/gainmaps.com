@@ -12,8 +12,6 @@ import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
 import { UltraSkillCard } from "@/components/ultra-skill-card";
 
-const LOGO_STRIP = COMPANIES.slice(0, 8);
-
 type Search = { [key: string]: string | string[] | undefined };
 
 export default async function Base({
@@ -65,8 +63,8 @@ export default async function Base({
       <div>
         <div className="mx-auto max-w-7xl space-y-20 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
           <ImageProofSection
-            logoStrip={LOGO_STRIP}
-            photoPeek={PHOTO_PEEK}
+            logos={COMPANIES.slice(0, 3)}
+            photos={PHOTO_PEEK}
           />
 
           {/* ── HDR primer ── */}
@@ -102,6 +100,24 @@ export default async function Base({
                   Ultra paints past SDR reference white. On an HDR display (Apple XDR, Android Ultra HDR, or Windows Advanced Color), the effect is visible. On an SDR monitor it renders as ordinary white. That is expected, not a bug.
                 </p>
               </aside>
+            </div>
+          </section>
+
+          {/* ── For developers ── */}
+          <section className="reveal border-t border-[var(--border)] pt-12">
+            <h2 className="font-display text-2xl font-bold">For developers</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+              Build gain map encoding into your pipeline or CI. MIT licensed, 100% test coverage, available via Docker, npm, Homebrew, and curl.
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {["DOCKER", "NPM", "HOMEBREW", "CURL", "CLI", "MIT LICENSED", "100% TEST COVERAGE"].map((badge) => (
+                <span
+                  key={badge}
+                  className="rounded border border-[var(--border)] px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--muted)]"
+                >
+                  {badge}
+                </span>
+              ))}
             </div>
           </section>
 

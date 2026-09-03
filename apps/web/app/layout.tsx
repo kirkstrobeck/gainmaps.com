@@ -65,7 +65,25 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
         <SiteAppearanceProvider initial={{ mode, ultra }}>
           {children}
         </SiteAppearanceProvider>
-        <footer className="border-t border-[var(--border)] py-4 text-center">
+        <footer className="border-t border-[var(--border)] py-5 text-center">
+          <nav className="mb-3 flex flex-wrap justify-center gap-x-5 gap-y-2" aria-label="Footer">
+            {[
+              { href: "/convert", label: "Convert" },
+              { href: "/photos", label: "Gallery" },
+              { href: "/docs", label: "Docs" },
+              { href: "/logos", label: "Logos" },
+              { href: "/text", label: "Text" },
+              { href: "/appearance", label: "Appearance" },
+            ].map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                className="text-xs text-[var(--muted)] transition hover:text-[var(--accent)]"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
           <a
             href="https://www.linkedin.com/in/kirkstrobeck"
             className="text-xs text-[var(--muted)] transition hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
