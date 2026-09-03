@@ -4,6 +4,7 @@
  */
 import { chromium } from "/workspace/node_modules/.pnpm/playwright@1.62.1/node_modules/playwright/index.mjs";
 import { mkdirSync } from "fs";
+import sharp from "/workspace/node_modules/.pnpm/sharp@0.34.5/node_modules/sharp/lib/index.js";
 
 const BASE = "http://localhost:3000";
 const SHOTS_DIR = "/workspace/.sandbox-shots";
@@ -183,11 +184,18 @@ for (const { name, url } of PAGES) {
     }
   }
 
-  // Assert every img inside a seam instrument loaded (naturalWidth > 0)
+  // Assert every LOCAL img inside a seam instrument loaded (naturalWidth > 0).
+  // External images (e.g. Unsplash SDR photos) are skipped: they depend on
+  // outside network and may not resolve within the test timeout in a sandbox.
+  // Local gainmap images served from localhost must always load.
   const instImgs = await page.locator(".inst img").all();
   let instImgFailed = 0;
+  let instImgLocalCount = 0;
   for (const img of instImgs) {
     const src = await img.getAttribute("src") ?? "";
+    // Skip external URLs — only assert on local paths
+    if (src.startsWith("http://") || src.startsWith("https://")) continue;
+    instImgLocalCount++;
     const natW = await img.evaluate(el => el.naturalWidth);
     if (natW === 0) {
       console.log(`  FAIL inst img naturalWidth=0 src=...${src.slice(-50)}`);
@@ -212,7 +220,52 @@ for (const { name, url } of PAGES) {
     }
   }
   if (instImgFailed === 0) {
-    console.log(`  inst imgs: all ${instImgs.length} have naturalWidth>0`);
+    console.log(`  inst imgs: all ${instImgLocalCount} local have naturalWidth>0 (external skipped)`);
+  }
+
+  // Luminance check: for photo pages verify each .inst tile has non-uniform
+  // pixel content — a near-uniform result means a solid black or white tile.
+  // Skip logo pages (logo seam instruments may have large uniform areas).
+  const PHOTO_PAGES = ["home", "photos"];
+  const MIN_STDDEV = 8;
+  if (PHOTO_PAGES.includes(name)) {
+    const instElements = await page.locator(".inst").all();
+    for (let idx = 0; idx < instElements.length; idx++) {
+      const inst = instElements[idx];
+      const box = await inst.boundingBox();
+      if (!box || box.width < 10 || box.height < 10) continue;
+
+      const shotBuffer = await inst.screenshot();
+
+      const { data, info } = await sharp(shotBuffer)
+        .resize(64, 64, { fit: "fill" })
+        .removeAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+
+      const pixels = new Uint8Array(data.buffer);
+      const n = info.width * info.height;
+      let sum = 0;
+      let sumSq = 0;
+      for (let i = 0; i < n; i++) {
+        const r = pixels[i * 3];
+        const g = pixels[i * 3 + 1];
+        const b = pixels[i * 3 + 2];
+        const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        sum += lum;
+        sumSq += lum * lum;
+      }
+      const mean = sum / n;
+      const variance = sumSq / n - mean * mean;
+      const stdDev = Math.sqrt(Math.max(0, variance));
+
+      if (stdDev < MIN_STDDEV) {
+        console.log(`  FAIL inst[${idx}] near-uniform luminance stdDev=${stdDev.toFixed(1)} mean=${mean.toFixed(1)} (likely black/white tile)`);
+        failed++;
+      } else {
+        passed++;
+      }
+    }
   }
 
   console.log(`  [${name}] tiles=${tiles.length} passed=${passed} failed=${failed}`);
