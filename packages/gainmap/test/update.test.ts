@@ -15,6 +15,7 @@ import {
   spawnExitCode,
   shouldSkipUpdateCheck,
   updateNotice,
+  type RunCommandFn,
 } from "#src/update.js";
 import { compareSemver, isNewer, parseSemver, readPackageVersion } from "#src/version.js";
 
@@ -36,7 +37,7 @@ describe("version", () => {
     assert.equal(compareSemver("nope", "1.0.0"), 0);
     assert.equal(isNewer("1.0.1", "1.0.0"), true);
     assert.equal(isNewer("1.0.0", "1.0.0"), false);
-    assert.match(readPackageVersion(), /^1\.0\.0$/);
+    assert.match(readPackageVersion(), /^\d+\.\d+\.\d+$/);
   });
 });
 
@@ -64,6 +65,8 @@ describe("update check", () => {
     assert.equal(detectInstall("/usr/bin/gainmap", { HOMEBREW_PREFIX: "/opt/homebrew" }, { hasDockerEnvFile: false }), "dev");
     assert.equal(detectInstall("/usr/lib/node_modules/gainmap/dist/cli.js", {}, { hasDockerEnvFile: false }), "npm");
     assert.equal(detectInstall("/usr/lib/node_modules/.bin/gainmap", {}, { hasDockerEnvFile: false }), "npm");
+    assert.equal(detectInstall("/home/me/.gainmap/runtime/dist/cli.js", {}, { hasDockerEnvFile: false }), "curl");
+    assert.equal(detectInstall("/opt/gainmap-runtime/dist/cli.js", { GAINMAP_LIBEXEC: "/opt/gainmap-runtime" }, { hasDockerEnvFile: false }), "curl");
     assert.equal(detectInstall("/repo/packages/gainmap/dist/cli.js", {}, { hasDockerEnvFile: false }), "dev");
     detectInstall("/x", {});
   });
@@ -185,6 +188,17 @@ describe("update check", () => {
       },
     });
     assert.equal(npm, 0);
+    const curl = await selfUpdate({
+      execPath: "/home/me/.gainmap/runtime/dist/cli.js",
+      env: {},
+      hasDockerEnvFile: false,
+      runCommand: async (cmd, args) => {
+        assert.equal(cmd, "sh");
+        assert.ok(args.includes("-c"));
+        return 0;
+      },
+    });
+    assert.equal(curl, 0);
     const failed = await selfUpdate({
       execPath: "/opt/homebrew/Cellar/gainmap/bin/gainmap",
       env: {},

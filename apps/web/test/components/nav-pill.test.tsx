@@ -10,8 +10,8 @@ describe("NavPill", () => {
   });
 
   it("button has role switch", () => {
-    render(<NavPill leftLabel="A" rightLabel="B" leftActive={true} onToggle={vi.fn()} />);
-    expect(screen.getByRole("switch")).toBeInTheDocument();
+    const { container } = render(<NavPill leftLabel="A" rightLabel="B" leftActive={true} onToggle={vi.fn()} />);
+    expect(container.querySelector('[role="switch"]')).not.toBeNull();
   });
 
   it("aria-checked reflects leftActive=true", () => {

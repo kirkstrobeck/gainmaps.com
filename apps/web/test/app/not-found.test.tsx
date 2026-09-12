@@ -1,5 +1,10 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+
+vi.mock("@/components/ultra-word", () => ({
+  UltraWord: ({ text }: { text: string }) => <span>{text}</span>,
+}));
+
 import NotFound from "@/app/not-found";
 
 describe("NotFound", () => {
@@ -9,13 +14,16 @@ describe("NotFound", () => {
   });
 
   it("renders 'Page not found' heading", () => {
-    render(<NotFound />);
-    expect(screen.getByRole("heading", { name: /page not found/i })).toBeInTheDocument();
+    const { container } = render(<NotFound />);
+    const h1 = container.querySelector("h1");
+    expect(h1).not.toBeNull();
+    expect(h1?.textContent).toMatch(/page not found/i);
   });
 
   it("renders link back to home", () => {
-    render(<NotFound />);
-    const link = screen.getByRole("link", { name: /return home/i });
-    expect(link).toHaveAttribute("href", "/");
+    const { container } = render(<NotFound />);
+    const link = container.querySelector('a[href="/"]');
+    expect(link).not.toBeNull();
+    expect(link?.textContent).toMatch(/return home/i);
   });
 });

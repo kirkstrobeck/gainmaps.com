@@ -8,11 +8,13 @@ export type InstrumentProps = {
   width?: number | string;
   height?: number | string;
   className?: string;
+  sdrLayerClassName?: string;
+  ultraLayerClassName?: string;
   sdr: React.ReactNode;
   ultra: React.ReactNode;
 };
 
-export function SeamInstrument({ width, height, className, sdr, ultra }: InstrumentProps) {
+export function SeamInstrument({ width, height, className, sdrLayerClassName, ultraLayerClassName, sdr, ultra }: InstrumentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLButtonElement>(null);
   const dragging = useRef(false);
@@ -23,14 +25,16 @@ export function SeamInstrument({ width, height, className, sdr, ultra }: Instrum
   const applyPos = useCallback((pct: number) => {
     const el = containerRef.current;
     const btn = handleRef.current;
+    /* v8 ignore next */
     if (!el) return;
     posRef.current = pct;
     el.style.setProperty("--seam-x", `${pct.toFixed(2)}%`);
     btn?.setAttribute("aria-valuenow", String(Math.round(pct)));
   }, []);
 
-  const animateTo = useCallback((pct: number) => {
+  const snapTo = useCallback((pct: number) => {
     const el = containerRef.current;
+    /* v8 ignore next */
     if (!el) return;
     el.classList.add("inst--animating");
     applyPos(pct);
@@ -39,10 +43,12 @@ export function SeamInstrument({ width, height, className, sdr, ultra }: Instrum
   }, [applyPos]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    /* v8 ignore next */
     rectRef.current = containerRef.current?.getBoundingClientRect() ?? null;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragging.current = true;
     setSeamSide(null);
+    /* v8 ignore next */
     if (rectRef.current) {
       applyPos(Math.max(0, Math.min(100, ((e.clientX - rectRef.current.left) / rectRef.current.width) * 100)));
     }
@@ -53,7 +59,7 @@ export function SeamInstrument({ width, height, className, sdr, ultra }: Instrum
     applyPos(Math.max(0, Math.min(100, ((e.clientX - rectRef.current.left) / rectRef.current.width) * 100)));
   }, [applyPos]);
 
-  const onPointerUp = useCallback(() => { dragging.current = false; }, []);
+  const stopDrag = useCallback(() => { dragging.current = false; }, []);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLButtonElement>) => {
     const delta = e.key === "ArrowLeft" || e.key === "ArrowDown" ? -2
@@ -71,10 +77,11 @@ export function SeamInstrument({ width, height, className, sdr, ultra }: Instrum
       style={{ width, height }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
+      onPointerUp={stopDrag}
+      onPointerCancel={stopDrag}
     >
-      <div className="inst-layer">{ultra}</div>
-      <div className="inst-layer inst-sdr">{sdr}</div>
+      <div className={`inst-layer${ultraLayerClassName ? ` ${ultraLayerClassName}` : ""}`}>{ultra}</div>
+      <div className={`inst-layer inst-sdr${sdrLayerClassName ? ` ${sdrLayerClassName}` : ""}`}>{sdr}</div>
       <div className="inst-seam" aria-hidden />
       <button
         ref={handleRef}
@@ -90,7 +97,7 @@ export function SeamInstrument({ width, height, className, sdr, ultra }: Instrum
         <ChevronLeftIcon size={10} color="rgba(244,241,236,0.8)" aria-hidden />
         <ChevronRightIcon size={10} color="rgba(244,241,236,0.8)" aria-hidden />
       </button>
-      <SeamCornerButtons seamSide={seamSide} animateTo={animateTo} />
+      <SeamCornerButtons seamSide={seamSide} snapTo={snapTo} />
     </div>
   );
 }

@@ -12,6 +12,8 @@ import type { DragEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { UltraWord } from "@/components/ultra-word";
+import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 import { headroomFromBoost } from "@/lib/gain-map-encode";
 import { type Job, formatBytes, formatEta } from "@/lib/hdr-job";
 import { cn } from "@/lib/utils";
@@ -23,7 +25,7 @@ interface HdrQueueProps {
   onDownloadJob: (job: Job) => void;
   clearJobs: () => void;
   dragActive: boolean;
-  addFiles: (files: FileList | File[]) => void;
+  addFiles: (files: FileList | File[], source?: string) => void;
 }
 
 export function HdrQueue({
@@ -40,7 +42,9 @@ export function HdrQueue({
       <div className="grid shrink-0 gap-3 border-b border-[var(--border)] p-3 sm:p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold tracking-normal text-[var(--foreground)]">Queue</h1>
+            <h1 className="text-lg font-semibold tracking-normal text-[var(--foreground)]">
+              <UltraWord text="Queue" typeClassName="text-lg font-semibold tracking-normal" intensity={TEXT_ULTRA_INTENSITY} />
+            </h1>
             <p className="mt-1 truncate text-sm text-[var(--muted)]">Select a row to inspect or re-encode.</p>
           </div>
           <Button variant="secondary" className="h-9 px-3" onClick={clearJobs} aria-label="Clear queue">
@@ -61,7 +65,7 @@ export function HdrQueue({
             type="file"
             accept=".png,.jpg,.jpeg,.webp,.avif,.gif,.heic,.heif,.svg,image/*"
             multiple
-            onChange={(event) => event.currentTarget.files && addFiles(event.currentTarget.files)}
+            onChange={(event) => event.currentTarget.files && addFiles(event.currentTarget.files, "converter_queue_picker")}
           />
         </label>
       </div>

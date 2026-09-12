@@ -23,7 +23,7 @@ describe("sitemap", () => {
     expect(urls).toContain("https://www.gainmaps.com/photos");
     expect(urls).toContain("https://www.gainmaps.com/logos");
     expect(urls).toContain("https://www.gainmaps.com/text");
-    expect(urls).toContain("https://www.gainmaps.com/community");
+    expect(urls).not.toContain("https://www.gainmaps.com/community");
     expect(urls).toContain("https://www.gainmaps.com/appearance");
   });
 
@@ -42,7 +42,7 @@ describe("sitemap", () => {
   });
 
   it("total count equals statics + companies + photos", () => {
-    const STATIC_COUNT = 8;
+    const STATIC_COUNT = 12; // /, /convert, /convert/how-it-works, /docs, /logos, /photos, /text, /appearance, /developers, /about, /contact, /privacy
     expect(entries.length).toBe(STATIC_COUNT + COMPANIES.length + PHOTOS.length);
   });
 

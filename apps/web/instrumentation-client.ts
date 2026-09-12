@@ -1,16 +1,22 @@
-async function initPostHog() {
-  const token = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
-  if (!token) return; // Skip analytics when token is not configured (local dev, CI)
-  const { default: posthog } = await import('posthog-js')
-  posthog.init(token, {
-    api_host: "/ingest",
-    defaults: '2026-05-30',
+import posthog from "posthog-js"
+
+import { posthogClientConfig } from "@/lib/posthog-client-config"
+
+function initPostHog(): void {
+  const config = posthogClientConfig()
+  if (!config) return
+  posthog.init(config.token, {
+    api_host: config.api_host,
+    defaults: config.defaults,
+    capture_pageview: "history_change",
+    capture_pageleave: true,
     disable_session_recording: true,
     disable_surveys: true,
     capture_performance: false,
   })
+  window.gainmapsPostHog = {
+    capture: posthog.capture.bind(posthog),
+  }
 }
 
-document.readyState === 'complete'
-  ? initPostHog().catch(() => {})
-  : window.addEventListener('load', () => initPostHog().catch(() => {}))
+initPostHog()

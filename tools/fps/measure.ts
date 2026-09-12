@@ -1,10 +1,12 @@
 #!/usr/bin/env tsx
 /**
- * FPS baseline measurement. Runs 5 interaction scenarios 3 times each via Playwright.
- * Outputs raw frame-timing metrics with no pass/fail thresholds.
+ * FPS measurement. Runs 5 interaction scenarios 3 times each via Playwright,
+ * writes tools/fps/results.json, then fails the process if any measured
+ * scenario's mean FPS is below 60.
  *
  * Usage:
  *   FPS_BASE_URL=http://127.0.0.1:3000 pnpm tsx tools/fps/measure.ts
+ *   pnpm fps:assert   # re-check the last results.json without re-measuring
  */
 
 import { chromium } from "@playwright/test";
@@ -22,13 +24,12 @@ type ScenarioFn = (page: import("@playwright/test").Page) => Promise<FrameMetric
 interface ScenarioDef {
   name: string;
   fn: ScenarioFn;
-  skipIfNoWebGpu?: boolean;
 }
 
 const SCENARIOS: ScenarioDef[] = [
   { name: "/photos scroll", fn: photosScroll },
   { name: "/ seam drag", fn: seamDrag },
-  { name: "/text idle 5s", fn: textIdle, skipIfNoWebGpu: true },
+  { name: "/text idle 5s", fn: textIdle },
   { name: "/ home idle 5s", fn: homeIdle },
   { name: "/convert drop", fn: convertDrop },
 ];
@@ -39,11 +40,7 @@ async function runScenario(
   page: import("@playwright/test").Page,
   def: ScenarioDef,
   run: number,
-  webGpuAvailable: boolean,
 ): Promise<ScenarioRun> {
-  if (def.skipIfNoWebGpu && !webGpuAvailable) {
-    return { scenario: def.name, run, metrics: null, error: "NOT MEASURED: WebGPU unavailable in this environment" };
-  }
   try {
     const metrics = await def.fn(page);
     return { scenario: def.name, run, metrics };
@@ -52,11 +49,25 @@ async function runScenario(
   }
 }
 
+// SwiftShader Vulkan ICD path so Chrome can use software WebGPU
+const SWIFTSHADER_ICD =
+  "/ms-playwright/chromium-1187/chrome-linux/vk_swiftshader_icd.json";
+process.env.VK_ICD_FILENAMES = SWIFTSHADER_ICD;
+
 async function main(): Promise<void> {
-  // headless: true is default; no real display in container
   const browser = await chromium.launch({
     headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      // WebGPU via SwiftShader software Vulkan
+      "--enable-unsafe-webgpu",
+      "--use-vulkan",
+      "--use-angle=vulkan",
+      "--ignore-gpu-blocklist",
+      "--enable-gpu-rasterization",
+      "--disable-gpu-sandbox",
+    ],
     executablePath: "/ms-playwright/chromium-1187/chrome-linux/chrome",
   });
 
@@ -75,7 +86,7 @@ async function main(): Promise<void> {
   for (const def of SCENARIOS) {
     for (let run = 1; run <= RUNS; run++) {
       const page = await context.newPage();
-      const result = await runScenario(page, def, run, env.webGpuAvailable);
+      const result = await runScenario(page, def, run);
       await page.close();
       results.push(result);
       console.log(formatRun(result));
@@ -93,6 +104,22 @@ async function main(): Promise<void> {
   const __dirname = dirname(fileURLToPath(import.meta.url));
   writeFileSync(resolve(__dirname, "results.json"), jsonOut, "utf8");
   console.log("Results written to tools/fps/results.json");
+
+  // Threshold gate: all measured scenarios must sustain ≥60fps mean
+  const MIN_FPS = 60;
+  const failures = results.filter(
+    (r) => r.metrics !== null && r.metrics.meanFps < MIN_FPS,
+  );
+  if (failures.length > 0) {
+    console.error("\n=== FPS GATE FAILURES ===");
+    for (const f of failures) {
+      console.error(
+        `FAIL  ${f.scenario} run ${f.run}: meanFps=${f.metrics!.meanFps.toFixed(2)} < ${MIN_FPS}`,
+      );
+    }
+    process.exit(1);
+  }
+  console.log(`\nFPS gate passed — all scenarios ≥ ${MIN_FPS} fps`);
 }
 
 main().catch((err) => {

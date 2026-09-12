@@ -33,7 +33,7 @@ describe("convert", () => {
   it("writes, skips, forces, dry-runs, and streams stdout", async () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-cvt-"));
     const input = await tinyPng(dir, "a.png");
-    const output = join(dir, "a-gainmap.jpg");
+    const output = join(dir, "a-gain.jpg");
     const logs: string[] = [];
     const log = (message: string) => { logs.push(message); };
     const first = await convertPlan({ input, output, stdout: false }, options, undefined, () => undefined, log);
@@ -61,8 +61,8 @@ describe("convert", () => {
     const bad = join(dir, "missing.png");
     const { failures, results } = await convertPlans(
       [
-        { input: bad, output: join(dir, "missing-gainmap.jpg"), stdout: false },
-        { input: good, output: join(dir, "good-gainmap.jpg"), stdout: false },
+        { input: bad, output: join(dir, "missing-gain.jpg"), stdout: false },
+        { input: good, output: join(dir, "good-gain.jpg"), stdout: false },
       ],
       { ...options, continueOnError: true, jobs: 1, quiet: true },
     );
@@ -74,10 +74,10 @@ describe("convert", () => {
   it("logs without container note for JPEG input and covers stdin-to-file path", async () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-jpg-"));
     const jpegInput = await tinyJpeg(dir, "a.jpg");
-    const output = join(dir, "a-gainmap.jpg");
+    const output = join(dir, "a-gain.jpg");
     const logs: string[] = [];
     await convertPlan({ input: jpegInput, output, stdout: false }, options, undefined, () => undefined, (m) => { logs.push(m); });
-    assert.ok(logs.some((l) => l.includes("a.jpg") && l.includes("a-gainmap.jpg") && !l.includes("JPEG container")));
+    assert.ok(logs.some((l) => l.includes("a.jpg") && l.includes("a-gain.jpg") && !l.includes("JPEG container")));
     const pngInput = await tinyPng(dir, "b.png");
     const stdinBytes = new Uint8Array(await import("node:fs/promises").then((fs) => fs.readFile(pngInput)));
     const stdinLogs: string[] = [];
@@ -98,8 +98,8 @@ describe("convert", () => {
     const b = await tinyPng(dir, "b.png");
     const { failures } = await convertPlans(
       [
-        { input: a, output: join(dir, "a-gainmap.jpg"), stdout: false },
-        { input: b, output: join(dir, "b-gainmap.jpg"), stdout: false },
+        { input: a, output: join(dir, "a-gain.jpg"), stdout: false },
+        { input: b, output: join(dir, "b-gain.jpg"), stdout: false },
       ],
       { ...options, jobs: 2, verbose: false },
     );
@@ -111,22 +111,106 @@ describe("convert", () => {
   it("note contains actual output extension and log contains .jpeg for .jpeg input", async () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-jpeg-ext-"));
     const jpegInput = await tinyJpeg(dir, "photo.jpeg");
-    const output = join(dir, "photo-gainmap.jpeg");
+    const output = join(dir, "photo-gain.jpeg");
     const logs: string[] = [];
     const result = await convertPlan({ input: jpegInput, output, stdout: false }, options, undefined, () => undefined, (m) => { logs.push(m); });
     // log must contain the real output extension
     assert.ok(logs.some((l) => l.includes(".jpeg")));
-    // note must contain the real output extension, not hardcoded "JPEG"
-    assert.ok(result.note.includes(".jpeg"));
-    assert.ok(!result.note.startsWith("Gain map JPEG"));
+    // note uses uppercase label without a leading dot
+    assert.ok(result.note.startsWith("Gain map JPEG"));
+    assert.ok(!result.note.includes(".jpeg"));
   });
 
   it("accepts .png input when explicit .jpg output path is given", async () => {
     const dir = await mkdtemp(join(tmpdir(), "gainmap-png-escape-"));
     const pngInput = await tinyPng(dir, "photo.png");
-    const output = join(dir, "photo-gainmap.jpg");
+    const output = join(dir, "photo-gain.jpg");
     const result = await convertPlan({ input: pngInput, output, stdout: false }, options, undefined, () => undefined, () => undefined);
     assert.equal(result.skipped, false);
     assert.ok(result.bytesOut > 0);
+  });
+
+  it("encodes raster outputs for png webp avif tif tiff gif", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-raster-"));
+    const input = await tinyPng(dir, "a.png");
+    const logs: string[] = [];
+    const log = (message: string) => { logs.push(message); };
+    const types = ["png", "webp", "avif", "tif", "tiff", "gif"] as const;
+    for (const type of types) {
+      const output = join(dir, "out." + type);
+      const result = await convertPlan({ input, output, stdout: false }, options, undefined, () => undefined, log);
+      assert.equal(result.skipped, false);
+      assert.ok(result.bytesOut > 0);
+      assert.equal(result.note, type.toUpperCase());
+      const meta = await sharp(await readFile(output)).metadata();
+      if (type === "tif" || type === "tiff") {
+        assert.equal(meta.format, "tiff");
+      }
+      if (type === "avif") {
+        assert.ok(meta.format === "avif" || meta.format === "heif");
+      }
+      if (type !== "tif" && type !== "tiff" && type !== "avif") {
+        assert.equal(meta.format, type);
+      }
+    }
+    assert.ok(logs.every((line) => line.includes("->") && !line.includes("JPEG container")));
+  });
+
+  it("applies quality to webp and avif raster encodes", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-rq-"));
+    const input = await tinyPng(dir, "a.png");
+    const webp = join(dir, "q.webp");
+    const avif = join(dir, "q.avif");
+    await convertPlan(
+      { input, output: webp, stdout: false },
+      { ...options, quality: 40 },
+      undefined,
+      () => undefined,
+      () => undefined,
+    );
+    await convertPlan(
+      { input, output: avif, stdout: false },
+      { ...options, quality: 40 },
+      undefined,
+      () => undefined,
+      () => undefined,
+    );
+    assert.equal((await sharp(await readFile(webp)).metadata()).format, "webp");
+    const avifFormat = (await sharp(await readFile(avif)).metadata()).format;
+    assert.ok(avifFormat === "avif" || avifFormat === "heif");
+  });
+
+  it("falls back to gain-map encoder when output path has no known type", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-unk-"));
+    const input = await tinyJpeg(dir, "a.jpg");
+    await assert.rejects(
+      convertPlan(
+        { input, output: join(dir, "noext"), stdout: false },
+        options,
+        undefined,
+        () => undefined,
+        () => undefined,
+      ),
+      /JPEG path/,
+    );
+    await assert.rejects(
+      convertPlan(
+        { input, output: join(dir, "out.bmp"), stdout: false },
+        options,
+        undefined,
+        () => undefined,
+        () => undefined,
+      ),
+      /JPEG path/,
+    );
+    await assert.rejects(
+      convertPlan(
+        { input, output: null, stdout: false },
+        options,
+        undefined,
+        () => undefined,
+        () => undefined,
+      ),
+    );
   });
 });

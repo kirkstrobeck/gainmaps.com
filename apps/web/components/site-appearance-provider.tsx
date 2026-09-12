@@ -17,6 +17,7 @@ export function SiteAppearanceProvider({
   initial: SiteAppearance;
   children: ReactNode;
 }) {
+  /* v8 ignore next */
   const appearance = useSyncExternalStore(subscribeSiteAppearance, readSiteAppearance, () => initial);
   return (
     <SiteAppearanceContext.Provider value={appearance}>{children}</SiteAppearanceContext.Provider>

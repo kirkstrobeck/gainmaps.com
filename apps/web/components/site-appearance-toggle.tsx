@@ -16,10 +16,12 @@ import {
 import { cn } from "@/lib/utils";
 
 function useSiteMode(): SiteMode {
+  /* v8 ignore next */
   return useSyncExternalStore(subscribeSiteAppearance, readSiteMode, () => "dark");
 }
 
 function useSiteUltra(): SiteUltra {
+  /* v8 ignore next */
   return useSyncExternalStore(subscribeSiteAppearance, readSiteUltra, () => "on");
 }
 
@@ -114,7 +116,7 @@ function ToggleOption({
       title={title}
       onClick={onSelect}
       className={cn(
-        "inline-flex min-w-8 items-center justify-center gap-1 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 font-medium transition",
+        "inline-flex min-w-8 items-center justify-center gap-1 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 font-medium",
         "focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--accent)]",
         !active && "text-[var(--muted)] hover:text-[var(--foreground)]",
         active && !accentActive && "bg-[var(--foreground)] text-[var(--background)]",

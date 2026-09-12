@@ -4,9 +4,7 @@ import type { DragEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { HdrEmpty } from "@/components/hdr-empty";
-import { HdrControlsBar } from "@/components/hdr-controls-bar";
-import { HdrQueue } from "@/components/hdr-queue";
-import { HdrDetail } from "@/components/hdr-detail";
+import { HdrProcessorBusy } from "@/components/hdr-processor-busy";
 import {
   type Job,
   ACCEPTED_FORMATS,
@@ -15,9 +13,12 @@ import {
   download,
 } from "@/lib/hdr-job";
 import { DEFAULT_BOOST } from "@/lib/gain-map-encode";
-import { concurrencyLimit, ensureProcessorRegistration, runServiceWorkerJob } from "@/lib/hdr-worker";
+import { createJobUpdateCoalescer } from "@/lib/coalesce-job-updates";
+import { ensureProcessorRegistration } from "@/lib/hdr-worker";
 import { dequeueFiles } from "@/lib/file-queue";
-import { cn } from "@/lib/utils";
+import { runHdrQueue } from "@/lib/run-hdr-queue";
+import { ANALYTICS_EVENTS, errorBucket, summarizeFiles, summarizeFile, track } from "@/lib/analytics";
+import { headroomFromBoost } from "@/lib/gain-map-encode";
 
 export function HdrProcessor() {
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -31,91 +32,127 @@ export function HdrProcessor() {
   const downloaded = useRef(new Set<string>());
   const jobsRef = useRef(jobs);
 
-  const updateJob = useCallback((next: Job) => {
-    setJobs((current) => current.map((job) => (job.id === next.id ? { ...job, ...next } : job)));
-  }, []);
-
+  const coalescer = useMemo(() => createJobUpdateCoalescer({
+    getJobs: () => jobsRef.current,
+    setJobs: (next) => {
+      const copy = [...next];
+      jobsRef.current = copy;
+      setJobs(copy);
+    },
+  }), []);
+  const updateJob = coalescer.update;
   const currentSettings = useMemo(() => ({ boost }), [boost]);
 
   const processQueue = useCallback(async () => {
-    if (queueRunning.current || workerState !== "ready") return;
-    queueRunning.current = true;
-    try {
-      while (true) {
-        const queued = jobsRef.current.filter(
-          (job) => job.state === "queued" && !inflightIds.current.has(job.id),
-        );
-        if (queued.length === 0) break;
-        const batch = queued.slice(0, concurrencyLimit());
-        for (const job of batch) inflightIds.current.add(job.id);
-        try {
-          await Promise.all(
-            batch.map((job) =>
-              runServiceWorkerJob(job, job.settings ?? currentSettings, updateJob),
-            ),
-          );
-        } finally {
-          for (const job of batch) inflightIds.current.delete(job.id);
-        }
-      }
-    } finally {
-      queueRunning.current = false;
-    }
+    await runHdrQueue({
+      queueRunning, inflightIds, jobsRef,
+      workerReady: workerState === "ready",
+      currentSettings, updateJob,
+    });
   }, [currentSettings, updateJob, workerState]);
+
+  const downloadJob = useCallback((job: Job, source: string) => {
+    track(ANALYTICS_EVENTS.converterDownloadStarted, {
+      ...summarizeFile(job.file),
+      download_source: source,
+      bytes_out: job.bytesOut,
+      elapsed_ms: job.elapsedMs,
+      auto_download_enabled: autoDownload,
+    });
+    download(job);
+  }, [autoDownload]);
 
   useEffect(() => {
     jobsRef.current = jobs;
-    if (autoDownload) {
-      for (const job of jobs) {
-        if (job.state === "done" && job.resultUrl && !downloaded.current.has(job.id)) {
-          downloaded.current.add(job.id);
-          download(job);
-        }
+    if (!autoDownload) return;
+    for (const job of jobs) {
+      if (job.state === "done" && job.resultUrl && !downloaded.current.has(job.id)) {
+        downloaded.current.add(job.id);
+        downloadJob(job, "auto_download");
       }
     }
-  }, [autoDownload, jobs]);
+  }, [autoDownload, downloadJob, jobs]);
 
   useEffect(() => {
     const gate = { open: true };
     ensureProcessorRegistration()
-      .then(() => { if (gate.open) setWorkerState("ready"); })
-      .catch(() => { if (gate.open) setWorkerState("error"); });
+      .then(() => {
+        /* v8 ignore next */
+        if (gate.open) {
+          setWorkerState("ready");
+          track(ANALYTICS_EVENTS.converterWorkerReady, { worker_type: "service_worker" });
+        }
+      })
+      .catch((error: unknown) => {
+        /* v8 ignore next */
+        if (gate.open) {
+          setWorkerState("error");
+          track(ANALYTICS_EVENTS.converterWorkerError, {
+            worker_type: "service_worker",
+            error_bucket: errorBucket(error),
+          });
+        }
+      });
     return () => { gate.open = false; };
   }, []);
 
   useEffect(() => () => {
+    coalescer.cancel();
     for (const job of jobsRef.current) {
       URL.revokeObjectURL(job.sourceUrl);
       if (job.resultUrl) URL.revokeObjectURL(job.resultUrl);
     }
-  }, []);
+  }, [coalescer]);
 
   useEffect(() => { if (workerState === "ready") void processQueue(); }, [jobs, processQueue, workerState]);
 
-  const addFiles = useCallback((files: FileList | File[]) => {
-    const next = Array.from(files)
-      .filter((file) => ACCEPTED_FORMATS.includes(file.type) || ACCEPTED_EXT_PATTERN.test(file.name))
+  const addFiles = useCallback((files: FileList | File[], source = "converter_unknown") => {
+    const allFiles = Array.from(files);
+    const accepted = allFiles.filter((file) =>
+      ACCEPTED_FORMATS.includes(file.type) || ACCEPTED_EXT_PATTERN.test(file.name),
+    );
+    const rejected = allFiles.filter((file) => !accepted.includes(file));
+    if (accepted.length > 0) {
+      track(ANALYTICS_EVENTS.converterFilesAdded, {
+        ...summarizeFiles(accepted),
+        rejected_count: rejected.length,
+        source,
+        boost: currentSettings.boost,
+        headroom: headroomFromBoost(currentSettings.boost),
+        worker_state: workerState,
+      });
+    }
+    if (rejected.length > 0) {
+      track(ANALYTICS_EVENTS.converterFilesRejected, {
+        ...summarizeFiles(rejected),
+        source,
+        worker_state: workerState,
+      });
+    }
+    const next = accepted
       .map<Job>((file) => ({
         id: `${file.name}-${file.size}-${file.lastModified}-${crypto.randomUUID()}`,
-        file,
-        sourceUrl: URL.createObjectURL(file),
-        state: "queued",
-        progress: 0,
-        phase: "Queued",
-        settings: currentSettings,
+        file, sourceUrl: URL.createObjectURL(file),
+        state: "queued", progress: 0, phase: "Queued", settings: currentSettings,
       }));
     if (next[0]) setSelectedJobId(next[0].id);
     setJobs((current) => [...next, ...current]);
-  }, [currentSettings]);
+  }, [currentSettings, workerState]);
 
   useEffect(() => {
     const files = dequeueFiles();
-    if (files.length > 0) addFiles(files);
+    if (files.length > 0) addFiles(files, "home_handoff");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clearJobs = useCallback(() => {
+    track(ANALYTICS_EVENTS.converterQueueCleared, {
+      total_jobs: jobsRef.current.length,
+      completed_jobs: jobsRef.current.filter((job) => job.state === "done").length,
+      failed_jobs: jobsRef.current.filter((job) => job.state === "error").length,
+    });
     for (const job of jobsRef.current) {
       URL.revokeObjectURL(job.sourceUrl);
+      /* v8 ignore next */
       if (job.resultUrl) URL.revokeObjectURL(job.resultUrl);
     }
     downloaded.current.clear();
@@ -125,34 +162,34 @@ export function HdrProcessor() {
 
   const redoSelected = useCallback(() => {
     const selected = jobsRef.current.find((job) => job.id === selectedJobId);
+    /* v8 ignore next */
     if (!selected) return;
+    track(ANALYTICS_EVENTS.converterRedoRequested, {
+      ...summarizeFile(selected.file),
+      boost: currentSettings.boost,
+      headroom: headroomFromBoost(currentSettings.boost),
+      previous_state: selected.state,
+    });
     const nextSelectedId = `${selected.file.name}-${selected.file.size}-${selected.file.lastModified}-${crypto.randomUUID()}`;
-    setJobs((current) =>
-      current.map((job) => {
-        if (job.id !== selectedJobId) return job;
-        if (job.resultUrl) URL.revokeObjectURL(job.resultUrl);
-        downloaded.current.delete(job.id);
-        return {
-          id: nextSelectedId,
-          file: job.file,
-          sourceUrl: job.sourceUrl,
-          state: "queued",
-          progress: 0,
-          phase: "Queued",
-          settings: currentSettings,
-        };
-      }),
-    );
+    setJobs((current) => current.map((job) => {
+      /* v8 ignore next */
+      if (job.id !== selectedJobId) return job;
+      if (job.resultUrl) URL.revokeObjectURL(job.resultUrl);
+      downloaded.current.delete(job.id);
+      return {
+        id: nextSelectedId, file: job.file, sourceUrl: job.sourceUrl,
+        state: "queued", progress: 0, phase: "Queued", settings: currentSettings,
+      };
+    }));
     setSelectedJobId(nextSelectedId);
   }, [currentSettings, selectedJobId]);
 
-  const totals = useMemo(() => {
-    const done = jobs.filter((job) => job.state === "done").length;
-    const running = jobs.filter((job) => job.state === "processing").length;
-    const failed = jobs.filter((job) => job.state === "error").length;
-    return { done, running, failed, total: jobs.length };
-  }, [jobs]);
-
+  const totals = useMemo(() => ({
+    done: jobs.filter((job) => job.state === "done").length,
+    running: jobs.filter((job) => job.state === "processing").length,
+    failed: jobs.filter((job) => job.state === "error").length,
+    total: jobs.length,
+  }), [jobs]);
   const selectedJob = useMemo(
     () => jobs.find((job) => job.id === selectedJobId) ?? jobs[0] ?? null,
     [jobs, selectedJobId],
@@ -160,9 +197,24 @@ export function HdrProcessor() {
   const selectedNeedsRegeneration = settingsChanged(selectedJob?.settings, currentSettings);
 
   useEffect(() => {
+    /* v8 ignore next */
     if (!jobs.length && selectedJobId) setSelectedJobId(null);
+    /* v8 ignore next */
     if (jobs.length && !selectedJob) setSelectedJobId(jobs[0]!.id);
   }, [jobs, selectedJob, selectedJobId]);
+
+  const setBoostTracked = useCallback((value: number) => {
+    setBoost(value);
+    track(ANALYTICS_EVENTS.converterGainChanged, {
+      boost: value,
+      headroom: headroomFromBoost(value),
+    });
+  }, []);
+
+  const setAutoDownloadTracked = useCallback((value: boolean) => {
+    setAutoDownload(value);
+    track(ANALYTICS_EVENTS.converterAutoDownloadChanged, { enabled: value });
+  }, []);
 
   const selectJob = useCallback((job: Job) => {
     setSelectedJobId(job.id);
@@ -173,7 +225,7 @@ export function HdrProcessor() {
   const dropHandlers = {
     onDragOver: (event: DragEvent<HTMLElement>) => { event.preventDefault(); setDragActive(true); },
     onDragLeave: () => setDragActive(false),
-    onDrop: (event: DragEvent<HTMLElement>) => { event.preventDefault(); setDragActive(false); addFiles(event.dataTransfer.files); },
+    onDrop: (event: DragEvent<HTMLElement>) => { event.preventDefault(); setDragActive(false); addFiles(event.dataTransfer.files, jobsRef.current.length > 0 ? "converter_busy_drop" : "converter_empty_drop"); },
   };
 
   if (jobs.length === 0) {
@@ -181,41 +233,14 @@ export function HdrProcessor() {
   }
 
   return (
-    <section
-      {...dropHandlers}
-      className={cn(
-        "grid h-[calc(100dvh-4rem)] min-h-0 w-full grid-rows-[auto_minmax(0,1fr)] gap-4 overflow-hidden px-4 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8",
-        dragActive && "bg-[color-mix(in_srgb,var(--accent)_7%,transparent)]",
-      )}
-    >
-      <HdrControlsBar
-        boost={boost}
-        setBoost={setBoost}
-        autoDownload={autoDownload}
-        setAutoDownload={setAutoDownload}
-        workerState={workerState}
-        totals={totals}
-        selectedJob={selectedJob}
-        selectedNeedsRegeneration={selectedNeedsRegeneration}
-        redoSelected={redoSelected}
-        onDownload={() => selectedJob && download(selectedJob)}
-      />
-      <div className="grid min-h-0 gap-4 overflow-y-auto lg:grid-cols-[minmax(18rem,23rem)_minmax(0,1fr)] lg:overflow-hidden">
-        <HdrQueue
-          jobs={jobs}
-          selectedJob={selectedJob}
-          onSelectJob={selectJob}
-          onDownloadJob={download}
-          clearJobs={clearJobs}
-          dragActive={dragActive}
-          addFiles={addFiles}
-        />
-        <HdrDetail
-          selectedJob={selectedJob}
-          boost={boost}
-          selectedNeedsRegeneration={selectedNeedsRegeneration}
-        />
-      </div>
-    </section>
+    <HdrProcessorBusy
+      dropHandlers={dropHandlers} dragActive={dragActive}
+      boost={boost} setBoost={setBoostTracked}
+      autoDownload={autoDownload} setAutoDownload={setAutoDownloadTracked}
+      workerState={workerState} totals={totals}
+      selectedJob={selectedJob} selectedNeedsRegeneration={selectedNeedsRegeneration}
+      redoSelected={redoSelected} selectJob={selectJob}
+      clearJobs={clearJobs} addFiles={addFiles} downloadJob={downloadJob} jobs={jobs}
+    />
   );
 }

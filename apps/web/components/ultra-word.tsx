@@ -2,78 +2,137 @@
 
 "use client";
 
-import { useId } from "react";
+import { useLayoutEffect, useId, useRef, useState, type CSSProperties } from "react";
 
+import { foundationHeadroomFor } from "@/lib/text-ultra";
 import { ultraOverlayGeometry } from "@/lib/ultra-overlay";
 
 import { UltraFillCanvas } from "./ultra-fill-canvas";
 
 type Props = {
-  word: string;
-  /** Typography shared by the selectable text and the mask, so they line up. */
+  text: string;
+  /** Typography shared by the readable text and the SVG mask. */
   typeClassName: string;
   intensity: number;
 };
 
+type MaskLine = { text: string; x: number; y: number };
+
+type Typography = Pick<CSSProperties,
+  "fontFamily" | "fontFeatureSettings" | "fontKerning" | "fontSize" | "fontStyle"
+  | "fontVariant" | "fontVariationSettings" | "fontWeight" | "letterSpacing" | "wordSpacing"
+>;
+
+function measuredLines(textNode: Text, overlay: SVGSVGElement): MaskLine[] {
+  const words = Array.from(textNode.data.matchAll(/\S+(?:\s+|$)/g));
+  const overlayBox = overlay.getBoundingClientRect();
+  const lines = new Map<number, MaskLine>();
+
+  for (const word of words) {
+    const range = document.createRange();
+    const index = word.index as number;
+    range.setStart(textNode, index);
+    range.setEnd(textNode, index + word[0].length);
+    const box = range.getBoundingClientRect();
+    const key = Math.round(box.top / 2) * 2;
+    const existing = lines.get(key);
+    lines.set(key, {
+      text: `${existing?.text ?? ""}${word[0]}`,
+      x: existing?.x ?? box.left - overlayBox.left,
+      y: existing?.y ?? box.top + box.height / 2 - overlayBox.top,
+    });
+  }
+
+  return Array.from(lines.values()).map((line) => ({ ...line, text: line.text.trimEnd() }));
+}
+
+function typographyFor(element: HTMLElement): Typography {
+  const style = getComputedStyle(element);
+  return {
+    fontFamily: style.fontFamily,
+    fontFeatureSettings: style.fontFeatureSettings,
+    fontKerning: style.fontKerning as React.CSSProperties["fontKerning"],
+    fontSize: style.fontSize,
+    fontStyle: style.fontStyle,
+    fontVariant: style.fontVariant,
+    fontVariationSettings: style.fontVariationSettings,
+    fontWeight: style.fontWeight,
+    letterSpacing: style.letterSpacing,
+    wordSpacing: style.wordSpacing,
+  };
+}
+
 /*
-  The word is painted by an Ultra-white canvas that is masked to the letterforms.
-  The canvas is decoration; the real text sits on top, transparent but selectable.
+  The HTML text stays readable at all times. SVG <text> nodes provide the mask
+  content because foreignObject is not painted inside Chromium mask resources.
+  Their positions come from the browser's own wrapped text layout, so each mask
+  line follows the selectable text rather than forcing a single SVG line.
 */
-export function UltraWord({ word, typeClassName, intensity }: Props) {
+export function UltraWord({ text, typeClassName, intensity }: Props) {
   const maskId = `ultra-word-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
+  const maskInsetId = `${maskId}i`;
+  const maskBlurId = `${maskId}b`;
+  const readableRef = useRef<HTMLSpanElement>(null);
+  const overlayRef = useRef<SVGSVGElement>(null);
+  const [lines, setLines] = useState<MaskLine[]>([]);
+  const [typography, setTypography] = useState<Typography>({});
   const mask = `url(#${maskId})`;
-  // Both layers are the same rectangle — see @/lib/ultra-overlay.
+  const maskInset = `url(#${maskInsetId})`;
+  const maskBlur = `url(#${maskBlurId})`;
   const overlay = ultraOverlayGeometry();
+  const foundationIntensity = foundationHeadroomFor(intensity);
+
+  useLayoutEffect(() => {
+    const readable = readableRef.current as HTMLSpanElement;
+    const svg = overlayRef.current as SVGSVGElement;
+    const textNode = readable.firstChild as Text;
+
+    const measure = () => {
+      setLines(measuredLines(textNode, svg));
+      setTypography(typographyFor(readable));
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(readable);
+    window.addEventListener("resize", measure);
+    measure();
+    document.fonts?.ready?.then(measure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [text, typeClassName]);
 
   return (
-    <span className="ultra-word relative inline-block">
-      <span className={`${typeClassName} text-transparent`}>{word}</span>
+    <span className="ultra-word relative isolate inline-block overflow-clip">
+      <span ref={readableRef} className={`${typeClassName} relative z-0 text-[var(--foreground)]`}>{text}</span>
 
-      {/*
-        select-none keeps the mask's copy of the word out of the selection —
-        without it, copying the headline yields the word twice. The svg must
-        stay sized and visible: display:none drops the mask and a 0x0 box clips
-        it. Size comes from `overlay`, never from h-full w-full, which would pin
-        it to the word's box and cut off accents and round overshoot.
-      */}
-      <svg
-        aria-hidden
-        className="pointer-events-none select-none"
-        style={overlay}
-      >
+      <svg ref={overlayRef} aria-hidden className="pointer-events-none select-none ultra-mask-defs" style={overlay}>
         <defs>
+          <filter id={maskBlurId} x="-4%" y="-4%" width="108%" height="108%">
+            <feGaussianBlur stdDeviation="0.3" />
+          </filter>
           <mask id={maskId}>
-            <text
-              x="50%"
-              y="50%"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fill="#ffffff"
-              className={typeClassName}
-            >
-              {word}
-            </text>
+            {lines.map((line, index) => (
+              <text key={`${line.x}-${line.y}-${index}`} x={line.x} y={line.y} dominantBaseline="central" fill="#ffffff" style={typography}>
+                {line.text}
+              </text>
+            ))}
+          </mask>
+          {/* 0.5px inset: SVG paint-order is fill-then-stroke, so a 1px black stroke centred on the
+              glyph outline erases 0.5px inward, shrinking the ultra fill away from the antialiased edge */}
+          <mask id={maskInsetId}>
+            {lines.map((line, index) => (
+              <text key={`${line.x}-${line.y}-${index}`} x={line.x} y={line.y} dominantBaseline="central" fill="#ffffff" stroke="#000000" strokeWidth={1} filter={maskBlur} style={typography}>
+                {line.text}
+              </text>
+            ))}
           </mask>
         </defs>
       </svg>
 
-      {/*
-        The white floor: the same rectangle through the same mask, in plain SDR
-        white, under the canvas. The canvas comes up asynchronously and is
-        re-presented whenever the element moves, and the text below it is
-        transparent — without this the word blinks out. See globals.css.
-      */}
-      <span
-        aria-hidden
-        className="ultra-backdrop"
-        style={{ ...overlay, mask, WebkitMask: mask }}
-      />
-
-      <UltraFillCanvas
-        intensity={intensity}
-        className="pointer-events-none"
-        style={{ ...overlay, mask, WebkitMask: mask }}
-      />
+      <UltraFillCanvas intensity={foundationIntensity} className="pointer-events-none ultra-fill-foundation" style={{ ...overlay, mask, WebkitMask: mask }} />
+      <UltraFillCanvas intensity={intensity} className="pointer-events-none ultra-fill-inner" style={{ ...overlay, mask: maskInset, WebkitMask: maskInset }} />
     </span>
   );
 }

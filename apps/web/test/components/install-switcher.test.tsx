@@ -41,6 +41,6 @@ describe("InstallSwitcher", () => {
 
   it("renders a copy button", () => {
     render(<InstallSwitcher />);
-    expect(screen.getByLabelText("Copy command")).toBeInTheDocument();
+    expect(screen.getByLabelText("Copy")).toBeInTheDocument();
   });
 });

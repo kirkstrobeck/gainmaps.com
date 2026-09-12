@@ -108,3 +108,9 @@ declare module "upng-js" {
   const UPNG: UpngApi;
   export default UPNG;
 }
+
+interface Window {
+  gainmapsPostHog?: {
+    capture(event: string, properties?: Record<string, unknown>): void;
+  };
+}

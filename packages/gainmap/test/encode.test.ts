@@ -5,6 +5,7 @@ import {
   applyHighlightSelectiveHdr,
   applyWindowGainCalibration,
   clamp,
+  encodeKeepBaseGainMap,
   encodeRgbaToUltraHdrJpeg,
   flattenRgbaOntoCheckerboard,
   flattenRgbaOntoWhite,
@@ -79,5 +80,32 @@ describe("encode", () => {
     });
     assert.equal(windowed.output[0], 0xff);
     assert.match(windowed.note, /Gain map JPEG/);
+  });
+
+  it("alpha mask: alpha 0 gives zero gain, alpha 255 matches maskless, alpha 128 halves log gain", () => {
+    // Bright checker pixel that would get strong boost without mask
+    const sdr = Uint8ClampedArray.from([220, 220, 220, 255]);
+
+    // alpha 0 → all gain channels must be 0 (gain=1.0 exactly)
+    const maskZero = Uint8Array.from([220, 220, 220, 0]);
+    const res0 = encodeKeepBaseGainMap(sdr, 1, 1, 6, "highlight", maskZero);
+    assert.equal(res0.gainMap[0], 0, "alpha=0 R channel must be 0");
+    assert.equal(res0.gainMap[1], 0, "alpha=0 G channel must be 0");
+    assert.equal(res0.gainMap[2], 0, "alpha=0 B channel must be 0");
+    assert.equal(res0.gainMap[3], 255, "alpha channel always 255");
+
+    // alpha 255 → bit-identical to maskless
+    const maskFull = Uint8Array.from([220, 220, 220, 255]);
+    const resNoMask = encodeKeepBaseGainMap(sdr, 1, 1, 6, "highlight");
+    const res255 = encodeKeepBaseGainMap(sdr, 1, 1, 6, "highlight", maskFull);
+    assert.equal(res255.gainMap[0], resNoMask.gainMap[0], "alpha=255 must equal maskless R");
+    assert.equal(res255.gainMap[1], resNoMask.gainMap[1], "alpha=255 must equal maskless G");
+    assert.equal(res255.gainMap[2], resNoMask.gainMap[2], "alpha=255 must equal maskless B");
+
+    // alpha 128 → gain between 0 and maskless
+    const maskHalf = Uint8Array.from([220, 220, 220, 128]);
+    const res128 = encodeKeepBaseGainMap(sdr, 1, 1, 6, "highlight", maskHalf);
+    assert.ok(res128.gainMap[0]! > 0, "alpha=128 must have some gain");
+    assert.ok(res128.gainMap[0]! < resNoMask.gainMap[0]!, "alpha=128 gain must be less than full");
   });
 });

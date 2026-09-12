@@ -1,12 +1,15 @@
 /**
  * Layout check and screenshot script using Playwright API directly.
- * Run with: node tools/check-layout.mjs
+ * Run with: node tools/check-layout.mjs [baseUrl]
+ * Base URL resolution order: BASE_URL env var, first CLI arg, default http://localhost:3000
+ * Chromium executable resolution order: CHROMIUM_PATH env var, default /ms-playwright/chromium-1187/chrome-linux/chrome
  */
 import { chromium } from "/workspace/node_modules/.pnpm/playwright@1.62.1/node_modules/playwright/index.mjs";
 import { mkdirSync } from "fs";
 import sharp from "/workspace/node_modules/.pnpm/sharp@0.34.5/node_modules/sharp/lib/index.js";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.BASE_URL ?? process.argv[2] ?? "http://localhost:3000";
+const CHROMIUM_PATH = process.env.CHROMIUM_PATH ?? "/ms-playwright/chromium-1187/chrome-linux/chrome";
 const SHOTS_DIR = "/workspace/.sandbox-shots";
 const RATIO_16_9 = 16 / 9;
 const RATIO_1_1 = 1;
@@ -22,7 +25,7 @@ const PAGES = [
 mkdirSync(SHOTS_DIR, { recursive: true });
 
 const browser = await chromium.launch({
-  executablePath: "/tmp/pw-browsers/chromium-1234/chrome-linux/chrome",
+  executablePath: CHROMIUM_PATH,
 });
 
 let totalPassed = 0;
@@ -234,6 +237,23 @@ for (const { name, url } of PAGES) {
       const inst = instElements[idx];
       const box = await inst.boundingBox();
       if (!box || box.width < 10 || box.height < 10) continue;
+
+      // img[decoding=async] can report complete/naturalWidth>0 before the
+      // decoded bitmap is actually ready to paint, which intermittently
+      // produced a near-blank/blurry frame in the screenshot below. Force
+      // each image's decode to finish before capturing so the check reflects
+      // the settled pixels, not a mid-decode frame.
+      const instImgsForShot = await inst.locator("img").all();
+      await Promise.all(instImgsForShot.map((im) =>
+        im.evaluate((el) => (el.decode ? el.decode().catch(() => {}) : Promise.resolve()))
+      ));
+      // decode() resolving only guarantees the bitmap is ready, not that a
+      // compositor frame has painted it yet — wait two animation frames
+      // (the standard "paint has happened" idiom) so the screenshot below
+      // captures settled pixels rather than a mid-composite frame.
+      await page.evaluate(() => new Promise((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(resolve));
+      }));
 
       const shotBuffer = await inst.screenshot();
 

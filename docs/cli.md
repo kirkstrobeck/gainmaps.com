@@ -20,7 +20,7 @@ brew install --HEAD --formula ./Formula/gainmap.rb
 
 > **Note:** `brew install gainmap` (without the tap prefix) requires a homebrew-core submission, which is planned for a future release.
 
-Homebrew depends on Node. The formula does not need libvips, ImageMagick, or Python.
+Homebrew installs Node for you. The formula does not need libvips, ImageMagick, or Python.
 
 ### Without Homebrew
 
@@ -44,6 +44,14 @@ gainmap --help
 
 `npx` from that directory after build: `node dist/cli.js photo.jpg`.
 
+### npm (curl)
+
+```sh
+curl -fsSL https://gainmaps.com/install.sh | sh
+```
+
+Installs to `$HOME/.local/bin/gainmap` by default. Override with `GAINMAP_INSTALL_DIR`. The curl installer bundles Node 24 into `$HOME/.gainmap/runtime`; no Node install is needed. Homebrew installs Node for you. `npm install -g` is enough.
+
 ### Docker
 
 Debian (glibc), not Alpine. The Dockerfile is multi-stage: it compiles inside the image. Sharp ships a prebuilt libvips — no extra apt packages.
@@ -54,11 +62,30 @@ docker run --rm -v "$PWD:/work" gainmap photo.jpg
 docker run --rm -v "$PWD:/work" gainmap -R ./shots -o ./out
 ```
 
+### e2e install tests (Dockerfile.e2e)
+
+Tests all three install paths (npm, curl, brew-equivalent) in Docker stages:
+
+```sh
+# from repo root
+docker build -f packages/gainmap/Dockerfile.e2e .
+```
+
+The final `test-all` stage (from scratch) copies sentinel files from each install stage — it fails if any stage fails. Individual stages:
+
+| Stage | Method |
+| --- | --- |
+| `test-npm` | `npm install -g gainmap-*.tgz` |
+| `test-curl` | `sh install.sh` with local tarball + guards (no-node, unwritable-dir) |
+| `test-brew` | HEAD-style wrapper + `ruby -c Formula/gainmap.rb` |
+
+Each stage runs `e2e/run.sh` which covers --help, --version, all 16 scenarios, and `sha256sum -c checksums.sha256`.
+
 ## Requirements
 
 **Runtime**
 
-- Node.js 24+ (the Homebrew formula depends on `node`; the Docker image includes it). `hdrify` declares `>=24`.
+- Node.js 24+ for npm and source installs (`hdrify` declares `>=24`). Homebrew installs Node for you. The curl installer bundles Node 24 into `$HOME/.gainmap/runtime`. The Docker image includes Node.
 - Sharp's platform binary, downloaded at `npm install` (needs network at **install** time, not when converting)
 - `heic-decode` is bundled (HEIC does **not** need system libheif)
 
@@ -72,7 +99,7 @@ docker run --rm -v "$PWD:/work" gainmap -R ./shots -o ./out
 - Alpine/musl is unsupported by the Dockerfile. Use `node:24-bookworm-slim` (or another glibc image).
 - Animated GIF: first frame only.
 - Very large images are memory-bound (the whole raster is decoded).
-- SVG rasterization is Sharp/librsvg's subset of SVG.
+- SVG rasterization is Sharp/librsvg's subset of SVG. HEIC is input only. Unknown flags exit 2 as unsupported option.
 
 ## Usage
 
@@ -83,15 +110,17 @@ gainmap convert [options] <input...>
 
 Input is a file, a directory, or `-` for stdin. Directories convert matching images in that folder. Use `-R`/`--recursive` for nested trees. Without `-R`, a directory is **flat-only**.
 
-Default output: `photo.jpg` → `photo-gainmap.jpg` next to the input. Existing files are skipped unless `-f`/`--force`.
+Default output: `photo.jpg` → `photo-gain.jpg` next to the input. Non-JPEG inputs (PNG, HEIC, WebP, …) become `*-gain.jpg`. Existing files are skipped unless `-f`/`--force`. Originals are left alone unless `--in-place`.
 
 ### Output
 
 | Flag | Meaning |
 | --- | --- |
-| `-o, --output <path>` | File, directory, or `-` for stdout |
-| `--suffix <str>` | Default `-gainmap` |
-| `-f, --force` | Overwrite existing outputs |
+| `-o, --out, --output <path>` | File (single input), directory (required for recursive/multi-file; recursive `-o` mirrors source dirs), or `-` for stdout |
+| `--out-type <type>` | Output format when `--out` is a directory: `jpg` `jpeg` `png` `webp` `avif` `tif` `tiff` `gif` (leading dot and case ignored). File `--out` uses the extension; `--out-type` must agree if both are set. `jpg`/`jpeg` write Ultra HDR gain maps; other types encode via sharp. PNG/WebP keep alpha. |
+| `--suffix <str>` | Default `-gain` |
+| `-i, --in-place` | Overwrite the original JPEG (implies force) |
+| `-f, --force` | Overwrite existing outputs (e.g. `photo-gain.jpg`) |
 | `--no-clobber` | Skip existing (default) |
 | `-n, --dry-run` | Print planned paths, write nothing |
 | `--stdout` | Write one conversion to stdout (logs on stderr) |
@@ -101,7 +130,7 @@ Default output: `photo.jpg` → `photo-gainmap.jpg` next to the input. Existing 
 
 | Flag | Meaning |
 | --- | --- |
-| `-q, --quality <1-100>` | JPEG quality of the SDR base (default 92). Not quiet. |
+| `-q, --quality <1-100>` | Encode quality for JPEG, WebP, and AVIF (default 92). Not quiet. |
 | `--boost <0-1>` | HDR boost (default 0.5) |
 | `--headroom <n>` | Explicit headroom; overrides `--boost` |
 | `--model <name>` | `highlight` (default) or `window` |
@@ -125,7 +154,7 @@ Default output: `photo.jpg` → `photo-gainmap.jpg` next to the input. Existing 
 | `--quiet` | Errors only |
 | `--continue` | Keep going after a failed file (exit 1 if any failed) |
 | `-h, --help` | Help |
-| `-V, --version` | Print `gainmap 1.0.0` |
+| `-V, --version` | Print `gainmap 1.1.0` |
 | `--update`, `--self-update` | Upgrade this CLI (or `gainmap update`) |
 | `--auto-update` | If a newer release exists, upgrade then ask you to re-run |
 | `--no-update-check` | Skip the update check |
@@ -136,10 +165,15 @@ Default output: `photo.jpg` → `photo-gainmap.jpg` next to the input. Existing 
 ```sh
 gainmap photo.jpg
 gainmap photo.jpg -o hdr.jpg
+gainmap photo.png
+gainmap photo.png --out dest.webp
+gainmap photo.png --out ./out --out-type webp
+gainmap -R ./shots --out ./out --out-type png
+gainmap -i photo.jpg
 gainmap ./shots
 gainmap -R ./shots -o ./out
+gainmap -R -i ./shots
 gainmap -R --exclude '**/raw/**' ./shots
-cat photo.png | gainmap --stdin --stdout > photo-gainmap.jpg
 gainmap --boost 1 --matte checkerboard logo.jpg
 gainmap -n -R ./shots
 ```
@@ -154,7 +188,7 @@ gainmap -n -R ./shots
 
 ## Website converter
 
-The CLI uses the same keep-base Ultra HDR path as the in-browser converter: default boost 0.5, highlight model, white matte, JPEG quality 92, filename `*-gainmap.jpg`.
+The CLI uses the same keep-base Ultra HDR path as the in-browser converter: default boost 0.5, highlight model, white matte, JPEG quality 92. The browser converter names files `*-gainmap.jpg`; the CLI default is `*-gain.jpg`.
 
 ## Version and updates
 
@@ -172,7 +206,7 @@ gainmap checks for updates on each run (help, version, and convert) and prints a
 gainmap update         # or: gainmap --update / gainmap --self-update
 ```
 
-Detects your install method (Homebrew, npm, Docker) and upgrades accordingly.
+Detects your install method (Homebrew, npm, curl, Docker) and upgrades accordingly.
 
 **Disable update checks:**
 
@@ -194,10 +228,10 @@ gainmap --auto-update photo.jpg
 
 ## Contributing
 
-Contributions are welcome. Repository: https://github.com/kirkstrobeck/gainmaps.com
+Contributions are welcome. Repository: https://github.com/kirkstrobeck/gainmaps
 
 ```sh
-git clone https://github.com/kirkstrobeck/gainmaps.com.git
+git clone https://github.com/kirkstrobeck/gainmaps.git
 cd gainmaps.com && pnpm install
 pnpm --filter gainmap test
 ```

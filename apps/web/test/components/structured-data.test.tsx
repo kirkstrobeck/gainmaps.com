@@ -33,4 +33,13 @@ describe("StructuredData", () => {
     expect(app).toBeDefined();
     expect(app.name).toBe("gainmap");
   });
+
+  it("Organization has contactPoint with email", () => {
+    const { container } = render(<StructuredData />);
+    const script = container.querySelector('script[type="application/ld+json"]');
+    const json = JSON.parse(script!.textContent ?? "{}");
+    const org = json["@graph"].find((n: { "@type": string }) => n["@type"] === "Organization");
+    expect(org.contactPoint).toBeDefined();
+    expect(org.contactPoint.email).toBe("kirk@strobeck.com");
+  });
 });

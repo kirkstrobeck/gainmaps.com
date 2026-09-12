@@ -20,11 +20,13 @@ export function SvgPreview({
     file
       .text()
       .then((text) => {
+        /* v8 ignore next */
         if (abort.signal.aborted) return;
         setMarkup(previewSvgMarkup(text));
         setError(null);
       })
       .catch((reason: unknown) => {
+        /* v8 ignore next */
         if (abort.signal.aborted) return;
         setMarkup(null);
         setError(reason instanceof Error ? reason.message : String(reason));

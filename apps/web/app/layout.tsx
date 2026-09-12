@@ -1,3 +1,7 @@
+// Force all pages dynamic — SSG worker in Next.js 15.5.22 resolves the React
+// module to null, crashing useSyncExternalStore in SiteAppearanceProvider.
+export const dynamic = "force-dynamic";
+
 import type { Metadata } from "next";
 import { Archivo, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 
@@ -6,6 +10,9 @@ import { SiteAppearanceProvider } from "@/components/site-appearance-provider";
 import { DEFAULT_SITE_MODE, DEFAULT_SITE_ULTRA } from "@/lib/site-appearance";
 import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 import { StructuredData } from "@/components/structured-data";
+import { DisplayCheckModal } from "@/components/display-check-modal";
+import { SiteFooter } from "@/components/site-footer";
+import { PHOTOS, photoGainmapSrc } from "@/lib/photos/catalog";
 
 const archivo = Archivo({
   variable: "--font-archivo",
@@ -30,6 +37,14 @@ export const metadata: Metadata = {
   icons: {
     // Minimal inline favicon to avoid the browser's automatic /favicon.ico 404 request.
     icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%23c4723a'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-size='11' font-family='system-ui' fill='white'>G</text></svg>",
+  },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Gainmaps",
+    images: [{ url: photoGainmapSrc(PHOTOS[0]!), width: 1280, height: 640 }],
   },
 };
 
@@ -59,39 +74,18 @@ export default function Base({ children }: Readonly<{ children: React.ReactNode 
       suppressHydrationWarning
     >
       <head>
+        <link rel="service-desc" type="application/openapi+json" href="/openapi.json" />
+        <link rel="alternate" type="application/json" title="OpenAPI" href="/openapi.json" />
+        <link rel="alternate" type="text/plain" title="LLMs and agent instructions" href="/llms.txt" />
         <script dangerouslySetInnerHTML={{ __html: ultraBootScript }} />
       </head>
       <body className={`${archivo.variable} ${bricolageGrotesque.variable} ${jetbrainsMono.variable}`}>
         <SiteAppearanceProvider initial={{ mode, ultra }}>
           {children}
         </SiteAppearanceProvider>
-        <footer className="border-t border-[var(--border)] py-5 text-center">
-          <nav className="mb-3 flex flex-wrap justify-center gap-x-5 gap-y-2" aria-label="Footer">
-            {[
-              { href: "/convert", label: "Convert" },
-              { href: "/photos", label: "Gallery" },
-              { href: "/docs", label: "Docs" },
-              { href: "/logos", label: "Logos" },
-              { href: "/text", label: "Text" },
-              { href: "/appearance", label: "Appearance" },
-            ].map(({ href, label }) => (
-              <a
-                key={href}
-                href={href}
-                className="text-xs text-[var(--muted)] transition hover:text-[var(--accent)]"
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-          <a
-            href="https://www.linkedin.com/in/kirkstrobeck"
-            className="text-xs text-[var(--muted)] transition hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
-          >
-            Made by Kirk Strobeck
-          </a>
-        </footer>
+        <SiteFooter />
         <StructuredData />
+        <DisplayCheckModal />
       </body>
     </html>
   );

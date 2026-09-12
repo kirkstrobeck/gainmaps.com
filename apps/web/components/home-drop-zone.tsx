@@ -6,6 +6,7 @@ import { useCallback, useRef, useState } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";
 import { enqueueFiles } from "@/lib/file-queue";
+import { ANALYTICS_EVENTS, summarizeFiles, track } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 export const ACCEPTED_TYPES = [
@@ -36,9 +37,22 @@ export function HomeDropZone({ label }: HomeDropZoneProps = {}) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFiles = useCallback(
-    (files: FileList | File[]) => {
-      const valid = filterFiles(files);
-      if (!valid.length) return;
+    (files: FileList | File[], source = "home_drop_zone") => {
+      const allFiles = Array.from(files);
+      const valid = filterFiles(allFiles);
+      if (!valid.length) {
+        track(ANALYTICS_EVENTS.converterFilesRejected, {
+          ...summarizeFiles(allFiles),
+          source,
+        });
+        return;
+      }
+      track(ANALYTICS_EVENTS.converterHomeFilesSelected, {
+        ...summarizeFiles(valid),
+        rejected_count: allFiles.length - valid.length,
+        source,
+        destination: "/convert",
+      });
       enqueueFiles(valid);
       router.push("/convert");
     },
@@ -49,7 +63,7 @@ export function HomeDropZone({ label }: HomeDropZoneProps = {}) {
     (event: React.DragEvent) => {
       event.preventDefault();
       setDragActive(false);
-      handleFiles(event.dataTransfer.files);
+      handleFiles(event.dataTransfer.files, "home_drop_zone_drop");
     },
     [handleFiles],
   );
@@ -96,7 +110,7 @@ export function HomeDropZone({ label }: HomeDropZoneProps = {}) {
           accept=".png,.jpg,.jpeg,.webp,.avif,.gif,.heic,.heif,.svg,image/*"
           multiple
           onChange={(event) =>
-            event.currentTarget.files && handleFiles(event.currentTarget.files)
+            event.currentTarget.files && handleFiles(event.currentTarget.files, "home_drop_zone_picker")
           }
         />
       </label>

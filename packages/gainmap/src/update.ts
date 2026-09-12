@@ -7,10 +7,10 @@ import { spawn } from "node:child_process";
 import { isNewer, readPackageVersion } from "#src/version.js";
 
 export const NPM_LATEST_URL = "https://registry.npmjs.org/gainmap/latest";
-export const REPO_URL = "https://github.com/kirkstrobeck/gainmaps.com";
+export const REPO_URL = "https://github.com/kirkstrobeck/gainmaps";
 export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
-export type InstallMethod = "docker" | "brew" | "npm" | "dev";
+export type InstallMethod = "docker" | "brew" | "npm" | "curl" | "dev";
 
 export type UpdateCheckDeps = {
   readonly fetch?: typeof globalThis.fetch;
@@ -47,6 +47,9 @@ export function detectInstall(
   if (execPath.includes("/Cellar/gainmap") || execPath.includes("/linuxbrew/")) return "brew";
   const prefix = env.HOMEBREW_PREFIX;
   if (prefix && execPath.startsWith(prefix) && execPath.includes("gainmap")) return "brew";
+  if (execPath.includes(".gainmap")) return "curl";
+  const libexec = env.GAINMAP_LIBEXEC;
+  if (libexec && execPath.includes(libexec)) return "curl";
   if (execPath.includes("node_modules/gainmap") || execPath.includes("node_modules/.bin/gainmap")) return "npm";
   return "dev";
 }
@@ -163,6 +166,7 @@ export async function selfUpdate(deps: {
   const runCommand = deps.runCommand ?? runProcess;
   try {
     if (method === "brew") return await runCommand("brew", ["upgrade", "gainmap"]);
+    if (method === "curl") return await runCommand("sh", ["-c", "curl -fsSL https://gainmaps.com/install.sh | sh"]);
     return await runCommand("npm", ["install", "-g", "gainmap@latest"]);
   } catch (error) {
     if (error instanceof Error) {

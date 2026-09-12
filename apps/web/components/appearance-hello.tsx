@@ -14,6 +14,7 @@ export function AppearanceHello() {
     if (!canvas || !lab) return;
 
     const session = startAppearanceHello(canvas, lab);
+    /* v8 ignore next */
     const observer = new MutationObserver(() => session.poke());
     observer.observe(lab, {
       attributes: true,

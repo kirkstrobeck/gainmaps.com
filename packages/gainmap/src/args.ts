@@ -7,7 +7,9 @@ export type ParsedArgs = {
 
 const ALIASES: Record<string, string> = {
   o: "output",
+  out: "output",
   f: "force",
+  i: "in-place",
   n: "dry-run",
   q: "quality",
   R: "recursive",
@@ -22,6 +24,7 @@ const BOOLEAN_FLAGS = new Set([
   "help",
   "version",
   "force",
+  "in-place",
   "no-clobber",
   "dry-run",
   "stdout",
@@ -37,6 +40,20 @@ const BOOLEAN_FLAGS = new Set([
   "offline",
 ]);
 
+const VALUED_FLAGS = new Set([
+  "output",
+  "out-type",
+  "suffix",
+  "quality",
+  "boost",
+  "headroom",
+  "model",
+  "matte",
+  "max-size",
+  "ext",
+  "exclude",
+  "jobs",
+]);
 const REPEATABLE_FLAGS = new Set(["exclude"]);
 
 export function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -58,7 +75,12 @@ function parseAt(
   const raw = token.replace(/^-+/, "");
   const eq = raw.indexOf("=");
   const name = eq === -1 ? raw : raw.slice(0, eq);
-  const key = ALIASES[name] ?? name;
+  const key = ALIASES[name] ?? name
+  if (!BOOLEAN_FLAGS.has(key)) {
+    if (!VALUED_FLAGS.has(key)) {
+      throw new Error("unsupported option: " + (token.startsWith("--") ? "--" : "-") + name)
+    }
+  };
   if (eq !== -1) {
     return parseAt(argv, index + 1, positionals, withFlag(flags, key, raw.slice(eq + 1)));
   }

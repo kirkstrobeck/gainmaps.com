@@ -12,4 +12,9 @@ describe("robots", () => {
     const result = robots();
     expect(result.sitemap).toBe("https://www.gainmaps.com/sitemap.xml");
   });
+
+  it("declares the canonical host", () => {
+    const result = robots();
+    expect(result.host).toBe("https://www.gainmaps.com");
+  });
 });

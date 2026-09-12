@@ -1,16 +1,18 @@
 /* Ultra mode by Kirk Strobeck */
+export const dynamic = "force-dynamic";
 import { ThumbUpIcon } from "@/components/icons";
-import { UltraDisplayCheck } from "@/components/ultra-display-check";
 import { HomeDropZone } from "@/components/home-drop-zone";
 import { SiteNav } from "@/components/site-nav";
 import { UltraIcon } from "@/components/ultra-icon";
-import { BRAND_NAMES } from "@/lib/brand-names";
-import { COMPANIES } from "@/lib/logos/companies";
 import { PHOTOS } from "@/lib/photos/catalog";
+import { PRODUCT_HUNT_URL } from "@/lib/product-hunt";
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
 import { InstallSwitcher } from "@/components/install-switcher";
 import { UltraSkillCard } from "@/components/ultra-skill-card";
+import { COMPANIES } from "@/lib/logos/companies";
+import { headers, cookies } from "next/headers";
+import { shuffle } from "@/lib/shuffle";
 
 type Search = { [key: string]: string | string[] | undefined };
 
@@ -20,10 +22,19 @@ export default async function Base({
   searchParams: Promise<Search>;
 }) {
   await searchParams;
-  // Daily rotation: same photo for every request on a given UTC day, changes each day.
-  const comparePhoto = PHOTOS[Math.floor(Date.now() / 86400000) % PHOTOS.length] ?? PHOTOS[0];
-  // Exclude the hero from the peek strip so the same image never appears twice.
-  const PHOTO_PEEK = PHOTOS.filter((p) => p !== comparePhoto).slice(0, 3);
+  const reqHeaders = await headers();
+  const heroSlug = reqHeaders.get("x-hero-photo-slug");
+  const cookieStore = await cookies();
+  const lastPhotoSlug = heroSlug ?? cookieStore.get("last-photo")?.value;
+  const pool = lastPhotoSlug ? PHOTOS.filter((p) => p.slug !== lastPhotoSlug) : PHOTOS;
+  const foundBySlug = heroSlug ? PHOTOS.find((p) => p.slug === heroSlug) : null;
+  const poolPhoto = pool[Math.floor(Math.random() * pool.length)];
+  /* v8 ignore next */
+  const comparePhoto = foundBySlug ?? poolPhoto ?? PHOTOS[0]!;
+  const available = PHOTOS.filter((p) => p !== comparePhoto);
+  const shuffledAvailable = shuffle(available);
+  const PHOTO_PEEK = shuffledAvailable.slice(0, 3);
+  const HERO_ROTATION = [comparePhoto, ...shuffledAvailable.slice(0, 8)];
 
   return (
     <main>
@@ -33,42 +44,35 @@ export default async function Base({
       </a>
       <SiteNav />
 
-      {/* ── Above the fold: Convert Images ── */}
-      <section id="main-content" className="border-b border-[var(--border)]">
-        <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-          <h2 className="font-display text-3xl font-bold">Convert Images</h2>
-          <div className="mt-6 max-w-md">
+      {/* ── Above the fold: Hero with photo ── */}
+      <HeroSection comparePhoto={comparePhoto} rotationPhotos={HERO_ROTATION} id="main-content" />
+
+      {/* ── Convert your image ── */}
+      <section className="border-b border-[var(--border)]">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <h2 className="font-display text-3xl font-bold">Convert your image</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+            Drop any photo or logo. We add a gain map layer and return it to you instantly — same file format, no upload, no account, no registration. Completely private, runs in your browser.
+          </p>
+          <div className="mt-6 w-full">
             <HomeDropZone label="INSTANT IN BROWSER" />
           </div>
-          <div className="mt-10">
-            <h3 className="font-display text-xl font-semibold">From the terminal</h3>
-            <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
-              Batch-encode gain map images without a browser.
-            </p>
-            <div className="mt-4">
-              <InstallSwitcher />
-            </div>
-          </div>
-
-          <UltraSkillCard />
+          <p className="mt-4 text-sm text-[var(--muted)]">
+            Make your logo or photos look spectacular on HDR displays. <span className="text-[var(--foreground)] font-medium">Be the hero at your company.</span>
+          </p>
         </div>
       </section>
 
-      {/* ── Photo instrument and type instrument ── */}
-      <HeroSection comparePhoto={comparePhoto} />
-
-      {/* Display check below the fold — not between nav and wordmark */}
-      <UltraDisplayCheck />
-
       <div>
         <div className="mx-auto max-w-7xl space-y-20 px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+          {/* ── Logo + Photo proof ── */}
           <ImageProofSection
             logos={COMPANIES.slice(0, 3)}
             photos={PHOTO_PEEK}
           />
 
           {/* ── HDR primer ── */}
-          <section className="reveal border-t border-[var(--border)] pt-12">
+          <section className="border-t border-[var(--border)] pt-12">
             <h2 className="font-display text-2xl font-bold">
               What is a gain map image?
             </h2>
@@ -85,6 +89,11 @@ export default async function Base({
                 </p>
                 <p className="text-xs leading-6">
                   Blacks do not necessarily get blacker. EDR lifts highlights, not the shadow floor.
+                </p>
+                <p>
+                  <a href="/docs" className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75">
+                    Learn more in /docs →
+                  </a>
                 </p>
               </div>
 
@@ -103,64 +112,44 @@ export default async function Base({
             </div>
           </section>
 
-          {/* ── For developers ── */}
-          <section className="reveal border-t border-[var(--border)] pt-12">
-            <h2 className="font-display text-2xl font-bold">For developers</h2>
+          {/* ── Developers ── */}
+          <section className="border-t border-[var(--border)] pt-12">
+            <h2 className="font-display text-2xl font-bold">
+              For developers
+            </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
               Build gain map encoding into your pipeline or CI. MIT licensed, 100% test coverage, available via Docker, npm, Homebrew, and curl.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {["DOCKER", "NPM", "HOMEBREW", "CURL", "CLI", "MIT LICENSED", "100% TEST COVERAGE"].map((badge) => (
-                <span
-                  key={badge}
-                  className="rounded border border-[var(--border)] px-2.5 py-0.5 font-mono text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--muted)]"
-                >
-                  {badge}
-                </span>
+            <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--muted)]">
+              {["Docker", "npm", "Homebrew", "curl", "CLI", "MIT licensed", "100% test coverage"].map((kw) => (
+                <span key={kw} className="rounded border border-[var(--border)] px-2 py-0.5">{kw}</span>
               ))}
             </div>
-          </section>
 
-          {/* ── Naming fracture ── */}
-          <section className="reveal border-t border-[var(--border)] pt-12">
-            <h2 className="font-display text-2xl font-bold">
-              Every platform named it differently
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-              Vendors, platforms, and standards each coined their own acronym.
-            </p>
-            <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[540px] border-collapse text-left text-xs">
-                <thead>
-                  <tr className="border-b border-[var(--border)]">
-                    <th className="pb-2 pr-4 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Name</th>
-                    <th className="pb-2 pr-4 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Full form</th>
-                    <th className="pb-2 pr-4 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">Platform</th>
-                    <th className="pb-2 font-medium uppercase tracking-[0.08em] text-[var(--muted)]">What it means</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {BRAND_NAMES.map((row) => (
-                    <tr key={row.name} className="border-b border-[var(--border)] last:border-b-0">
-                      <td className="py-2.5 pr-4 font-semibold text-[var(--foreground)]">{row.name}</td>
-                      <td className="py-2.5 pr-4 text-[var(--muted)]">{row.fullName}</td>
-                      <td className="py-2.5 pr-4 text-[var(--muted)]">{row.platform}</td>
-                      <td className="py-2.5 text-[var(--muted)]">{row.meaning}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-xl font-semibold">From the terminal</h3>
+                <a href="/developers#cli" className="text-sm text-[var(--accent)] hover:opacity-75 transition">Learn more →</a>
+              </div>
+              <p className="mt-1 text-sm leading-6 text-[var(--muted)]">
+                Batch-encode gain map images without a browser.
+              </p>
+              <div className="mt-4">
+                <InstallSwitcher surface="home" />
+              </div>
             </div>
-            <p className="mt-4 text-sm">
-              <a href="/docs#names" className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75">
-                Full glossary in the docs
-              </a>
-            </p>
+
+            <div className="mt-8">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-xl font-semibold">Add Ultra text to your project</h3>
+                <a href="/developers#agent-skill" className="text-sm text-[var(--accent)] hover:opacity-75 transition">Learn more →</a>
+              </div>
+              <UltraSkillCard hideHeading />
+            </div>
           </section>
 
-          {/* ── Product Hunt — non-linking until URL exists ── */}
-          {/* TODO: add href="https://www.producthunt.com/posts/PRODUCT_HUNT_SLUG" once launched */}
-          <section className="reveal border-t border-[var(--border)] pt-12">
+          {/* ── Product Hunt ── */}
+          <section className="border-t border-[var(--border)] pt-12">
             <div className="flex items-start gap-4">
               <UltraIcon size={28}>
                 <ThumbUpIcon />
@@ -172,12 +161,15 @@ export default async function Base({
                 <p className="text-sm text-[var(--muted)]">
                   Upvotes help designers and photographers find it.
                 </p>
-                <span
-                  className="mt-1 inline-flex w-fit items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] px-4 py-2 text-sm font-medium text-[var(--muted)] cursor-default select-none"
-                  aria-label="Product Hunt link coming soon"
+                <a
+                  href={PRODUCT_HUNT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1 inline-flex w-fit items-center gap-2 rounded-[var(--radius)] border border-[#da552f]/60 bg-[color-mix(in_srgb,#da552f_14%,var(--panel))] px-4 py-2 text-sm font-semibold text-[#ff8a3d] transition hover:border-[#da552f] hover:bg-[color-mix(in_srgb,#da552f_20%,var(--panel))] hover:text-[#ff9f5a]"
+                  aria-label="Upvote on Product Hunt"
                 >
                   View on Product Hunt →
-                </span>
+                </a>
               </div>
             </div>
           </section>

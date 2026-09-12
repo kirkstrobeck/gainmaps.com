@@ -1,6 +1,13 @@
+// Server-render on request — static prerender fails in this container due to
+// a React module null issue in the server bundle during SSG.
+export const dynamic = "force-dynamic";
+
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowBackIcon as ArrowLeftFilled, ArrowForwardIcon as ArrowRightFilled } from "@/components/icons";
+import { UltraWord } from "@/components/ultra-word";
+import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
 import { PageChrome } from "@/components/page-chrome";
 import { PhotoCredit, PhotoPair } from "@/components/photo-pair";
@@ -33,7 +40,7 @@ export default async function Base({ params }: Params) {
     <main>
       <PageChrome />
       <div className="mx-auto max-w-5xl px-4 pb-24 pt-10 sm:px-6 lg:px-8">
-        <a
+        <Link
           className="inline-flex items-center gap-2 rounded-[var(--radius)] px-2 py-1 text-sm text-[var(--muted)] transition hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] -ml-2"
           href="/photos"
         >
@@ -41,12 +48,12 @@ export default async function Base({ params }: Params) {
             <ArrowLeftFilled />
           </UltraIcon>
           All photos
-        </a>
+        </Link>
 
         <header className="mt-6 border-b border-[var(--border)] pb-8">
           <p className="mb-3 text-sm text-[var(--muted)]">{photo.photographer}</p>
           <h1 className="font-display text-4xl font-bold leading-[1.08] tracking-normal sm:text-5xl">
-            {photo.alt}
+            <UltraWord text={photo.alt} typeClassName="font-display text-4xl font-bold leading-[1.08] tracking-normal sm:text-5xl" intensity={TEXT_ULTRA_INTENSITY} />
           </h1>
         </header>
 
@@ -57,10 +64,10 @@ export default async function Base({ params }: Params) {
             <PhotoCredit photo={photo} />
           </div>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            Left: Unsplash original via next/image, which may serve a sized WebP/AVIF
-            derivative. Right: the same photograph re-encoded locally as a gain map image,
-            served with <code className="text-[var(--foreground)]">unoptimized</code> so the gain
-            map layer survives intact.
+            Left: the SDR base extracted from the gain map JPEG via{" "}
+            <code className="text-[var(--foreground)]">gainmap extract-sdr</code>
+            . Right: the same photograph as an Ultra HDR gain map image. Both sides
+            are local long-edge-capped JPEGs so resolution and codec match.
           </p>
         </section>
 

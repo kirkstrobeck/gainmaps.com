@@ -6,10 +6,10 @@ const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 
 type SeamCornerButtonsProps = {
   seamSide: "sdr" | "ultra" | null;
-  animateTo: (pct: number) => void;
+  snapTo: (pct: number) => void;
 };
 
-export function SeamCornerButtons({ seamSide, animateTo }: SeamCornerButtonsProps) {
+export function SeamCornerButtons({ seamSide, snapTo }: SeamCornerButtonsProps) {
   return (
     <>
       <div
@@ -21,7 +21,7 @@ export function SeamCornerButtons({ seamSide, animateTo }: SeamCornerButtonsProp
           className={cn("inst-switch-btn", FOCUS)}
           aria-pressed={seamSide === "sdr"}
           aria-label="Show Standard"
-          onClick={() => animateTo(100)}
+          onClick={() => snapTo(100)}
         >
           SDR
         </button>
@@ -35,7 +35,7 @@ export function SeamCornerButtons({ seamSide, animateTo }: SeamCornerButtonsProp
           className={cn("inst-switch-btn", FOCUS)}
           aria-pressed={seamSide === "ultra"}
           aria-label="Show Ultra"
-          onClick={() => animateTo(0)}
+          onClick={() => snapTo(0)}
         >
           <span className="inst-dot" aria-hidden />
           Ultra

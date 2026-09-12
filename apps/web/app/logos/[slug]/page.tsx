@@ -1,6 +1,13 @@
+// Server-render on request — static prerender fails in this container due to
+// a React module null issue in the server bundle during SSG.
+export const dynamic = "force-dynamic";
+
+import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowBackIcon as ArrowLeftFilled, ArrowForwardIcon as ArrowRightFilled } from "@/components/icons";
+import { UltraWord } from "@/components/ultra-word";
+import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
 import { LogoPair } from "@/components/logo-pair";
 import { PageChrome } from "@/components/page-chrome";
@@ -35,7 +42,7 @@ export default async function Base({ params }: Params) {
     <main>
       <PageChrome />
       <div className="mx-auto max-w-4xl px-4 pb-24 pt-10 sm:px-6 lg:px-8">
-        <a
+        <Link
           className="inline-flex items-center gap-2 rounded-[var(--radius)] px-2 py-1 text-sm text-[var(--muted)] transition hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)] -ml-2"
           href="/logos"
         >
@@ -43,12 +50,12 @@ export default async function Base({ params }: Params) {
             <ArrowLeftFilled />
           </UltraIcon>
           All logos
-        </a>
+        </Link>
 
         <header className="mt-6 border-b border-[var(--border)] pb-8">
           <p className="mb-3 font-mono text-sm text-[var(--muted)]">{ranking(company.rank)}</p>
           <h1 className="font-display text-5xl font-bold leading-[1.03] tracking-normal sm:text-6xl">
-            {company.name}
+            <UltraWord text={company.name} typeClassName="font-display text-5xl font-bold leading-[1.03] tracking-normal sm:text-6xl" intensity={TEXT_ULTRA_INTENSITY} />
           </h1>
         </header>
 
@@ -110,7 +117,7 @@ function NeighbourLink({
 
   const isPrev = direction === "prev";
   return (
-    <a
+    <Link
       href={`/logos/${company.slug}`}
       className="inline-flex max-w-[48%] items-center gap-2 rounded-[var(--radius)] px-2 py-1 text-[var(--muted)] transition hover:text-[var(--accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
     >
@@ -125,7 +132,7 @@ function NeighbourLink({
           <ArrowRightFilled />
         </UltraIcon>
       )}
-    </a>
+    </Link>
   );
 }
 

@@ -65,11 +65,11 @@ export interface HelloGpuPipeline {
 }
 
 export function createHelloPipeline(device: GPUDevice): HelloGpuPipeline {
-  const module = device.createShaderModule({ code: SHADER_CODE });
+  const shaderModule = device.createShaderModule({ code: SHADER_CODE });
   const pipeline = device.createRenderPipeline({
     layout: "auto",
-    vertex: { module, entryPoint: "vs" },
-    fragment: { module, entryPoint: "fs", targets: [{ format: "rgba16float" }] },
+    vertex: { module: shaderModule, entryPoint: "vs" },
+    fragment: { module: shaderModule, entryPoint: "fs", targets: [{ format: "rgba16float" }] },
   });
   const uniformBuffer = device.createBuffer({
     size: UNIFORM_FLOATS * 4,

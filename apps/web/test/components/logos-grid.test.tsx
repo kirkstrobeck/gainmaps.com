@@ -57,4 +57,14 @@ describe("LogosGrid", () => {
     render(<LogosGrid companies={companies} />);
     expect(screen.getByRole("button", { name: /6 remaining/i })).toBeInTheDocument();
   });
+
+  it("each card links company name to detail page (no outer anchor)", () => {
+    const companies = makeCompanies(3);
+    render(<LogosGrid companies={companies} />);
+    const link = screen.getByRole("link", { name: "Company 0" });
+    expect(link).toHaveAttribute("href", "/logos/company-0");
+    // The li itself should not be a link
+    const listItems = document.querySelectorAll("li");
+    expect(listItems[0]?.tagName).toBe("LI");
+  });
 });

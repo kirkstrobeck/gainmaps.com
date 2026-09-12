@@ -1,22 +1,23 @@
 {
   "name": "gainmap",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Convert images to Ultra HDR JPEG gain maps",
   "license": "MIT",
   "author": "Kirk Strobeck <kirk@strobeck.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kirkstrobeck/gainmaps.com.git",
+    "url": "https://github.com/kirkstrobeck/gainmaps.git",
     "directory": "packages/gainmap"
   },
   "homepage": "https://www.gainmaps.com",
-  "bugs": "https://github.com/kirkstrobeck/gainmaps.com/issues",
+  "bugs": "https://github.com/kirkstrobeck/gainmaps/issues",
   "type": "module",
   "bin": {
-    "gainmap": "./dist/cli.js"
+    "gainmap": "dist/cli.js"
   },
   "files": [
     "dist",
+    "install.sh",
     "test/fixtures",
     "README.md",
     "CHANGELOG.md",
@@ -32,12 +33,15 @@
   "imports": {
     "#src/*": "./dist/*"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=24"
   },
   "scripts": {
     "build": "tsc -p tsconfig.lib.json",
-    "test": "vitest run --coverage",
+    "test": "tsc -p tsconfig.lib.json && vitest run --coverage",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -3,6 +3,7 @@ import decodeHeic from "heic-decode";
 import UPNG from "upng-js";
 
 import { DEFAULT_BOOST, encodeRgbaToUltraHdrJpeg } from "../lib/gain-map-encode";
+import { outputName } from "../lib/output-name";
 
 type ImageFormat = "png" | "jpeg" | "gif" | "heic" | "webp" | "avif" | "bitmap";
 type ProgressMessage = {
@@ -101,7 +102,7 @@ async function processJob(data: ProcessJobData, port: MessagePort): Promise<void
       progress: 100,
       phase: "Complete",
       blob: new Blob([toArrayBuffer(processed.output)], { type: "image/jpeg" }),
-      name: `${stripExtension(file.name)}-gainmap.jpg`,
+      name: outputName(file.name).name,
       bytesIn: input.byteLength,
       bytesOut: processed.output.byteLength,
       note: processed.note,
@@ -137,9 +138,11 @@ async function processGainMapPhoto(args: {
     progress: 48,
     phase: "Building gain map",
   });
-  const outName = `${stripExtension(file.name)}-gainmap.jpg`;
-  const outExt = outName.slice(outName.lastIndexOf("."));
-  post({ type: "progress", progress: 84, phase: `Writing gain map ${outExt}` });
+  const out = outputName(file.name);
+  const writePhase = out.converted
+    ? `Writing gain map JPEG (converted from ${out.fromLabel})`
+    : `Writing gain map ${out.ext.slice(1).toUpperCase()}`;
+  post({ type: "progress", progress: 84, phase: writePhase });
   const encoded = encodeRgbaToUltraHdrJpeg(raster.pixels, raster.width, raster.height, { boost });
 
   return {
@@ -204,10 +207,6 @@ function starts(bytes: Uint8Array, signature: readonly number[]): boolean {
 
 function startsAscii(bytes: Uint8Array, value: string): boolean {
   return [...value].every((char, index) => bytes[index] === char.charCodeAt(0));
-}
-
-function stripExtension(name: string): string {
-  return name.replace(/\.[^.]+$/, "");
 }
 
 function clamp(value: number, min: number, max: number): number {

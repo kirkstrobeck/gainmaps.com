@@ -4,6 +4,7 @@ import { CheckIcon as CheckFilled, ContentCopyIcon as CopyFilled, OpenInNewIcon 
 import { useCallback, useEffect, useState } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics";
 
 const buttonClass =
   "inline-flex items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] px-2.5 py-1 text-xs font-medium text-[var(--muted)] transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))] hover:bg-[color-mix(in_srgb,var(--accent)_6%,var(--panel))] hover:text-[var(--foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
@@ -22,13 +23,19 @@ export function ShareBar() {
   const handleShare = useCallback(async () => {
     try {
       await navigator.share({ title: document.title, url: window.location.href });
+      track(ANALYTICS_EVENTS.shareAction, { action: "native_share", status: "success" });
     } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") return;
+      if (error instanceof Error && error.name === "AbortError") {
+        track(ANALYTICS_EVENTS.shareAction, { action: "native_share", status: "aborted" });
+        return;
+      }
+      track(ANALYTICS_EVENTS.shareAction, { action: "native_share", status: "failed" });
     }
   }, []);
 
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(window.location.href);
+    track(ANALYTICS_EVENTS.shareAction, { action: "copy_link", status: "success" });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, []);

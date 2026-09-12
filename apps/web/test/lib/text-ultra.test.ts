@@ -3,10 +3,22 @@ import {
   TEXT_ULTRA_HEADROOM_MIN,
   TEXT_ULTRA_HEADROOM_MAX,
   TEXT_ULTRA_INTENSITY,
+  TEXT_ULTRA_FOUNDATION_RATIO,
   TEXT_ULTRA_SLIDER_DEFAULT,
+  foundationHeadroomFor,
   headroomToSlider,
   sliderToHeadroom,
 } from "@/lib/text-ultra";
+
+describe("foundationHeadroomFor", () => {
+  it("scales a finite headroom by the foundation ratio", () => {
+    expect(foundationHeadroomFor(4)).toBeCloseTo(4 * TEXT_ULTRA_FOUNDATION_RATIO);
+  });
+
+  it("falls back to the default intensity when headroom is not finite", () => {
+    expect(foundationHeadroomFor(NaN)).toBeCloseTo(TEXT_ULTRA_INTENSITY * TEXT_ULTRA_FOUNDATION_RATIO);
+  });
+});
 
 describe("constants", () => {
   it("min is 1", () => expect(TEXT_ULTRA_HEADROOM_MIN).toBe(1));

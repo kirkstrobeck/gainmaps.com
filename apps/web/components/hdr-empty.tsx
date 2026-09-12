@@ -8,10 +8,12 @@ import type { DragEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { InstallSwitcher } from "@/components/install-switcher";
+import { UltraWord } from "@/components/ultra-word";
+import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 import { cn } from "@/lib/utils";
 
 interface HdrEmptyProps {
-  addFiles: (files: FileList | File[]) => void;
+  addFiles: (files: FileList | File[], source?: string) => void;
   dragActive: boolean;
   dropHandlers: {
     onDragOver: (event: DragEvent<HTMLElement>) => void;
@@ -47,7 +49,7 @@ export function HdrEmpty({ addFiles, dragActive, dropHandlers }: HdrEmptyProps) 
                   Privacy: These files do not go anywhere.
                 </p>
                 <h1 className="font-display mx-auto max-w-4xl text-4xl font-bold leading-[1.02] tracking-normal text-[var(--foreground)] sm:text-5xl lg:text-6xl">
-                  Drop images here to make them HDR.
+                  <UltraWord text="Drop images here to make them HDR." typeClassName="font-display mx-auto max-w-4xl text-4xl font-bold leading-[1.02] tracking-normal sm:text-5xl lg:text-6xl" intensity={TEXT_ULTRA_INTENSITY} />
                 </h1>
                 <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-[var(--muted)] sm:text-base">
                   Processed 100% in your browser by a service worker. Nothing leaves. Compare the output, then download.
@@ -63,7 +65,7 @@ export function HdrEmpty({ addFiles, dragActive, dropHandlers }: HdrEmptyProps) 
                       type="file"
                       accept=".png,.jpg,.jpeg,.webp,.avif,.gif,.heic,.heif,.svg,image/*"
                       multiple
-                      onChange={(event) => event.currentTarget.files && addFiles(event.currentTarget.files)}
+                      onChange={(event) => event.currentTarget.files && addFiles(event.currentTarget.files, "converter_empty_picker")}
                     />
                   </label>
                 </Button>
@@ -76,7 +78,7 @@ export function HdrEmpty({ addFiles, dragActive, dropHandlers }: HdrEmptyProps) 
         </div>
         <div className="flex flex-col items-center gap-3 text-sm text-[var(--muted)]">
           <span>Or batch-encode from the terminal:</span>
-          <InstallSwitcher />
+          <InstallSwitcher surface="converter_empty" />
         </div>
       </div>
     </section>

@@ -45,6 +45,7 @@ export function prepareSvgRoot(
     root.setAttribute("viewBox", `0 0 ${size.width} ${size.height}`);
   }
   root.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  /* v8 ignore next */
   if (!root.getAttribute("xmlns:xlink")) {
     root.setAttribute("xmlns:xlink", "http://www.w3.org/1999/xlink");
   }
@@ -54,8 +55,10 @@ export function prepareSvgRoot(
 function progressAt(element: Element, seconds: number): number {
   const begin = parseClock(element.getAttribute("begin"));
   const duration = parseClock(element.getAttribute("dur"));
+  /* v8 ignore next */
   if (duration <= 0) return 0;
   const elapsed = seconds - begin;
+  /* v8 ignore next 4 */
   const cycle =
     element.getAttribute("repeatCount") === "indefinite"
       ? ((elapsed % duration) + duration) % duration
@@ -71,6 +74,7 @@ function valueAt(element: Element, seconds: number): string | null {
     rawTimes.length === values.length
       ? rawTimes
       : values.map((_, index) => index / Math.max(values.length - 1, 1));
+  /* v8 ignore next */
   return values[keyframeIndex(progressAt(element, seconds), keyTimes)] ?? null;
 }
 

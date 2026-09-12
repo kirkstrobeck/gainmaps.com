@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import {
   PHOTOS,
   PAGE_SIZE,
+  PHOTO_GALLERY_SIZES,
+  PHOTO_HERO_SIZES,
+  PHOTO_STORAGE_BASE_URL,
   photoBySlug,
   photoStandardSrc,
   photoStandardSrcset,
@@ -16,7 +19,20 @@ import {
 const FIRST = PHOTOS[0]!;
 
 describe("PHOTOS", () => {
-  it("has 100 entries", () => expect(PHOTOS.length).toBe(100));
+  it("is derived from the catalog array, not a typed literal", () => {
+    expect(PHOTOS.length).toBeGreaterThan(0);
+  });
+});
+
+describe("responsive sizes", () => {
+  it("gallery sizes state true CSS layout width (not DPR-1 tuned)", () => {
+    expect(PHOTO_GALLERY_SIZES).not.toContain("380px");
+    expect(PHOTO_GALLERY_SIZES).toContain("384px");
+  });
+  it("hero sizes state true CSS layout width (not DPR-1 tuned)", () => {
+    expect(PHOTO_HERO_SIZES).not.toContain("720px");
+    expect(PHOTO_HERO_SIZES).toContain("564px");
+  });
 });
 
 describe("photoBySlug", () => {
@@ -29,45 +45,61 @@ describe("photoBySlug", () => {
 });
 
 describe("photoStandardSrc", () => {
-  it("includes unsplash photo id", () => {
-    expect(photoStandardSrc(FIRST)).toContain(FIRST.unsplashPhotoId);
+  it("serves remote standard JPEG for the slug", () => {
+    expect(photoStandardSrc(FIRST)).toBe(`${PHOTO_STORAGE_BASE_URL}/photos/${FIRST.slug}/standard-1280.jpg`);
   });
   it("uses provided width", () => {
-    expect(photoStandardSrc(FIRST, 800)).toContain("w=800");
+    expect(photoStandardSrc(FIRST, 800)).toBe(`${PHOTO_STORAGE_BASE_URL}/photos/${FIRST.slug}/standard-800.jpg`);
   });
-  it("defaults to width 1920", () => {
-    expect(photoStandardSrc(FIRST)).toContain("w=1920");
+  it("defaults to width 1280", () => {
+    expect(photoStandardSrc(FIRST)).toContain("standard-1280.jpg");
   });
 });
 
 describe("photoStandardSrcset", () => {
-  it("contains four width entries", () => {
+  it("contains six width entries", () => {
     const parts = photoStandardSrcset(FIRST).split(", ");
-    expect(parts.length).toBe(4);
+    expect(parts.length).toBe(6);
   });
-  it("each entry has a width descriptor", () => {
-    for (const part of photoStandardSrcset(FIRST).split(", ")) {
-      expect(part).toMatch(/\d+w$/);
-    }
+  it("mirrors gainmap widths under remote /photos/<slug>/standard-", () => {
+    const src = photoStandardSrcset(FIRST);
+    expect(src).toBe(
+      [400, 800, 1280, 1600, 2048, 2560].map((w) => `${PHOTO_STORAGE_BASE_URL}/photos/${FIRST.slug}/standard-${w}.jpg ${w}w`).join(", "),
+    );
+  });
+  it("caps at photo intrinsic width for small photos", () => {
+    const small = PHOTOS.find(p => p.width < 2560)!;
+    const parts = photoStandardSrcset(small).split(", ");
+    expect(parts.length).toBeLessThan(6);
+    parts.forEach(p => {
+      const w = parseInt(p.match(/(\d+)w$/)![1]);
+      expect(w).toBeLessThanOrEqual(small.width);
+    });
   });
 });
 
 describe("photoGainmapSrc", () => {
-  it("uses slug path", () => {
-    expect(photoGainmapSrc(FIRST)).toBe(`/photos/${FIRST.slug}/gainmap.jpg`);
+  it("uses slug path at the default 1280 width", () => {
+    expect(photoGainmapSrc(FIRST)).toBe(`${PHOTO_STORAGE_BASE_URL}/photos/${FIRST.slug}/gainmap-1280.jpg`);
+  });
+  it("uses provided width", () => {
+    expect(photoGainmapSrc(FIRST, 400)).toBe(`${PHOTO_STORAGE_BASE_URL}/photos/${FIRST.slug}/gainmap-400.jpg`);
   });
 });
 
 describe("photoGainmapSrcset", () => {
-  it("has three width variants", () => {
+  it("has six width variants", () => {
     const parts = photoGainmapSrcset(FIRST).split(", ");
-    expect(parts.length).toBe(3);
+    expect(parts.length).toBe(6);
   });
-  it("contains 400w 800w 1280w", () => {
+  it("contains 400w 800w 1280w 1600w 2048w 2560w", () => {
     const src = photoGainmapSrcset(FIRST);
     expect(src).toContain("400w");
     expect(src).toContain("800w");
     expect(src).toContain("1280w");
+    expect(src).toContain("1600w");
+    expect(src).toContain("2048w");
+    expect(src).toContain("2560w");
   });
 });
 
@@ -87,7 +119,7 @@ describe("withUnsplashReferral", () => {
 });
 
 describe("photosPageCount", () => {
-  it("is 9 for 100 photos at PAGE_SIZE 12", () => {
+  it("matches current catalog size / PAGE_SIZE", () => {
     expect(photosPageCount()).toBe(Math.ceil(PHOTOS.length / PAGE_SIZE));
   });
 });

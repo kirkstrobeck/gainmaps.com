@@ -15,7 +15,6 @@
   --accent-foreground: #fbf8f3;
   /* Instrument shell: always dark regardless of mode */
   --inst-bg: #0b0e12;
-  --inst-line: #c8c2b5;
   --danger: #c0392b;
   --success: #2e7d5a;
   --radius: 10px;
@@ -38,7 +37,6 @@
     --accent: #c4723a;
     --accent-foreground: #14171b;
     --inst-bg: #0b0e12;
-    --inst-line: #232a32;
     --danger: #e57373;
     --success: #6bcb9a;
     --wash-top: color-mix(in srgb, var(--accent) 12%, transparent);
@@ -61,7 +59,6 @@ html[data-mode="light"] {
   --accent: #8a4a1f;
   --accent-foreground: #fbf8f3;
   --inst-bg: #0b0e12;
-  --inst-line: #c8c2b5;
   --danger: #c0392b;
   --success: #2e7d5a;
   --hdr-white: #ffffff;
@@ -81,7 +78,6 @@ html[data-mode="dark"] {
   --accent: #c4723a;
   --accent-foreground: #14171b;
   --inst-bg: #0b0e12;
-  --inst-line: #232a32;
   --danger: #e57373;
   --success: #6bcb9a;
   --hdr-white: #f4f1ec;
@@ -158,16 +154,27 @@ body {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
+
+.nav-action-control {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.nav-action-control svg {
+  flex-shrink: 0;
+}
+
 /* === Seam Instrument === */
 .inst {
   position: relative;
   overflow: hidden;
   background: var(--inst-bg);
-  border: 1px solid var(--inst-line);
-  border-radius: 2px;
   --seam-x: 50%;
   touch-action: none;
   user-select: none;
+  cursor: ew-resize;
 }
 
 .inst-layer {
@@ -182,17 +189,6 @@ body {
   clip-path: inset(0 calc(100% - var(--seam-x)) 0 0);
 }
 
-.inst-seam {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--seam-x);
-  width: 1px;
-  background: rgba(244, 241, 236, 0.55);
-  transform: translateX(-0.5px);
-  pointer-events: none;
-}
-
 .inst-handle {
   position: absolute;
   top: 50%;
@@ -200,7 +196,6 @@ body {
   width: 26px;
   height: 26px;
   background: rgba(11, 14, 18, 0.72);
-  border: 1px solid rgba(244, 241, 236, 0.55);
   border-radius: 999px;
   cursor: ew-resize;
   transform: translate(-13px, -50%);
@@ -219,15 +214,6 @@ body {
   content: "";
   position: absolute;
   inset: -9px;
-}
-
-/* Animated transitions for programmatic seam moves */
-.inst--animating .inst-sdr {
-  transition: clip-path 300ms ease;
-}
-.inst--animating .inst-seam,
-.inst--animating .inst-handle {
-  transition: left 300ms ease;
 }
 
 /* Corner SDR/Ultra buttons — bottom-left and bottom-right */
@@ -262,7 +248,6 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 
 /* 44×44 hit target via ::before */
@@ -298,16 +283,26 @@ body {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  -webkit-user-drag: none;
 }
 
-/* Type inside the instrument — always white on dark inst-bg */
+/* Off-screen gallery cards skip layout/paint until they approach the viewport. */
+.photo-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+
+/* Type inside the instrument — SDR text must be ordinary opaque text over an opaque SDR layer. */
+.inst-type-sdr-layer {
+  background: var(--inst-bg);
+}
+
 .inst-type-std {
-  color: rgba(244, 241, 236, 0.9);
+  color: rgb(244 241 236);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .inst-sdr,
-  .inst-seam,
   .inst-handle {
     transition: none !important;
   }
@@ -333,7 +328,6 @@ html[data-ultra="on"] .ultra-surface {
   --svg-soft: #a8b4c0;
   --svg-white: #ffffff;
   dynamic-range-limit: inherit;
-  transition: dynamic-range-limit 400ms ease;
 }
 
 html[data-ultra="on"] .ultra-svg,
@@ -383,9 +377,8 @@ html[data-ultra="off"] .inst .gainmap-image {
   dynamic-range-limit: no-limit;
 }
 
-/* Hero backdrop gainmap layer — fades out when Ultra is off */
+/* Hero backdrop gainmap layer — opacity switches instantly when Ultra is toggled */
 .hero-ultra-layer {
-  transition: opacity 400ms ease;
 }
 
 html[data-ultra="off"] .hero-ultra-layer {
@@ -444,48 +437,6 @@ html[data-ultra="on"] ::selection {
   background: color-mix(in oklab, var(--hdr-accent) 28%, transparent);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  /* ── Hero entrance ── */
-  .hero-stage > * {
-    animation: hero-rise 0.55s var(--ease-out) both;
-  }
-
-  .hero-stage > *:nth-child(2) { animation-delay: 0.08s; }
-  .hero-stage > *:nth-child(3) { animation-delay: 0.16s; }
-  .hero-stage > *:nth-child(4) { animation-delay: 0.24s; }
-  .hero-stage > *:nth-child(5) { animation-delay: 0.32s; }
-
-  @keyframes hero-rise {
-    from {
-      opacity: 0;
-      transform: translateY(12px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-
-  /* ── Scroll reveal — below-fold sections ── */
-  /* animation-timeline: view() is pure CSS, no JS required.
-     Gracefully absent in older browsers (element stays visible). */
-  .reveal {
-    animation: reveal-rise linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 32%;
-  }
-
-  @keyframes reveal-rise {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -624,9 +575,30 @@ html[data-ultra="off"] .ultra-word {
   dynamic-range-limit: standard;
 }
 
+/* Absolutely-positioned children (ultra overlay) extend 50% past edges; clip
+   prevents a horizontal scrollbar without hiding anything visible. */
+.ultra-word {
+  overflow: clip;
+  overflow-clip-margin: content-box;
+}
+
+.ultra-mask-defs {
+  opacity: 0;
+  z-index: 0;
+}
+
 .ultra-backdrop {
   background: #ffffff;
   pointer-events: none;
+  z-index: 1;
+}
+
+.ultra-word > .ultra-fill-foundation {
+  z-index: 1;
+}
+
+.ultra-word > .ultra-fill-inner {
+  z-index: 3;
 }
 
 /*
@@ -647,6 +619,27 @@ html[data-mode="light"] .ultra-word > .ultra-fill {
   }
   html:not([data-mode="dark"]) .ultra-word > .ultra-fill {
     opacity: 0;
+  }
+}
+
+/*
+  The seam instrument (.inst) always has a dark background regardless of page
+  mode. UltraWord inside it must keep its white letterforms even in light mode,
+  so override the light-mode foreground-backdrop rule here.
+*/
+html[data-mode="light"] .inst .ultra-word > .ultra-backdrop {
+  background: #ffffff;
+}
+html[data-mode="light"] .inst .ultra-word > .ultra-fill {
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-mode="dark"]) .inst .ultra-word > .ultra-backdrop {
+    background: #ffffff;
+  }
+  html:not([data-mode="dark"]) .inst .ultra-word > .ultra-fill {
+    opacity: 1;
   }
 }
 

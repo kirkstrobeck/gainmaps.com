@@ -3,54 +3,51 @@ import {
   ArrowForwardIcon as ArrowRightFilled,
   BookmarkIcon as BookmarkFilled,
   OpenInNewIcon as ExternalLinkFilled,
-  LayersIcon as LayersFilled,
   BoltIcon as LightningFilled,
-  LockIcon as LockFilled,
-  PhotoIcon as PicFilled,
-  VerifiedUserIcon as ShieldFilled,
   AutoAwesomeIcon as SparklesFilled,
   LightModeIcon as SunFilled,
-  SwapHorizIcon as TransferFilled,
 } from "@/components/icons";
 
 import { PageChrome } from "@/components/page-chrome";
 import { UltraIcon } from "@/components/ultra-icon";
+import { UltraWord } from "@/components/ultra-word";
 import { BRAND_NAMES } from "@/lib/brand-names";
+import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
 export const metadata: Metadata = {
-  title: "Docs · Gainmaps",
+  title: "Docs",
   description:
-    "How gain map images work: what changes in HDR, the encoding pipeline, formats, privacy, standards, and limits.",
+    "Terminology, standards, and gain-map concepts: EDR vs HDR, ISO 21496-1, Android Ultra HDR, Apple Adaptive HDR, and CSS Color HDR.",
+  alternates: { canonical: "/docs" },
+  openGraph: { type: "website", url: "/docs" },
 };
 
 const sections = [
-  ["What changes", "#what-changes"],
-  ["Pipeline", "#pipeline"],
-  ["Formats", "#formats"],
-  ["Gain", "#gain"],
   ["Names", "#names"],
-  ["Privacy", "#privacy"],
+  ["Gain", "#gain"],
   ["Standards", "#standards"],
-  ["Limits", "#limits"],
 ];
 
 const resources = [
-  ["ISO/TS 21496-1", "https://www.iso.org/standard/86775.html", "Still-image gain map metadata standard."],
-  ["Ultra HDR (Android)", "https://developer.android.com/media/grow/ultra-hdr", "Google Ultra HDR JPEG (JPEG_R)."],
-  ["Apple HDR photos", "https://developer.apple.com/documentation/appkit/applying_apple_hdr_effect_to_your_photos", "Apple's HDR photo model used by Photos and Preview."],
+  ["Ultra HDR Image Format v1.1", "https://developer.android.com/media/platform/hdr-image-format", "Google's free gain-map JPEG spec (hdrgm XMP + MPF). The readable encoding reference."],
+  ["Support Ultra HDR", "https://developer.android.com/media/grow/ultra-hdr", "Android app guide for displaying and editing Ultra HDR."],
+  ["android.graphics.Gainmap", "https://developer.android.com/reference/android/graphics/Gainmap", "Platform API for gain-map metadata and rendering."],
+  ["libultrahdr", "https://github.com/google/libultrahdr", "Google's reference Ultra HDR codec."],
+  ["AVIF tone map (tmap)", "https://aomediacodec.github.io/av1-avif/latest-approved.html#tone-map-derived-image-item", "AOM AVIF spec: HEIF tmap derived item and altr fallback for gain maps."],
+  ["Applying Apple HDR effect", "https://developer.apple.com/documentation/appkit/applying-apple-hdr-effect-to-your-photos", "Decode Apple HDR gain maps without Apple SDKs (MakerNote 33/48, Rec.709 map)."],
+  ["Supporting HDR images in your app", "https://developer.apple.com/documentation/uikit/supporting-hdr-images-in-your-app", "Load, display, edit, and save HDR stills (SwiftUI / UIKit / Core Image)."],
+  ["Enhancing HDR image rendering", "https://developer.apple.com/documentation/coregraphics/adopting-advancements-in-hdr-image-rendering", "Headroom, constrained vs full HDR, and CGContentToneMappingInfo."],
+  ["WWDC24: Use HDR for dynamic image experiences", "https://developer.apple.com/videos/play/wwdc2024/10177/", "Adaptive HDR, expandToHDR, and ISO vs Apple gain maps."],
+  ["WWDC23: Support HDR images in your app", "https://developer.apple.com/videos/play/wwdc2023/10181/", "Identify, load, display, and write ISO HDR and gain-map HDR."],
+  ["CSS Color HDR Module Level 1", "https://www.w3.org/TR/css-color-hdr-1/", "W3C spec: dynamic-range-limit, color-hdr(), and HDR color spaces."],
+  ["dynamic-range-limit", "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/dynamic-range-limit", "CSS property this site uses to clamp or unlock Ultra."],
+  ["GPUCanvasContext.configure", "https://developer.mozilla.org/en-US/docs/Web/API/GPUCanvasContext/configure", "WebGPU canvas toneMapping: standard vs extended (rgba16float above 1.0)."],
+  ["Chrome: WebGPU HDR canvas", "https://developer.chrome.com/blog/new-in-webgpu-129", "Chromium shipping notes for GPUCanvasToneMappingMode extended."],
+  ["ITU-R BT.2408", "https://www.itu.int/rec/R-REC-BT.2408", "Free ITU recommendation: HDR production and 203 cd/m² reference white."],
+  ["ISO 21496-1:2025", "https://www.iso.org/standard/86775.html", "Cross-vendor gain-map metadata standard. Catalog page only; full text is ISO-paywalled. Use Ultra HDR v1.1 above for the free spec."],
   ["MDN Service Worker API", "https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API", "Documents the browser worker model used for local processing."],
   ["MDN OffscreenCanvas", "https://developer.mozilla.org/en-US/docs/Web/API/OffscreenCanvas", "Documents off-main-thread canvas rendering used for browser-decodable formats."],
   ["MDN createImageBitmap", "https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/createImageBitmap", "Documents worker-side image decoding for Blob and bitmap sources."],
-];
-
-const PIPELINE_STEPS = [
-  "Files arrive via drag-and-drop or the file picker.",
-  "The page sends each file to /hdr-service-worker.js over a MessageChannel.",
-  "The worker detects format: PNG, JPEG, GIF, HEIC, WebP, AVIF, or any browser-decodable bitmap.",
-  "Pixels are decoded to RGBA and converted to linear light.",
-  "Linear values are scaled by gain intensity, creating synthetic HDR capacity.",
-  "A gain map is computed against a Reinhard-tone-mapped SDR base image.",
-  "The result is encoded as an Ultra HDR JPEG Blob and returned for download.",
 ];
 
 const SECTION_ICON_CLS = "flex size-8 shrink-0 items-center justify-center rounded-[calc(var(--radius)-2px)] bg-[color-mix(in_srgb,var(--accent)_10%,var(--panel))] text-[var(--accent)]";
@@ -103,113 +100,13 @@ export default function Base() {
           <header className="border-b border-[var(--border)] pb-10">
             <p className="mb-4 text-sm font-medium text-[var(--muted)]">Technical document</p>
             <h1 className="font-display max-w-4xl text-5xl font-bold leading-[1.03] tracking-normal sm:text-6xl">
-              What Gainmaps actually does to an image
+              <UltraWord text="Ultra HDR Reference" typeClassName="font-display max-w-4xl text-5xl font-bold leading-[1.03] tracking-normal sm:text-6xl" intensity={TEXT_ULTRA_INTENSITY} />
             </h1>
             <p className="mt-6 max-w-3xl text-base leading-7 text-[var(--muted)]">
-              A gain map image carries two things: a standard SDR baseline every app can open, and a
-              secondary brightness layer (the gain map) that HDR displays use to expand highlights
-              past SDR reference white. Gainmaps synthesizes that second layer locally, in your
-              browser, from the pixels you give it.
+              Quick reference for the terminology, gain-map concepts, and standards behind Ultra HDR
+              images — EDR vs HDR, Android Ultra HDR (free format spec), Apple Adaptive HDR, CSS Color HDR, and ISO 21496-1.
             </p>
           </header>
-
-          {/* ── What changes ── */}
-          <section id="what-changes" className="scroll-mt-24 border-b border-[var(--border)] py-10">
-            <div className="flex items-center gap-3">
-              <span className={SECTION_ICON_CLS} aria-hidden>
-                <UltraIcon size={16}><LayersFilled /></UltraIcon>
-              </span>
-              <h2 className="font-display text-2xl font-bold tracking-normal">What changes</h2>
-            </div>
-            <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
-              <p>
-                The worker rasterizes your photo, builds linear HDR capacity from the SDR pixels using
-                the chosen gain intensity, tone-maps an SDR base, and writes a single gain map image.
-                The output file is larger than the input: it carries both the SDR image and the gain
-                map, but opens normally in any JPEG viewer.
-              </p>
-              <p>
-                This is not camera-scene HDR reconstruction. Without original HDR capture data, the
-                tool synthesizes headroom from the SDR image. Compatible viewers (Apple Preview,
-                Photos, Android Ultra HDR clients) can then expand the gain map on capable displays.
-              </p>
-            </div>
-          </section>
-
-          {/* ── Pipeline ── */}
-          <section id="pipeline" className="scroll-mt-24 border-b border-[var(--border)] py-10">
-            <div className="flex items-center gap-3">
-              <span className={SECTION_ICON_CLS} aria-hidden>
-                <UltraIcon size={16}><TransferFilled /></UltraIcon>
-              </span>
-              <h2 className="font-display text-2xl font-bold tracking-normal">Pipeline</h2>
-            </div>
-            <ol className="mt-5 grid gap-2">
-              {PIPELINE_STEPS.map((step, i) => (
-                <li key={i} className="flex gap-3">
-                  <span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--panel-strong)] text-[10px] font-bold tabular-nums text-[var(--muted)]">
-                    {i + 1}
-                  </span>
-                  <span className="text-sm leading-7 text-[var(--muted)]">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </section>
-
-          {/* ── Formats ── */}
-          <section id="formats" className="scroll-mt-24 border-b border-[var(--border)] py-10">
-            <div className="flex items-center gap-3">
-              <span className={SECTION_ICON_CLS} aria-hidden>
-                <UltraIcon size={16}><PicFilled /></UltraIcon>
-              </span>
-              <h2 className="font-display text-2xl font-bold tracking-normal">Formats</h2>
-            </div>
-            <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
-              <p>
-                <span className="font-medium text-[var(--foreground)]">Input:</span>{" "}
-                PNG, JPEG, WebP, AVIF, GIF (first frame only), HEIC when the browser decoder can open
-                it, and SVG including animated SMIL/CSS SVG. Animations are frozen to a keyframe,
-                then encoded.
-              </p>
-              <p>
-                <span className="font-medium text-[var(--foreground)]">Output:</span>{" "}
-                always a gain map image (<code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">*-gainmap.jpg</code>).
-                The file contains both layers and can be opened by any standard JPEG viewer.
-              </p>
-            </div>
-          </section>
-
-          {/* ── Gain ── */}
-          <section id="gain" className="scroll-mt-24 border-b border-[var(--border)] py-10">
-            <div className="flex items-center gap-3">
-              <span className={SECTION_ICON_CLS} aria-hidden>
-                <UltraIcon size={16}><SunFilled /></UltraIcon>
-              </span>
-              <h2 className="font-display text-2xl font-bold tracking-normal">Gain</h2>
-            </div>
-            <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
-              <p>
-                Gain is the maximum HDR/SDR brightness ratio encoded into the photo. The default mid
-                setting targets roughly 3.34×, similar to many iPhone HDR stills. Lower values are
-                subtler; higher values push brighter highlights on HDR displays.
-              </p>
-              <p>
-                The nav{" "}
-                <span className="inline-flex items-center gap-1 font-medium text-[var(--foreground)]">
-                  <UltraIcon size={13}><SparklesFilled /></UltraIcon>
-                  Ultra
-                </span>{" "}
-                switch controls CSS{" "}
-                <code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">dynamic-range-limit</code>{" "}
-                for the whole page: Off clamps to SDR reference white; On unlocks Ultra photos and{" "}
-                <code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">color-hdr()</code>{" "}
-                accents on capable displays. See how it looks on{" "}
-                <a href="/text" className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75">
-                  the Ultra text demo →
-                </a>
-              </p>
-            </div>
-          </section>
 
           {/* ── Names ── */}
           <section id="names" className="scroll-mt-24 border-b border-[var(--border)] py-10">
@@ -266,40 +163,40 @@ export default function Base() {
             </div>
           </section>
 
-          {/* ── Privacy ── */}
-          <section id="privacy" className="scroll-mt-24 border-b border-[var(--border)] py-10">
+          {/* ── Gain ── */}
+          <section id="gain" className="scroll-mt-24 border-b border-[var(--border)] py-10">
             <div className="flex items-center gap-3">
               <span className={SECTION_ICON_CLS} aria-hidden>
-                <UltraIcon size={16}><ShieldFilled /></UltraIcon>
+                <UltraIcon size={16}><SunFilled /></UltraIcon>
               </span>
-              <h2 className="font-display text-2xl font-bold tracking-normal">Privacy</h2>
+              <h2 className="font-display text-2xl font-bold tracking-normal">Gain</h2>
             </div>
             <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
               <p>
-                Files never leave the browser for processing. The service worker encodes locally and
-                returns a downloadable blob. No bytes travel to any server. Closing the tab discards
-                all in-memory results.
+                Gain is the maximum HDR/SDR brightness ratio encoded into the photo. The default mid
+                setting targets roughly 3.34×, similar to many iPhone HDR stills. Lower values are
+                subtler; higher values push brighter highlights on HDR displays.
               </p>
-              <div
-                className="flex items-start gap-3 rounded-[var(--radius)] border px-4 py-3"
-                style={{
-                  borderColor: "color-mix(in srgb, var(--accent) 22%, var(--border))",
-                  background: "color-mix(in srgb, var(--accent) 6%, var(--panel))",
-                }}
-              >
-                <UltraIcon size={16} className="mt-0.5 shrink-0 text-[var(--accent)]">
-                  <LockFilled />
-                </UltraIcon>
-                <p className="text-[var(--muted)]">
-                  The converter works offline after the first load. There is no backend, no analytics
-                  pipeline, no upload endpoint.
-                </p>
-              </div>
+              <p>
+                The nav{" "}
+                <span className="inline-flex items-center gap-1 font-medium text-[var(--foreground)]">
+                  <UltraIcon size={13}><SparklesFilled /></UltraIcon>
+                  Ultra
+                </span>{" "}
+                switch controls CSS{" "}
+                <code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">dynamic-range-limit</code>{" "}
+                for the whole page: Off clamps to SDR reference white; On unlocks Ultra photos and{" "}
+                <code className="rounded bg-[var(--panel-strong)] px-1 py-0.5 font-mono text-[var(--foreground)]">color-hdr()</code>{" "}
+                accents on capable displays. See how it looks on{" "}
+                <a href="/text" className="text-[var(--accent)] underline underline-offset-2 transition hover:opacity-75">
+                  the Ultra text demo →
+                </a>
+              </p>
             </div>
           </section>
 
           {/* ── Standards ── */}
-          <section id="standards" className="scroll-mt-24 border-b border-[var(--border)] py-10">
+          <section id="standards" className="scroll-mt-24 py-10">
             <div className="flex items-center gap-3">
               <span className={SECTION_ICON_CLS} aria-hidden>
                 <UltraIcon size={16}><LightningFilled /></UltraIcon>
@@ -325,18 +222,6 @@ export default function Base() {
             </div>
           </section>
 
-          {/* ── Limits ── */}
-          <section id="limits" className="scroll-mt-24 py-10">
-            <h2 className="font-display text-2xl font-bold tracking-normal">Limits</h2>
-            <div className="mt-5 grid gap-4 text-sm leading-7 text-[var(--muted)]">
-              <p>
-                Very large images may be slow to encode in-browser; the worker is single-threaded per
-                file. Animated GIF only encodes the first frame. HEIC decoding depends on platform
-                support. Gain-map appearance varies by viewer software and display peak luminance:
-                the same file looks different on an iPhone XDR versus an SDR monitor.
-              </p>
-            </div>
-          </section>
         </article>
       </div>
     </main>

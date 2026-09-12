@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { INSTALL_COMMANDS, type InstallTab } from "@/lib/install-commands";
 import { CopyButton } from "@/components/copy-button";
+import { ANALYTICS_EVENTS, track } from "@/lib/analytics";
 import { UltraIcon } from "@/components/ultra-icon";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ const TABS: { key: InstallTab; label: string }[] = [
 
 const FOCUS = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
 
-export function InstallSwitcher() {
+export function InstallSwitcher({ surface = "install_switcher" }: { surface?: string } = {}) {
   const [active, setActive] = useState<InstallTab>("npm");
 
   return (
@@ -27,7 +28,13 @@ export function InstallSwitcher() {
           <button
             key={key}
             type="button"
-            onClick={() => setActive(key)}
+            onClick={() => {
+              setActive(key);
+              track(ANALYTICS_EVENTS.installMethodSelected, {
+                install_method: key,
+                surface,
+              });
+            }}
             className={cn(
               "-mb-px border-b-2 px-3 py-1.5 text-sm font-medium transition",
               FOCUS,
@@ -45,7 +52,12 @@ export function InstallSwitcher() {
           <TerminalBoxFilled />
         </UltraIcon>
         <code className="flex-1 truncate font-mono text-sm">{INSTALL_COMMANDS[active]}</code>
-        <CopyButton text={INSTALL_COMMANDS[active]} className="ml-2" />
+        <CopyButton
+          text={INSTALL_COMMANDS[active]}
+          className="ml-2"
+          analyticsLabel="install_command"
+          analyticsProperties={{ install_method: active, surface }}
+        />
       </div>
     </div>
   );

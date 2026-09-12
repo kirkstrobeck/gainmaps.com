@@ -8,16 +8,20 @@
  *   1. resolve a premium full-color brand SVG — api.svgl.app first, then the
  *      Wikimedia file behind the brand's Wikidata P154 claim,
  *   2. save it to apps/web/public/logos/<slug>/logo.svg,
- *   3. rasterize it with sharp onto a transparent 512×512 (1:1) canvas,
- *      fitting the mark inside 88% of each frame dimension and centring it,
- *   4. encode that with encodeRgbaToUltraHdrJpeg (boost 0.5, checkerboard
- *      matte) to apps/web/public/logos/<slug>/logo-gainmap.jpg — JPEG has no
- *      alpha, so what was transparent becomes a soft gray checker rather than
- *      a white plate the mark never had,
+ *   3. rasterize it with sharp onto a transparent 1024x1024 canvas, contain-fit
+ *      and centred, so the mark keeps the holes the vector drew,
+ *   4. encode that with encodeLogoVariants (boost 1.0, checkerboard matte)
+ *      to apps/web/public/logos/<slug>/logo-gainmap-*.jpg — JPEG has no alpha,
+ *      so what was transparent becomes a soft gray checker rather than a white
+ *      plate the mark never had,
  *   5. rewrite apps/web/lib/logos/companies.ts with the seeds that succeeded.
  *
  * Brands without a premium SVG anywhere are skipped and reported; the generated
  * list only ever contains entries whose two files are on disk.
+ *
+ * The resolve/download/rasterize path lives in ./logo-pipeline.ts, shared with
+ * ./backfill-logo-assets.ts (a targeted, non-destructive per-slug rerun of the
+ * same path that does NOT rewrite companies.ts).
  *
  * Run from the repo root:  npx tsx tools/logos/build-logos.ts
  */
@@ -25,51 +29,17 @@ import { mkdir, readdir, rm, rmdir, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import sharp from "sharp";
-
 import { encodeLogoVariants } from "./encode-logo-variants.ts";
+import { BOOST, CANVAS, downloadSvg, errorMessage, FETCH_CONCURRENCY, mapChunked, rasterize } from "./logo-pipeline.ts";
+import { fetchSvglIndex, resolveCommonsFiles, resolveSeed, type Resolved } from "./logo-resolve.ts";
+import { normalizeLogoSvg } from "./logo-svg-normalize.ts";
+import { renderCompaniesModule } from "./render-companies-module.ts";
 import { LOGO_SEEDS, type LogoSeed } from "./sources.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "../..");
 const publicRoot = join(repo, "apps/web/public/logos");
 const listPath = join(repo, "apps/web/lib/logos/companies.ts");
-
-/** Wikimedia asks automated clients to identify themselves with a contact. */
-const USER_AGENT = "gainmaps-logo-pipeline/1.0 (https://gainmaps.com; kirk@strobeck.com)";
-/** Output frame dimensions (1:1). */
-const CANVAS_W = 512;
-const CANVAS_H = CANVAS_W; // 512
-
-/**
- * The mark is fitted inside this box (88% of each frame dimension), centred.
- * Baking the margin into the JPEG ensures all four sides are clear even when
- * the browser's gain-map compositor bypasses CSS object-fit.
- */
-const LOGO_BOX_W = Math.round(CANVAS_W * 0.88); // 450
-const LOGO_BOX_H = Math.round(CANVAS_W * 0.88); // 450
-const BOOST = 0.5;
-const MAX_SVG_BYTES = 3 * 1024 * 1024;
-const FETCH_CONCURRENCY = 4;
-/**
- * en.wikipedia's Special:FilePath is served by the app servers, not the image
- * CDN, and it throttles a run this size with a 429 partway through. Backing off
- * and retrying costs a few seconds; not retrying costs the logo.
- */
-const RETRY_STATUSES = new Set([429, 503]);
-const MAX_RETRIES = 5;
-const RETRY_BASE_MS = 2000;
-
-type SvglEntry = {
-  readonly title: string;
-  readonly route?: string | { readonly light?: string; readonly dark?: string };
-};
-
-type Resolved = {
-  readonly seed: LogoSeed;
-  readonly url: string;
-  readonly source: "svgl" | "commons";
-};
 
 type Outcome =
   | { readonly ok: true; readonly seed: LogoSeed; readonly source: Resolved["source"]; readonly note: string }
@@ -153,275 +123,20 @@ async function buildOne(entry: Resolved): Promise<Outcome> {
   // The directory already exists: main carves the whole tree out up front, so
   // nothing here touches directory metadata. See removeTreeSerially.
   const directory = join(publicRoot, entry.seed.slug);
-  await writeFile(join(directory, "logo.svg"), svg);
+  const normalizedSvg = normalizeLogoSvg(entry.seed, svg);
+  await writeFile(join(directory, "logo.svg"), normalizedSvg);
 
-  const raster = await rasterize(svg).catch((error: unknown) => errorMessage(error));
+  const raster = await rasterize(normalizedSvg).catch((error: unknown) => errorMessage(error));
   if (typeof raster === "string") {
     return { ok: false, seed: entry.seed, reason: `rasterize failed — ${raster}` };
   }
 
-  await encodeLogoVariants(raster, CANVAS_W, CANVAS_H, directory, BOOST);
-  return { ok: true, seed: entry.seed, source: entry.source, note: `${CANVAS_W}×${CANVAS_H}` };
-}
-
-/**
- * librsvg renders at 72 dpi against the SVG's intrinsic size, so a 24px icon
- * would come out 24px. Scale the density instead of upscaling the bitmap.
- */
-async function rasterize(svg: Buffer): Promise<Uint8Array> {
-  const probe = await sharp(svg).metadata();
-  const longest = Math.max(probe.width ?? LOGO_BOX_W, probe.height ?? LOGO_BOX_H);
-  const boxLongest = Math.max(LOGO_BOX_W, LOGO_BOX_H);
-  const density = Math.min(2400, Math.max(72, Math.round((72 * boxLongest) / Math.max(longest, 1))));
-
-  const logo = await sharp(svg, { density })
-    .resize({ width: LOGO_BOX_W, height: LOGO_BOX_H, fit: "inside", withoutEnlargement: false })
-    .png()
-    .toBuffer();
-
-  const { data } = await sharp({
-    create: {
-      width: CANVAS_W,
-      height: CANVAS_H,
-      channels: 4,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
-    },
-  })
-    .composite([{ input: logo, gravity: "centre" }])
-    .raw()
-    .toBuffer({ resolveWithObject: true });
-
-  const pixels = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-  if (inkCoverage(pixels) < 0.002) throw new Error("rendered blank");
-  return pixels;
-}
-
-/**
- * librsvg can silently render nothing; a logo that leaves no ink is a failure.
- * Ink is anything not transparent — a white wordmark on a transparent canvas is
- * a logo, not a blank, so colour tells us nothing here and alpha tells us all.
- */
-function inkCoverage(pixels: Uint8Array): number {
-  const count = pixels.length / 4;
-  const inked = Array.from({ length: count }, (_, index) => index).filter(
-    (index) => pixels[index * 4 + 3]! > 8,
-  ).length;
-  return inked / count;
-}
-
-async function downloadSvg(url: string, attempt = 0): Promise<Buffer> {
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT, Accept: "image/svg+xml,*/*" } });
-  if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
-    await sleep(retryDelay(response, attempt));
-    return downloadSvg(url, attempt + 1);
-  }
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-  const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.byteLength > MAX_SVG_BYTES) throw new Error(`SVG too large (${bytes.byteLength} bytes)`);
-  // Commons files are sometimes namespace-prefixed at the root (`<svg:svg …>`).
-  if (!/<(?:[\w-]+:)?svg[\s>]/i.test(bytes.subarray(0, 4096).toString("utf8"))) {
-    throw new Error("response is not an SVG");
-  }
-  return bytes;
-}
-
-/** Honour Retry-After when the server sends one, exponential backoff otherwise. */
-function retryDelay(response: Response, attempt: number): number {
-  const header = Number(response.headers.get("retry-after"));
-  if (Number.isFinite(header) && header > 0) return Math.min(header, 60) * 1000;
-  return RETRY_BASE_MS * 2 ** attempt;
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function resolveSeed(
-  seed: LogoSeed,
-  svgl: ReadonlyMap<string, SvglEntry>,
-  commons: ReadonlyMap<string, string>,
-): Resolved | { seed: LogoSeed; url: null } {
-  const fromSvgl = seed.svglTitle ? svglUrl(svgl.get(seed.svglTitle)) : null;
-  if (fromSvgl) return { seed, url: fromSvgl, source: "svgl" };
-
-  const file = seed.commonsFile ?? commons.get(seed.wikipedia);
-  if (file && /\.svg$/i.test(file)) return { seed, url: commonsFilePath(file), source: "commons" };
-
-  return { seed, url: null };
-}
-
-function svglUrl(entry: SvglEntry | undefined): string | null {
-  if (!entry?.route) return null;
-  if (typeof entry.route === "string") return entry.route;
-  return entry.route.light ?? entry.route.dark ?? null;
-}
-
-function commonsFilePath(file: string): string {
-  return `https://en.wikipedia.org/wiki/Special:FilePath/${encodeURIComponent(file.replace(/ /g, "_"))}`;
-}
-
-async function fetchSvglIndex(): Promise<ReadonlyMap<string, SvglEntry>> {
-  const response = await fetch("https://api.svgl.app", { headers: { "User-Agent": USER_AGENT } });
-  if (!response.ok) throw new Error(`svgl index: HTTP ${response.status}`);
-  const entries = (await response.json()) as readonly SvglEntry[];
-  return new Map(entries.map((entry) => [entry.title, entry]));
-}
-
-/** Wikipedia title -> Wikidata item -> P154 (logo image) -> Commons file name. */
-async function resolveCommonsFiles(seeds: readonly LogoSeed[]): Promise<ReadonlyMap<string, string>> {
-  const titles = seeds.map((seed) => seed.wikipedia);
-  const items = await mapChunked(chunk(titles, 20), 1, wikidataItemsForTitles);
-  const byTitle = new Map(items.flatMap((group) => [...group]));
-
-  const ids = [...new Set([...byTitle.values()])];
-  const logos = await mapChunked(chunk(ids, 40), 1, logoFilesForItems);
-  const byItem = new Map(logos.flatMap((group) => [...group]));
-
-  return new Map(
-    titles.flatMap((title) => {
-      const item = byTitle.get(title);
-      const file = item ? byItem.get(item) : undefined;
-      return file ? [[title, file] as const] : [];
-    }),
-  );
-}
-
-async function wikidataItemsForTitles(titles: readonly string[]): Promise<ReadonlyMap<string, string>> {
-  const url = new URL("https://en.wikipedia.org/w/api.php");
-  url.search = new URLSearchParams({
-    action: "query",
-    format: "json",
-    formatversion: "2",
-    redirects: "1",
-    prop: "pageprops",
-    ppprop: "wikibase_item",
-    titles: titles.join("|"),
-  }).toString();
-
-  const data = (await getJson(url)) as {
-    query: {
-      normalized?: readonly { from: string; to: string }[];
-      redirects?: readonly { from: string; to: string }[];
-      pages?: readonly { title: string; pageprops?: { wikibase_item?: string } }[];
-    };
-  };
-
-  const normalized = new Map((data.query.normalized ?? []).map((row) => [row.from, row.to]));
-  const redirects = new Map((data.query.redirects ?? []).map((row) => [row.from, row.to]));
-  const pages = new Map((data.query.pages ?? []).map((page) => [page.title, page.pageprops?.wikibase_item]));
-
-  return new Map(
-    titles.flatMap((title) => {
-      const settled = redirects.get(normalized.get(title) ?? title) ?? normalized.get(title) ?? title;
-      const item = pages.get(settled);
-      return item ? [[title, item] as const] : [];
-    }),
-  );
-}
-
-async function logoFilesForItems(ids: readonly string[]): Promise<ReadonlyMap<string, string>> {
-  const url = new URL("https://www.wikidata.org/w/api.php");
-  url.search = new URLSearchParams({
-    action: "wbgetentities",
-    format: "json",
-    props: "claims",
-    ids: ids.join("|"),
-  }).toString();
-
-  const data = (await getJson(url)) as {
-    entities: Record<string, { claims?: Record<string, readonly { mainsnak?: { datavalue?: { value?: string } } }[]> }>;
-  };
-
-  return new Map(
-    Object.entries(data.entities).flatMap(([id, entity]) => {
-      const values = (entity.claims?.P154 ?? [])
-        .map((claim) => claim.mainsnak?.datavalue?.value)
-        .filter((value): value is string => typeof value === "string");
-      const svg = values.find((value) => /\.svg$/i.test(value));
-      return svg ? [[id, svg] as const] : [];
-    }),
-  );
-}
-
-async function getJson(url: URL): Promise<unknown> {
-  const response = await fetch(url, { headers: { "User-Agent": USER_AGENT, Accept: "application/json" } });
-  if (!response.ok) throw new Error(`${url.host}: HTTP ${response.status}`);
-  return response.json();
+  await encodeLogoVariants(raster, CANVAS, directory, BOOST);
+  return { ok: true, seed: entry.seed, source: entry.source, note: `${CANVAS}×${CANVAS}` };
 }
 
 function rankLabel(seed: LogoSeed): string {
   return `#${seed.rank}`.padEnd(5);
-}
-
-function renderCompaniesModule(seeds: readonly LogoSeed[]): string {
-  const rows = seeds
-    .map((seed) => {
-      const fields = [
-        `rank: ${seed.rank}`,
-        // Optional: most of these brands are product or private brands with no
-        // ticker of their own. Omitted entirely rather than written as "".
-        ...(seed.ticker ? [`ticker: ${quote(seed.ticker)}`] : []),
-        `name: ${quote(seed.name)}`,
-        `slug: ${quote(seed.slug)}`,
-        `svgPath: ${quote(`/logos/${seed.slug}/logo.svg`)}`,
-        `gainmapPath: ${quote(`/logos/${seed.slug}/logo-gainmap.jpg`)}`,
-      ];
-      return `  { ${fields.join(", ")} },`;
-    })
-    .join("\n");
-
-  return `/**
- * Generated by tools/logos/build-logos.ts — do not edit by hand.
- *
- * The most recognizable global brands, in Interbrand Best Global Brands 2025
- * order, that have a premium full-color brand SVG. Every entry has both files
- * on disk under apps/web/public.
- */
-export type Company = {
-  readonly rank: number;
-  /** Stock ticker, when the brand is itself a listed company. */
-  readonly ticker?: string;
-  readonly name: string;
-  readonly slug: string;
-  readonly svgPath: string;
-  readonly gainmapPath: string;
-};
-
-export const COMPANIES: readonly Company[] = [
-${rows}
-];
-
-export function companyBySlug(slug: string): Company | undefined {
-  return COMPANIES.find((company) => company.slug === slug);
-}
-`;
-}
-
-function quote(value: string): string {
-  return JSON.stringify(value);
-}
-
-function chunk<T>(items: readonly T[], size: number): readonly (readonly T[])[] {
-  return Array.from({ length: Math.ceil(items.length / size) }, (_, index) =>
-    items.slice(index * size, index * size + size),
-  );
-}
-
-/** Sequential over chunks, parallel within one — polite to the upstream APIs. */
-async function mapChunked<T, R>(
-  items: readonly T[],
-  size: number,
-  fn: (item: T) => Promise<R>,
-): Promise<readonly R[]> {
-  return chunk(items, size).reduce<Promise<readonly R[]>>(
-    async (previous, group) => [...(await previous), ...(await Promise.all(group.map(fn)))],
-    Promise.resolve([]),
-  );
-}
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
 
 await main();

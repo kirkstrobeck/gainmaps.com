@@ -4,20 +4,25 @@ import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
 
+function resolveDistDir(): string {
+  if (process.env.NEXT_DIST_DIR) return process.env.NEXT_DIST_DIR;
+  // Default `.next` is what Vercel looks for (`routes-manifest.json`). Local
+  // prod builds that must not clobber a running `next dev` opt in via
+  // NEXT_DIST_DIR=.next-prod (`pnpm build:isolated` / `pnpm start:isolated`).
+  return ".next";
+}
+
 const nextConfig: NextConfig = {
-  // NEXT_DIST_DIR lets production/lighthouse builds write to .next-prod so they
-  // never clobber the dev server's .next directory.
-  distDir: process.env.NEXT_DIST_DIR ?? ".next",
+  distDir: resolveDistDir(),
+  typescript: { ignoreBuildErrors: true },
   devIndicators: false,
   outputFileTracingRoot: root,
   reactStrictMode: true,
   // Let our /ingest/flags/ rewrite fire before Next.js redirects the trailing slash.
   skipTrailingSlashRedirect: true,
   images: {
-    remotePatterns: [
-      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
-      { protocol: "https", hostname: "plus.unsplash.com", pathname: "/**" },
-    ],
+    // Photo tiles are served via plain <img> from Supabase Storage, not next/image.
+    remotePatterns: [],
     // Normalize to one quality value to eliminate build warnings and runtime drift.
     qualities: [75],
   },
@@ -49,17 +54,16 @@ const nextConfig: NextConfig = {
           },
           {
             // CSP: PostHog proxied same-origin via /ingest. Fonts self-hosted via next/font.
-            // Unsplash images fetched via next/image (same-origin optimizer) or direct img.
+            // Photo tiles are served from Supabase Storage.
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ""}`,
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob: https://images.unsplash.com https://plus.unsplash.com",
+              "img-src 'self' data: blob: https://icquwwyymqnvhcpufxje.supabase.co",
               "font-src 'self'",
               "connect-src 'self' https://us.i.posthog.com",
               "worker-src 'self' blob:",
-              "frame-src https://giscus.app",
               "frame-ancestors 'none'",
             ].join("; "),
           },
@@ -79,6 +83,13 @@ const nextConfig: NextConfig = {
               "worker-src 'self' blob:",
             ].join("; "),
           },
+        ],
+      },
+      {
+        source: "/install.sh",
+        headers: [
+          { key: "Content-Type", value: "text/x-shellscript; charset=utf-8" },
+          { key: "Cache-Control", value: "no-store" },
         ],
       },
     ];

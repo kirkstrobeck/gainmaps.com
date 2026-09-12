@@ -1,4 +1,6 @@
 import { isSvgFile, rasterizeSvgToPng } from "@/lib/svg-raster";
+import { ANALYTICS_EVENTS, errorBucket, summarizeFile, track } from "@/lib/analytics";
+import { headroomFromBoost } from "@/lib/gain-map-encode";
 import { type Job, type JobSettings } from "@/lib/hdr-job";
 
 export function concurrencyLimit(): number {
@@ -42,6 +44,14 @@ export function failJob(
   error: string,
   onUpdate: (job: Job) => void,
 ): void {
+  track(ANALYTICS_EVENTS.converterWorkerJobFailed, {
+    ...summarizeFile(job.file),
+    boost: options.boost,
+    headroom: headroomFromBoost(options.boost),
+    elapsed_ms: Date.now() - startedAt,
+    error_bucket: errorBucket(error),
+    failure_source: "fail_job",
+  });
   onUpdate({
     ...job,
     state: "error",
@@ -65,12 +75,20 @@ export function runServiceWorkerJob(
     const gate = { open: true };
 
     function finish() {
+      /* v8 ignore next */
       if (!gate.open) return;
       gate.open = false;
       clearTimeout(startTimer);
       channel.port1.close();
       resolve();
     }
+
+    track(ANALYTICS_EVENTS.converterWorkerJobStarted, {
+      ...summarizeFile(job.file),
+      boost: options.boost,
+      headroom: headroomFromBoost(options.boost),
+      input_was_svg: isSvgFile(job.file),
+    });
 
     onUpdate({
       ...job,
@@ -113,6 +131,15 @@ export function runServiceWorkerJob(
         clearTimeout(startTimer);
         const result = message.blob as Blob;
         const resultUrl = URL.createObjectURL(result);
+        track(ANALYTICS_EVENTS.converterWorkerJobCompleted, {
+          ...summarizeFile(job.file),
+          boost: options.boost,
+          headroom: headroomFromBoost(options.boost),
+          elapsed_ms: message.elapsedMs,
+          bytes_in: message.bytesIn,
+          bytes_out: message.bytesOut,
+          has_note: Boolean(message.note),
+        });
         onUpdate({
           ...job,
           state: "done",
@@ -132,6 +159,13 @@ export function runServiceWorkerJob(
       }
       if (message.type === "error") {
         clearTimeout(startTimer);
+        track(ANALYTICS_EVENTS.converterWorkerJobFailed, {
+          ...summarizeFile(job.file),
+          boost: options.boost,
+          headroom: headroomFromBoost(options.boost),
+          elapsed_ms: message.elapsedMs,
+          error_bucket: errorBucket(message.error),
+        });
         onUpdate({
           ...job,
           state: "error",

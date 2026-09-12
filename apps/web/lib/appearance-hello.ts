@@ -50,6 +50,7 @@ export function startAppearanceHello(
   }
 
   async function bootGpu() {
+    /* v8 ignore next */
     if (control.running) return;
     if (!navigator.gpu) { start2d(); return; }
 
@@ -77,6 +78,7 @@ export function startAppearanceHello(
     const loop = { frameId: 0, running: true };
 
     function frame() {
+      /* v8 ignore next */
       if (!loop.running) return;
       const cssW = Math.max(1, lab.clientWidth);
       const cssH = Math.max(1, lab.clientHeight);

@@ -1,4 +1,4 @@
-.reports/
+reports/
 .lhci-reports/
 node_modules/
 .next/
@@ -29,11 +29,16 @@ playwright-report/
 apps/web/public/hdr-service-worker.js
 apps/web/public/demo/
 
+# Scratch / run logs
+tools/fps/results.json
+tmp/
+tmp-screens/
+
 # Window-gain calibration scratch + compiled Swift helpers
 tmp-window-gain/
 
-# Ultra HDR spike assets (regenerate locally)
-foo/assets/
+# Ultra HDR spike sandbox (regenerate locally)
+foo/
 tools/window-gain/compare-hdr
 tools/window-gain/calibrate
 fixtures/window/
@@ -71,11 +76,22 @@ tools/node_modules
 
 # Agent answer file and lighthouse logs
 .agent-answer.md
-.lh-desktop.log
-.lh-mobile.log
+.lh-*.log
 .next-prod/
+apps/web/.next-prod
 apps/web/.next-prod.pid
+apps/web/.next-prod-OLD/
+apps/web/.next-prod-OLD2/
+**/.next-prod-OLD*/
+apps/web/tmp/
 
 # Local Product Hunt launch kit
 misc/product-hunt/
 .sandbox-shots/
+
+# Next.js dev-server runtime state (SQLite database)
+apps/web/core
+
+# Vitest exclusive lockfiles — prevent concurrent runs from corrupting coverage
+.vitest.lock
+apps/web/.vitest.lock

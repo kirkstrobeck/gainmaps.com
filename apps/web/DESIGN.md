@@ -75,7 +75,7 @@ Body `line-height: 1.6` set on `body` in globals.css — component `leading-7` c
 1. **UltraWord** — WebGPU fill past SDR reference white; the product demo in the headline.
 2. **Signal copper** — single accent on mark, selection, hover borders, CTA secondary emphasis.
 3. **Standard → Ultra pair** — always visible in hero (text), `/logos`, and `/photos`; teaches the value prop instantly.
-4. **Photos (`/photos`)** — 100 Unsplash photographs, 12 per page. Standard uses `next/image` against `images.unsplash.com` (optimizer OK). Ultra uses `next/image` with `unoptimized` pointing at local `/photos/{slug}/gainmap.jpg`. The optimizer re-encodes JPEGs and would strip the gain map; `unoptimized` still gives layout, lazy loading, and `sizes`, but the bytes pass through. Rebuild with `npx tsx tools/photos/build-photos.ts`.
+4. **Photos (`/photos`)** — Unsplash photographs, 12 per page. Both Standard and Ultra live in Supabase Storage under `static/gainmaps.com/photos/{slug}/` (`standard-400/800/1280.jpg` and `gainmap-400/800/1280.jpg`). Standard is the SDR primary extracted from the gain map file via our CLI (`gainmap extract-sdr`) — not an Unsplash hotlink and not a separate re-encode. Both sides share identical pixel dimensions at every breakpoint. Ultra is served `unoptimized` so Next.js does not re-encode and strip the gain map. Rebuild with `npx tsx tools/photos/build-photos.ts`.
 5. **Local funnel** — home drop zone routes to `/convert`; no upload, no server.
 6. **Mingcute icons**, **brew copy**, **Product Hunt** link, **Kirk footer** — retained chrome.
 

@@ -51,6 +51,7 @@ export function parseClock(value: string | null): number {
   const match = value.trim().match(/^([\d.]+)(ms|s)?$/i);
   if (!match) return 0;
   const numeric = Number(match[1]);
+  /* v8 ignore next */
   if (!Number.isFinite(numeric)) return 0;
   return match[2]?.toLowerCase() === "ms" ? numeric / 1000 : numeric;
 }

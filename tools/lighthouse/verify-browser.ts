@@ -31,7 +31,7 @@ if (!CHROME_PATH || !existsSync(CHROME_PATH)) {
   process.exit(1);
 }
 
-const reportsDir = resolve(root, ".reports");
+const reportsDir = resolve(root, "reports");
 if (!existsSync(reportsDir)) mkdirSync(reportsDir, { recursive: true });
 
 interface NetworkEntry {
@@ -234,7 +234,7 @@ async function main() {
       resolve(reportsDir, "verify-browser.json"),
       JSON.stringify(summary, null, 2)
     );
-    console.log("\nSummary written to .reports/verify-browser.json");
+    console.log("\nSummary written to reports/verify-browser.json");
   } finally {
     await browser.close();
   }

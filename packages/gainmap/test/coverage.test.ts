@@ -29,11 +29,11 @@ describe("coverage leftovers", () => {
     assert.equal(flagStrings(triple.flags, "exclude").length, 3);
     const planned = planOutputs(["/tmp/a.jpg", "/tmp/b.jpg"], {
       output: "/tmp/out",
-      suffix: "-gainmap",
+      suffix: "",
       stdout: false,
       outputIsDirectory: true,
     });
-    assert.ok(planned[0]!.output?.endsWith("a-gainmap.jpg"));
+    assert.ok(planned[0]!.output?.endsWith("a.jpg"));
   });
 
   it("covers walk exclude-of-input, symlink input, fifo skip, and glob specials", async () => {
@@ -104,7 +104,7 @@ describe("coverage leftovers", () => {
     const bad = join(dir, "bad.png");
     await writeFile(bad, Buffer.from("not-a-png"));
     const code = await run([bad, "-o", join(dir, "bad-out.jpg")]);
-    assert.equal(code, 1);
+    assert.equal(code, 2);
     startIfMain(undefined, import.meta.url);
     const started: string[] = [];
     startIfMain(fileURLToPath(import.meta.url), import.meta.url, async () => { started.push("crash"); throw new Error("crash"); });
@@ -125,7 +125,8 @@ describe("coverage leftovers", () => {
     assert.equal(exitCodeFor(new Error("--output requires a value")), 2);
     assert.equal(exitCodeFor(new Error("--quality must be 1-100")), 2);
     assert.equal(exitCodeFor(new Error("no matching images")), 2);
-    assert.equal(exitCodeFor(new Error("Unsupported image type")), 2);
+    assert.equal(exitCodeFor(new Error("Unsupported image type")), 2)
+    assert.equal(exitCodeFor(new Error("unsupported option: --nope")), 2);
     assert.equal(exitCodeFor("weird"), 1);
     assert.equal(exitCodeFor(null), 1);
     const dir = await mkdtemp(join(tmpdir(), "gainmap-more-"));

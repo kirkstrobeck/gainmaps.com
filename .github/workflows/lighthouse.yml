@@ -34,11 +34,11 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build web app
-        run: pnpm -C apps/web build
+        run: pnpm -C apps/web build:isolated
 
       - name: Start production server
         run: |
-          pnpm -C apps/web start &
+          pnpm -C apps/web start:isolated &
           npx wait-on http://localhost:3000 --timeout 30000
 
       - name: Run Lighthouse (${{ matrix.preset }})

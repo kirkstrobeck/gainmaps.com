@@ -83,5 +83,5 @@ export function companyBySlug(slug: string): Company | undefined {
 }
 
 export function logoGainmapSrcset(company: Company): string {
-  return [128, 256, 512].map(w => `/logos/${company.slug}/logo-gainmap-${w}.jpg ${w}w`).join(", ");
+  return [128, 256, 512, 1024].map(w => `/logos/${company.slug}/logo-gainmap-${w}.jpg ${w}w`).join(", ");
 }

@@ -24,7 +24,7 @@ export function NavPill({
     >
       <span
         className={cn(
-          "inline-flex h-full items-center rounded-[999px] px-2.5 font-mono text-[12px] font-medium transition",
+          "inline-flex h-full items-center rounded-[999px] px-2.5 font-mono text-[12px] font-medium",
           leftActive
             ? "bg-[var(--foreground)] text-[var(--background)]"
             : "text-[var(--muted)]",
@@ -34,7 +34,7 @@ export function NavPill({
       </span>
       <span
         className={cn(
-          "inline-flex h-full items-center rounded-[999px] px-2.5 font-mono text-[12px] font-medium transition",
+          "inline-flex h-full items-center rounded-[999px] px-2.5 font-mono text-[12px] font-medium",
           !leftActive
             ? "bg-[var(--foreground)] text-[var(--background)]"
             : "text-[var(--muted)]",

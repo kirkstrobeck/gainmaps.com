@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -7,6 +7,7 @@ import { afterEach, describe, it, vi } from "vitest";
 import sharp from "sharp";
 
 import Base, { reportCrash, run, shouldRunMain, USAGE } from "#src/cli.js";
+import { readPackageVersion } from "#src/version.js";
 
 const logs: { stdout: string; stderr: string } = { stdout: "", stderr: "" };
 
@@ -45,9 +46,11 @@ describe("cli", () => {
     assert.equal(await run(["--help"]), 0);
     assert.ok(logs.stdout.includes("gainmap"));
     assert.ok(USAGE.includes("--recursive"));
+    assert.ok(USAGE.includes("--in-place"));
+    assert.ok(USAGE.includes("photo-gain.jpg"));
     assert.equal(await run(["-V"]), 0);
-    assert.match(logs.stdout, /gainmap 1\.0\.0/);
-    assert.ok(logs.stdout.includes("github.com/kirkstrobeck/gainmaps.com") || USAGE.includes("github.com/kirkstrobeck/gainmaps.com"));
+    assert.match(logs.stdout, new RegExp("gainmap " + readPackageVersion()));
+    assert.ok(logs.stdout.includes("github.com/kirkstrobeck/gainmaps") || USAGE.includes("github.com/kirkstrobeck/gainmaps"));
     assert.ok(USAGE.includes("Contributions welcome"));
     assert.equal(await run(["update"]), 0);
     assert.ok(logs.stderr.includes("git pull") || logs.stderr.includes("Docker") || logs.stderr.includes("Updating"));
@@ -124,5 +127,153 @@ describe("cli", () => {
     assert.equal(await run([input, "-n", "--auto-update"]), 0);
     assert.ok(logs.stderr.includes("Updated") || logs.stderr.includes("Re-run"));
     assert.equal(await run([input, "-n", "--offline"]), 0);
+  });
+});
+
+describe("cli output paths", () => {
+  it("writes a default sibling copy with -gain and leaves the source alone", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-sib-"));
+    const input = await jpeg(dir, "photo.jpg");
+    const before = await readFile(input);
+    assert.equal(await run([input]), 0);
+    const dest = join(dir, "photo-gain.jpg");
+    assert.equal((await readFile(dest))[0], 0xff);
+    assert.deepEqual(await readFile(input), before);
+  });
+
+  it("writes recursive sibling copies beside nested sources", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-rsib-"));
+    const nested = join(dir, "nested");
+    await mkdir(nested);
+    await jpeg(dir, "a.jpg");
+    const nestedSrc = await jpeg(nested, "b.jpg");
+    const srcBytes = await readFile(nestedSrc);
+    assert.equal(await run(["-R", dir]), 0);
+    assert.equal((await readFile(join(dir, "a-gain.jpg")))[0], 0xff);
+    assert.equal((await readFile(join(nested, "b-gain.jpg")))[0], 0xff);
+    assert.deepEqual(await readFile(nestedSrc), srcBytes);
+  });
+
+  it("writes -o as an exact file for one image", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-ofile-"));
+    const input = await jpeg(dir, "photo.jpg");
+    const dest = join(dir, "hdr.jpg");
+    assert.equal(await run([input, "-o", dest]), 0);
+    assert.equal((await readFile(dest))[0], 0xff);
+    assert.equal(await run([input, "-o", dest, "-f"]), 0);
+  });
+
+  it("rejects recursive -o that is a jpeg path or an existing file", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-odir-"));
+    await jpeg(dir, "a.jpg");
+    assert.equal(await run(["-R", dir, "-o", join(dir, "hdr.jpg")]), 2);
+    assert.ok(logs.stderr.includes("must be"));
+    const existing = join(dir, "not-a-dir.bin");
+    await writeFile(existing, Buffer.from("x"));
+    assert.equal(await run(["-R", dir, "-o", existing]), 2);
+    assert.ok(logs.stderr.includes("must be"));
+  });
+
+  it("mirrors recursive -o directories without appending -gain", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-mirror-"));
+    const nested = join(dir, "nested");
+    await mkdir(nested);
+    await jpeg(dir, "a.jpg");
+    await jpeg(nested, "b.jpg");
+    const out = join(dir, "out");
+    assert.equal(await run(["-R", dir, "-o", out]), 0);
+    assert.equal((await readFile(join(out, "a.jpg")))[0], 0xff);
+    assert.equal((await readFile(join(out, "nested", "b.jpg")))[0], 0xff);
+    await assert.rejects(readFile(join(out, "a-gain.jpg")));
+  });
+
+  it("appends --suffix for sibling copies and for -o directories", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-sfx-"));
+    const nested = join(dir, "nested");
+    await mkdir(nested);
+    const input = await jpeg(dir, "photo.jpg");
+    await jpeg(nested, "b.jpg");
+    assert.equal(await run([input, "--suffix", "-hdr"]), 0);
+    assert.equal((await readFile(join(dir, "photo-hdr.jpg")))[0], 0xff);
+    const out = join(dir, "out");
+    assert.equal(await run(["-R", dir, "-o", out, "--suffix", "-hdr", "--ext", "jpg"]), 0);
+    assert.equal((await readFile(join(out, "photo-hdr.jpg")))[0], 0xff);
+    assert.equal((await readFile(join(out, "nested", "b-hdr.jpg")))[0], 0xff);
+  });
+
+  it("overwrites a jpeg in place and rejects png, -o, stdout, no-clobber, and stdin", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-ip-"));
+    const input = await jpeg(dir, "photo.jpg");
+    const before = await readFile(input);
+    assert.equal(await run(["-i", input]), 0);
+    const after = await readFile(input);
+    assert.notDeepEqual(after, before);
+    assert.equal(after[0], 0xff);
+    await assert.rejects(readFile(join(dir, "photo-gain.jpg")));
+    const pngInput = await png(dir, "photo.png");
+    assert.equal(await run(["--in-place", pngInput]), 2);
+    assert.ok(logs.stderr.includes("requires"));
+    assert.equal(await run(["-i", input, "-o", join(dir, "x.jpg")]), 2);
+    assert.ok(logs.stderr.includes("must be"));
+    assert.equal(await run(["-i", input, "--stdout"]), 2);
+    assert.equal(await run(["-i", input, "--no-clobber"]), 2);
+    assert.equal(await run(["-i", "--stdin"]), 2);
+  });
+
+  it("overwrites each jpeg recursively in place", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-rip-"));
+    const nested = join(dir, "nested");
+    await mkdir(nested);
+    const a = await jpeg(dir, "a.jpg");
+    const b = await jpeg(nested, "b.jpg");
+    const beforeA = await readFile(a);
+    const beforeB = await readFile(b);
+    assert.equal(await run(["-R", "-i", dir]), 0);
+    assert.notDeepEqual(await readFile(a), beforeA);
+    assert.notDeepEqual(await readFile(b), beforeB);
+    await assert.rejects(readFile(join(dir, "a-gain.jpg")));
+    await assert.rejects(readFile(join(nested, "b-gain.jpg")));
+  });
+
+  it("overwrites an existing sibling copy with -f", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-force-"));
+    const input = await jpeg(dir, "photo.jpg");
+    assert.equal(await run([input]), 0);
+    assert.equal(await run([input]), 0);
+    assert.ok(logs.stderr.includes("skip"));
+    assert.equal(await run([input, "-f"]), 0);
+    assert.ok(logs.stderr.includes("photo-gain.jpg"));
+  });
+
+  it("rejects multi-file non-recursive -o that is a file", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-multi-"));
+    const a = await jpeg(dir, "a.jpg");
+    const b = await jpeg(dir, "b.jpg");
+    assert.equal(await run([a, b, "-o", join(dir, "out.jpg")]), 2);
+    assert.ok(logs.stderr.includes("must be"));
+  });
+
+  it("treats recursive -o missing non-jpeg path as a directory", async () => {
+    capture();
+    const dir = await mkdtemp(join(tmpdir(), "gainmap-missdir-"));
+    const nested = join(dir, "nested");
+    await mkdir(nested);
+    await jpeg(dir, "a.jpg");
+    await jpeg(nested, "b.jpg");
+    const out = join(dir, "new-out");
+    assert.equal(await run(["-R", dir, "-o", out, "-n"]), 0);
+    assert.ok(logs.stderr.includes("new-out"));
+    assert.ok(logs.stderr.includes("nested"));
+    assert.equal(await run(["-R", dir, "-o", join(dir, "slash-out") + String.fromCharCode(92), "-n"]), 0);
   });
 });

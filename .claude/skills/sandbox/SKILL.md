@@ -1,6 +1,8 @@
 ---
 name: sandbox
 description: Use when work in this repo needs to run — builds, tests, installs, git, edits to project files. Explains how to dispatch to the containerized inner agent, watch it, recover a lost result, and fix a broken sandbox.
+metadata:
+  internal: true
 ---
 
 # Sandbox

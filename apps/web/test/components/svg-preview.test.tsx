@@ -41,6 +41,15 @@ describe("SvgPreview", () => {
     });
   });
 
+  it("shows String(reason) when rejection is not an Error", async () => {
+    vi.spyOn(File.prototype, "text").mockRejectedValueOnce("plain string rejection");
+    const file = makeSvgFile(VALID_SVG);
+    render(<SvgPreview file={file} />);
+    await waitFor(() => {
+      expect(screen.getByText(/plain string rejection/i)).toBeInTheDocument();
+    });
+  });
+
   it("passes className to the container", async () => {
     const file = makeSvgFile(VALID_SVG);
     const { container } = render(<SvgPreview file={file} className="my-class" />);

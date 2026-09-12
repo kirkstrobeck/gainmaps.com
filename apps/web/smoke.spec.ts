@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import sharp from "sharp";
 
 const palettePng = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACAQMAAABIeJ9nAAAAAXNSR0IB2cksfwAAAAZQTFRFAAAAgICAkmm5JAAAAAJ0Uk5TAP9bkSK1AAAADElEQVR4nGM4wHAAAAMEAYEUGL32AAAAAElFTkSuQmCC",
@@ -36,8 +37,31 @@ test.beforeEach(async ({ page }) => {
 test("home page renders drop zone and brew snippet", async ({ page }) => {
   await page.goto(BASE_URL);
   await expect(page.getByText("brew install kirkstrobeck/tap/gainmap")).toBeVisible();
-  // Product Hunt link is a disabled span until the launch URL is known
-  await expect(page.getByText("View on Product Hunt")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Upvote on Product Hunt" })).toHaveAttribute(
+    "href",
+    "https://www.producthunt.com/products/gain-maps-stunning-colors-for-ui",
+  );
+});
+
+test("home heading paints ink in both modes and with Ultra disabled", async ({ page }) => {
+  for (const [mode, ultra, bright] of [["light", "on", false], ["dark", "on", true], ["dark", "off", true]] as const) {
+    await page.goto(`${BASE_URL}/?mode=${mode}`);
+    await page.getByRole("button", { name: "Got it" }).click({ timeout: 2_000 }).catch(() => undefined);
+    await page.locator("html").evaluate((html, value) => {
+      html.dataset.mode = value.mode;
+      html.dataset.ultra = value.ultra;
+    }, { mode, ultra });
+    const heading = page.getByRole("heading", { name: "Gainmaps" });
+    await expect(heading).toBeVisible();
+    await expect.poll(() => page.locator("h1 .ultra-word mask text").count()).toBeGreaterThan(0);
+
+    const png = await heading.screenshot();
+    const { data } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const ink = Array.from({ length: data.length / 4 }, (_, index) => data.subarray(index * 4, index * 4 + 3))
+      .filter(([red, green, blue]) => bright ? red > 180 && green > 180 && blue > 180 : red < 80 && green < 80 && blue < 80);
+    expect(ink.length).toBeGreaterThan(200);
+    await expect(heading.locator(".ultra-word > span:not([aria-hidden])")).not.toHaveCSS("color", "rgba(0, 0, 0, 0)");
+  }
 });
 
 test("processes a PNG through the gain map queue", async ({ page }) => {
@@ -186,10 +210,6 @@ test("/appearance page renders controls", async ({ page }) => {
   await expect(page.locator(".appearance-lab")).toBeVisible();
 });
 
-test("/community page shows giscus widget", async ({ page }) => {
-  await page.goto(`${BASE_URL}/community`);
-  await expect(page.getByRole("heading", { name: "Community" })).toBeVisible();
-});
 
 test("mode URL param sets data-mode on html element", async ({ page }) => {
   await page.goto(`${BASE_URL}/?mode=light`);
@@ -362,4 +382,45 @@ test("seam corner SDR/Ultra buttons are accessible and functional", async ({ pag
     return el ? getComputedStyle(el).getPropertyValue("--seam-x").trim() : "100";
   });
   expect(parseFloat(afterUltra)).toBeCloseTo(0, 0);
+});
+
+test("UltraWord SDR fallback text is visible and has adequate contrast", async ({ page }) => {
+  await page.goto(`${BASE_URL}/?mode=dark&ultra=on`);
+  await page.getByRole("button", { name: "Got it" }).click({ timeout: 2_000 }).catch(() => undefined);
+
+  // Force dark mode + ultra on via dataset, then wait for mask text to populate
+  await page.locator("html").evaluate((html) => {
+    html.dataset.mode = "dark";
+    html.dataset.ultra = "on";
+  });
+  await expect.poll(() => page.locator("h1 .ultra-word mask text").count()).toBeGreaterThan(0);
+
+  // The readable span (not aria-hidden) must have a non-transparent, non-background color
+  const readableColor = await page.locator("h1 .ultra-word > span:not([aria-hidden])").first().evaluate((el) => {
+    return getComputedStyle(el).color;
+  });
+  expect(readableColor).not.toBe("rgba(0, 0, 0, 0)");
+  expect(readableColor).not.toBe("transparent");
+
+  // Screenshot the h1 and verify ink pixels (bright in dark mode — expect light pixels)
+  const heading = page.getByRole("heading", { name: "Gainmaps" });
+  await expect(heading).toBeVisible();
+  const png = await heading.screenshot();
+  const { data } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const brightPixels = Array.from({ length: data.length / 4 }, (_, i) => data.subarray(i * 4, i * 4 + 3))
+    .filter(([r, g, b]) => r > 160 && g > 160 && b > 160);
+  expect(brightPixels.length, "Expected bright ink pixels in Gainmaps heading (SDR fallback visible)").toBeGreaterThan(100);
+
+  // Also verify in light mode: UltraWord inside the seam instrument shows readable text
+  await page.locator("html").evaluate((html) => {
+    html.dataset.mode = "light";
+  });
+  await page.waitForTimeout(300);
+
+  // The inst .ultra-word backdrop should use white (#ffffff or near-white) in light mode
+  const instBackdropBg = await page.locator(".inst .ultra-word > .ultra-backdrop").first().evaluate((el) => {
+    return getComputedStyle(el).backgroundColor;
+  });
+  // background should be white (255,255,255), NOT the dark foreground color
+  expect(instBackdropBg).toMatch(/rgb\(255,\s*255,\s*255\)|rgb\(254,|rgb\(253,/);
 });

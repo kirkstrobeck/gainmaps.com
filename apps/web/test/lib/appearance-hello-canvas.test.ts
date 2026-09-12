@@ -80,6 +80,14 @@ describe("syncCanvasSize", () => {
     expect(canvas.width).toBe(200);
     expect(canvas.height).toBe(200);
   });
+
+  it("falls back to dpr=1 when devicePixelRatio is 0", () => {
+    Object.defineProperty(window, "devicePixelRatio", { value: 0, configurable: true });
+    const canvas = makeCanvas(1, 1);
+    syncCanvasSize(canvas, 100, 100);
+    expect(canvas.width).toBe(100);
+    expect(canvas.height).toBe(100);
+  });
 });
 
 describe("helloCenterY", () => {

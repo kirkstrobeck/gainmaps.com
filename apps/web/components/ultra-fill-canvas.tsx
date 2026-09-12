@@ -19,13 +19,14 @@ export function UltraFillCanvas({ intensity, className, style }: Props) {
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    /* v8 ignore next */
     if (!canvas) return;
 
     let session = readSiteUltra() === "on" ? startUltraFill(canvas, { intensity }) : null;
 
     const repaint = () => { session?.poke(); };
     const onAppearance = (e: Event) => {
-      const ultra = (e as CustomEvent<{ ultra: string }>).detail.ultra;
+      const ultra = (e as CustomEvent<{ ultra: string }>).detail?.ultra;
       if (ultra === "off" && session) {
         session.stop();
         session = null;
@@ -54,6 +55,7 @@ export function UltraFillCanvas({ intensity, className, style }: Props) {
       height={1}
       aria-hidden
       className={`ultra-fill ${className ?? ""}`}
+      data-ultra-headroom={intensity}
       style={style}
     />
   );

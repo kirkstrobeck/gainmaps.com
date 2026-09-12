@@ -2,20 +2,22 @@
 // Gainmaps by Kirk Strobeck – https://gainmaps.com
 
 /**
- * Build Ultra HDR gain map JPEGs for /photos.
+ * Build Ultra HDR gain map JPEGs and matching SDR siblings for /photos.
  *
  * For every entry in apps/web/lib/photos/catalog.ts:
- *   1. skip if all four variants (gainmap-400.jpg, gainmap-800.jpg, gainmap-1280.jpg,
- *      gainmap.jpg) already exist under public/photos/<slug>/ (resume),
+ *   1. skip if all five Ultra variants (gainmap-400.jpg, gainmap-800.jpg,
+ *      gainmap-1280.jpg, gainmap-1600.jpg, gainmap-2048.jpg) already exist under
+ *      public/photos/<slug>/ (resume; 2560 is omitted because small landscape
+ *      photos won't produce it),
  *   2. download the Unsplash CDN JPEG (long edge capped — see MAX_EDGE),
  *   3. decode to RGBA with sharp,
- *   4. encode with encodeRgbaToUltraHdrJpeg (boost 1.0 max, highlight model),
- *   5. write gainmap-400.jpg, gainmap-800.jpg, gainmap-1280.jpg, and gainmap.jpg
- *      into apps/web/public/photos/<slug>/.
+ *   4. encode via packages/gainmap CLI (boost 1.0 max, highlight model),
+ *   5. write gainmap-<w>.jpg and extract standard-<w>.jpg via
+ *      `gainmap extract-sdr` into apps/web/public/photos/<slug>/.
  *
- * Standard SDR stays on images.unsplash.com; only Ultra is local so the
- * gain-map metadata is under our control and never passes through Next's
- * optimizer.
+ * Both Ultra and Standard siblings are local and share identical dimensions —
+ * Standard is the primary JPEG sliced from the gain map file, not a separate
+ * Unsplash hotlink. Catalog wiring to these files is a separate step.
  *
  * Run from the repo root:
  *   npx tsx tools/photos/build-photos.ts
@@ -37,8 +39,8 @@ const publicRoot = join(repo, "apps/web/public/photos");
 
 const USER_AGENT = "gainmaps-photos/1.0 (https://gainmaps.com; kirk@strobeck.com)";
 const BOOST = 1.0;
-/** Long edge of the encoded Ultra JPEG. Web tiles do not need camera-native pixels. */
-const MAX_EDGE = 1280;
+/** Long edge of the encoded Ultra JPEG. Covers DPR-2 hero at 1440-wide viewports. */
+const MAX_EDGE = 2560;
 const CONCURRENCY = 2;
 const RETRY_STATUSES = new Set([429, 503]);
 const MAX_RETRIES = 5;
@@ -101,7 +103,8 @@ async function buildOne(photo: Photo, force: boolean): Promise<Outcome> {
 }
 
 async function allVariantsExist(directory: string): Promise<boolean> {
-  const names = ["gainmap-400.jpg", "gainmap-800.jpg", "gainmap-1280.jpg", "gainmap.jpg"];
+  // 2560 is omitted: small landscape photos won't produce a 2560 file (source too small).
+  const names = ["gainmap-400.jpg", "gainmap-800.jpg", "gainmap-1280.jpg", "gainmap-1600.jpg", "gainmap-2048.jpg"];
   const checks = await Promise.all(names.map((n) => exists(join(directory, n))));
   return checks.every(Boolean);
 }

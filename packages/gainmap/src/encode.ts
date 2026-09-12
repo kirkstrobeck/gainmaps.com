@@ -143,6 +143,7 @@ export function encodeKeepBaseGainMap(
   height: number,
   headroom: number,
   hdrModel: GainMapHdrModel = "highlight",
+  alphaMask?: Uint8Array | null,
 ): EncodingResult {
   const offsetSdr = [1 / 64, 1 / 64, 1 / 64] as [number, number, number];
   const offsetHdr = [1 / 64, 1 / 64, 1 / 64] as [number, number, number];
@@ -157,6 +158,14 @@ export function encodeKeepBaseGainMap(
   const count = width * height;
   for (let index = 0; index < count; index += 1) {
     const offset = index * 4;
+    gainMap[offset + 3] = 255;
+    const alphaW = alphaMask ? alphaMask[offset + 3]! / 255 : 1;
+    if (alphaW === 0) {
+      gainMap[offset] = 0;
+      gainMap[offset + 1] = 0;
+      gainMap[offset + 2] = 0;
+      continue;
+    }
     const sdrR = sRGBToLinear(sdr[offset]! / 255);
     const sdrG = sRGBToLinear(sdr[offset + 1]! / 255);
     const sdrB = sRGBToLinear(sdr[offset + 2]! / 255);
@@ -164,10 +173,9 @@ export function encodeKeepBaseGainMap(
     const gainR = (hdrR + offsetHdr[0]) / (sdrR + offsetSdr[0]);
     const gainG = (hdrG + offsetHdr[1]) / (sdrG + offsetSdr[1]);
     const gainB = (hdrB + offsetHdr[2]) / (sdrB + offsetSdr[2]);
-    gainMap[offset] = Math.round(255 * clamp((Math.log2(Math.max(gainR, 1e-8)) - minLog2) * invLogRange, 0, 1) ** gamma[0]);
-    gainMap[offset + 1] = Math.round(255 * clamp((Math.log2(Math.max(gainG, 1e-8)) - minLog2) * invLogRange, 0, 1) ** gamma[1]);
-    gainMap[offset + 2] = Math.round(255 * clamp((Math.log2(Math.max(gainB, 1e-8)) - minLog2) * invLogRange, 0, 1) ** gamma[2]);
-    gainMap[offset + 3] = 255;
+    gainMap[offset] = Math.round(255 * clamp((Math.log2(Math.max(gainR, 1e-8)) - minLog2) * invLogRange * alphaW, 0, 1) ** gamma[0]);
+    gainMap[offset + 1] = Math.round(255 * clamp((Math.log2(Math.max(gainG, 1e-8)) - minLog2) * invLogRange * alphaW, 0, 1) ** gamma[1]);
+    gainMap[offset + 2] = Math.round(255 * clamp((Math.log2(Math.max(gainB, 1e-8)) - minLog2) * invLogRange * alphaW, 0, 1) ** gamma[2]);
   }
   return {
     sdr,
@@ -206,7 +214,10 @@ export function encodeRgbaToUltraHdrJpeg(
     options.matte === "checkerboard"
       ? flattenRgbaOntoCheckerboard(pixels, width, height)
       : flattenRgbaOntoWhite(pixels, width, height);
-  const encoding = encodeKeepBaseGainMap(sdr, width, height, headroom, hdrModel);
+  // Logos use checkerboard matte; pass original alpha so background pixels are not boosted.
+  // Photos use white matte; pass null — their all-255 alpha makes behavior bit-identical.
+  const alphaMask = options.matte === "checkerboard" ? pixels : null;
+  const encoding = encodeKeepBaseGainMap(sdr, width, height, headroom, hdrModel, alphaMask);
   const output = writeJpegGainMap(encoding, { quality, format: "ultrahdr" });
   return {
     output,

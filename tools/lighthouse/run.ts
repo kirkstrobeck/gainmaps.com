@@ -125,7 +125,7 @@ async function main(): Promise<void> {
   symlinkSync(tmpDir, distDir);
 
   console.log("\n=== Step 1: build ===");
-  run("pnpm -C apps/web build", root, { ...process.env, NEXT_DIST_DIR: ".next-prod" });
+  run("pnpm -C apps/web build:isolated", root);
 
   console.log("\n=== Step 2: start production server ===");
   const server: ChildProcess = spawn(

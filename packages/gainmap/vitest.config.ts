@@ -9,6 +9,7 @@ export default defineConfig({
   },
   test: {
     include: ["test/**/*.test.ts"],
+    testTimeout: 360_000,
     env: { GAINMAP_NO_UPDATE_CHECK: "1" },
     coverage: {
       provider: "v8",

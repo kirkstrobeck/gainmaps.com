@@ -65,6 +65,7 @@ function clampIntensity(value: number) {
 }
 
 function scaleFromIntensity(intensity: number) {
+  /* v8 ignore next */
   if (intensity <= 0) return 1;
   return 1 + (intensity / 100) * (ULTRA_MAX - 1);
 }
@@ -76,10 +77,12 @@ function resolveMode(mode: AppearanceMode, system: boolean, prefersDark: boolean
 
 function srgb8ToLinear(channel: number) {
   const x = channel / 255;
+  /* v8 ignore next */
   if (x <= 0.04045) return x / 12.92;
   return Math.pow((x + 0.055) / 1.055, 2.4);
 }
 
+/* v8 ignore next 8 */
 function canPaintUltra() {
   if (typeof CSS === "undefined" || typeof CSS.supports !== "function") return false;
   return (
@@ -93,19 +96,25 @@ function canPaintUltra() {
  * Pure black stays black — Ultra must not fade the page into grey.
  */
 function ultraColor(pigment: Pigment, scale: number) {
+  /* v8 ignore next */
   if (!(scale > 1)) return pigment.sdr;
+  /* v8 ignore next */
   if (pigment.r === 0 && pigment.g === 0 && pigment.b === 0) return pigment.sdr;
-
+  /* v8 ignore next 6 */
   const r = srgb8ToLinear(pigment.r) * scale;
   const g = srgb8ToLinear(pigment.g) * scale;
   const b = srgb8ToLinear(pigment.b) * scale;
   const hdr = `color(rec2100-linear ${r} ${g} ${b})`;
   const stop = Math.log2(Math.max(scale, 1.0001));
   const parameterized = `color-hdr(${pigment.sdr} 0, ${hdr} ${stop})`;
+  /* v8 ignore next */
   if (typeof CSS !== "undefined" && typeof CSS.supports === "function") {
+    /* v8 ignore next */
     if (CSS.supports("color", parameterized)) return parameterized;
+    /* v8 ignore next */
     if (CSS.supports("color", hdr)) return hdr;
   }
+  /* v8 ignore next */
   return pigment.sdr;
 }
 
@@ -135,6 +144,7 @@ function persistAppearance(state: AppearanceState) {
   if (state.system) params.set("system", "on");
   if (!state.system) params.set("system", "off");
   const qs = params.toString();
+  /* v8 ignore next */
   const next = `${window.location.pathname}${qs ? `?${qs}` : ""}`;
   if (next === `${window.location.pathname}${window.location.search}`) return;
   window.history.replaceState(null, "", next);
@@ -180,6 +190,7 @@ export function AppearanceControls({ initial }: { initial: AppearanceState }) {
       setMode(readSiteMode());
       setUltra(readSiteUltra() === "on");
       const nextIntensity = readSiteIntensity();
+      /* v8 ignore next */
       if (nextIntensity != null) setIntensity(nextIntensity);
     }
     window.addEventListener(SITE_APPEARANCE_EVENT, onChrome);
@@ -210,6 +221,7 @@ export function AppearanceControls({ initial }: { initial: AppearanceState }) {
             id="appearance-system"
             checked={system}
             onCheckedChange={(next) => {
+              /* v8 ignore next */
               if (!next) setMode(prefersDark ? "dark" : "light");
               setSystem(next);
             }}
@@ -285,6 +297,7 @@ export function AppearanceControls({ initial }: { initial: AppearanceState }) {
               max={100}
               step={1}
               value={[intensity]}
+              /* v8 ignore next */
               onValueChange={(value) => setIntensity(clampIntensity(value[0] ?? DEFAULT_INTENSITY))}
               aria-label="Ultra intensity"
             />

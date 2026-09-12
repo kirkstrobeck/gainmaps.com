@@ -35,6 +35,7 @@ const PATHS = {
   arrowBack: "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
   arrowForward: "M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z",
   arrowDownward: "M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z",
+  arrowUpward: "M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z",
   bookmark: "M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z",
   schedule: "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z",
   darkMode: "M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z",
@@ -66,6 +67,7 @@ export function CloseIcon(p: IconProps) { return <Icon {...p} path={PATHS.close}
 export function ArrowBackIcon(p: IconProps) { return <Icon {...p} path={PATHS.arrowBack} />; }
 export function ArrowForwardIcon(p: IconProps) { return <Icon {...p} path={PATHS.arrowForward} />; }
 export function ArrowDownwardIcon(p: IconProps) { return <Icon {...p} path={PATHS.arrowDownward} />; }
+export function ArrowUpwardIcon(p: IconProps) { return <Icon {...p} path={PATHS.arrowUpward} />; }
 export function BookmarkIcon(p: IconProps) { return <Icon {...p} path={PATHS.bookmark} />; }
 export function ScheduleIcon(p: IconProps) { return <Icon {...p} path={PATHS.schedule} />; }
 export function DarkModeIcon(p: IconProps) { return <Icon {...p} path={PATHS.darkMode} />; }
@@ -89,6 +91,28 @@ export function StarsIcon(p: IconProps) { return <Icon {...p} path={PATHS.stars}
 export function RefreshIcon(p: IconProps) { return <Icon {...p} path={PATHS.refresh} />; }
 export function ChevronLeftIcon(p: IconProps) { return <Icon {...p} path={PATHS.chevronLeft} />; }
 export function ChevronRightIcon(p: IconProps) { return <Icon {...p} path={PATHS.chevronRight} />; }
+
+
+export function ProductHuntIcon({ size, width, height, color, className, ...rest }: IconProps) {
+  const dim = size ?? width ?? height ?? 24;
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width={size ?? width ?? dim}
+      height={size ?? height ?? dim}
+      fill="none"
+      className={className}
+      {...rest}
+    >
+      <circle cx="12" cy="12" r="12" fill="#ffffff" />
+      <path
+        fill={color ?? "#DA552F"}
+        d="M13.604 8.4h-3.405V12h3.405c.995 0 1.801-.806 1.801-1.801 0-.993-.805-1.799-1.801-1.799zM12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zm1.604 14.4h-3.405V18H7.801V6h5.804c2.319 0 4.2 1.88 4.2 4.199 0 2.321-1.881 4.201-4.201 4.201z"
+      />
+    </svg>
+  );
+}
 
 export function GitHubIcon({ size, width, height, color, className, ...rest }: IconProps) {
   const dim = size ?? width ?? height ?? 24;
