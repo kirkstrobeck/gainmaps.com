@@ -7,7 +7,7 @@ import {
 export type GainMapHdrModel = "highlight" | "window";
 
 export type GainMapEncodeOptions = {
-  /** 0..1 UI boost. 0.5 is default photo headroom. */
+  /** 0..1 UI boost. 1 is the default (max headroom, 6×). */
   boost?: number;
   /** Explicit headroom multiplier; overrides boost when set. */
   headroom?: number;
@@ -42,6 +42,7 @@ export const WINDOW_GAIN_CALIBRATION: WindowGainCalibration = {
 };
 
 export const DEFAULT_PHOTO_HEADROOM = WINDOW_GAIN_CALIBRATION.headroom;
+export const DEFAULT_BOOST = 1;
 
 export function headroomFromBoost(boost: number): number {
   const mid = DEFAULT_PHOTO_HEADROOM;
@@ -189,7 +190,7 @@ export function resolveHeadroom(options: GainMapEncodeOptions): number {
   if (options.headroom != null && Number.isFinite(options.headroom)) {
     return Math.max(Number(options.headroom), 1);
   }
-  return headroomFromBoost(clamp(Number(options.boost ?? 0.5), 0, 1));
+  return headroomFromBoost(clamp(Number(options.boost ?? DEFAULT_BOOST), 0, 1));
 }
 
 export function encodeRgbaToUltraHdrJpeg(

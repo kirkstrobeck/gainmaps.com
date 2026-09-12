@@ -14,13 +14,14 @@ import {
   settingsChanged,
   download,
 } from "@/lib/hdr-job";
+import { DEFAULT_BOOST } from "@/lib/gain-map-encode";
 import { concurrencyLimit, ensureProcessorRegistration, runServiceWorkerJob } from "@/lib/hdr-worker";
 import { dequeueFiles } from "@/lib/file-queue";
 import { cn } from "@/lib/utils";
 
 export function HdrProcessor() {
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [boost, setBoost] = useState(0.5);
+  const [boost, setBoost] = useState(DEFAULT_BOOST);
   const [autoDownload, setAutoDownload] = useState(false);
   const [workerState, setWorkerState] = useState<"checking" | "ready" | "error">("checking");
   const [dragActive, setDragActive] = useState(false);

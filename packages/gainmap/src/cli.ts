@@ -32,7 +32,7 @@ Output
 
 Conversion
   -q, --quality <1-100> JPEG quality of the SDR base (default 92)
-      --boost <0-1>     HDR boost (default 0.5)
+      --boost <0-1>     HDR boost (default 1)
       --headroom <n>    Explicit headroom; overrides --boost
       --model <name>    highlight (default) | window
       --matte <name>    white (default) | checkerboard

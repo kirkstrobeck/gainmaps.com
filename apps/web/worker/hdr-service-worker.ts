@@ -2,7 +2,7 @@ import { decompressFrames, parseGIF, type ParsedFrame } from "gifuct-js";
 import decodeHeic from "heic-decode";
 import UPNG from "upng-js";
 
-import { encodeRgbaToUltraHdrJpeg } from "../lib/gain-map-encode";
+import { DEFAULT_BOOST, encodeRgbaToUltraHdrJpeg } from "../lib/gain-map-encode";
 
 type ImageFormat = "png" | "jpeg" | "gif" | "heic" | "webp" | "avif" | "bitmap";
 type ProgressMessage = {
@@ -84,7 +84,7 @@ async function processJob(data: ProcessJobData, port: MessagePort): Promise<void
   try {
     post({ type: "progress", progress: 4, phase: "Reading file" });
     const input = new Uint8Array(await file.arrayBuffer());
-    const boost = clamp(Number(options.boost ?? 0.5), 0, 1);
+    const boost = clamp(Number(options.boost ?? DEFAULT_BOOST), 0, 1);
     const format = detectFormat(input, file);
 
     post({ type: "progress", progress: 18, phase: "Inspecting container" });

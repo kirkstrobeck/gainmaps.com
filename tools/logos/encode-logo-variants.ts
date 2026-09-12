@@ -53,7 +53,7 @@ export async function encodeLogoVariants(
   canvasW: number,
   canvasH: number,
   outDir: string,
-  boost: number = 0.5,
+  boost: number = 1,
 ): Promise<void> {
   await mkdir(outDir, { recursive: true });
 

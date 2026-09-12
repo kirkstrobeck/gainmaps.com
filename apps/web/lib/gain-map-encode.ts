@@ -1,4 +1,5 @@
 export {
+  DEFAULT_BOOST,
   DEFAULT_PHOTO_HEADROOM,
   WINDOW_GAIN_CALIBRATION,
   applyHighlightSelectiveHdr,
