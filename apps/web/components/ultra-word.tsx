@@ -6,6 +6,7 @@ import { useLayoutEffect, useId, useRef, useState, type CSSProperties } from "re
 
 import { foundationHeadroomFor } from "@/lib/text-ultra";
 import { ultraOverlayGeometry } from "@/lib/ultra-overlay";
+import { useHdrDisplay } from "@/lib/use-hdr-display";
 
 import { UltraFillCanvas } from "./ultra-fill-canvas";
 
@@ -69,6 +70,7 @@ function typographyFor(element: HTMLElement): Typography {
   line follows the selectable text rather than forcing a single SVG line.
 */
 export function UltraWord({ text, typeClassName, intensity }: Props) {
+  const hdrDisplay = useHdrDisplay();
   const maskId = `ultra-word-${useId().replace(/[^a-zA-Z0-9]/g, "")}`;
   const maskInsetId = `${maskId}i`;
   const maskBlurId = `${maskId}b`;
@@ -83,6 +85,7 @@ export function UltraWord({ text, typeClassName, intensity }: Props) {
   const foundationIntensity = foundationHeadroomFor(intensity);
 
   useLayoutEffect(() => {
+    if (!hdrDisplay) return;
     const readable = readableRef.current as HTMLSpanElement;
     const svg = overlayRef.current as SVGSVGElement;
     const textNode = readable.firstChild as Text;
@@ -101,13 +104,13 @@ export function UltraWord({ text, typeClassName, intensity }: Props) {
       observer.disconnect();
       window.removeEventListener("resize", measure);
     };
-  }, [text, typeClassName]);
+  }, [hdrDisplay, text, typeClassName]);
 
   return (
     <span className="ultra-word relative isolate inline-block overflow-clip">
       <span ref={readableRef} className={`${typeClassName} relative z-0 text-[var(--foreground)]`}>{text}</span>
 
-      <svg ref={overlayRef} aria-hidden className="pointer-events-none select-none ultra-mask-defs" style={overlay}>
+      {hdrDisplay ? <svg ref={overlayRef} aria-hidden className="pointer-events-none select-none ultra-mask-defs" style={overlay}>
         <defs>
           <filter id={maskBlurId} x="-4%" y="-4%" width="108%" height="108%">
             <feGaussianBlur stdDeviation="0.3" />
@@ -129,10 +132,10 @@ export function UltraWord({ text, typeClassName, intensity }: Props) {
             ))}
           </mask>
         </defs>
-      </svg>
+      </svg> : null}
 
-      <UltraFillCanvas intensity={foundationIntensity} className="pointer-events-none ultra-fill-foundation" style={{ ...overlay, mask, WebkitMask: mask }} />
-      <UltraFillCanvas intensity={intensity} className="pointer-events-none ultra-fill-inner" style={{ ...overlay, mask: maskInset, WebkitMask: maskInset }} />
+      {hdrDisplay ? <UltraFillCanvas intensity={foundationIntensity} className="pointer-events-none ultra-fill-foundation" style={{ ...overlay, mask, WebkitMask: mask }} /> : null}
+      {hdrDisplay ? <UltraFillCanvas intensity={intensity} className="pointer-events-none ultra-fill-inner" style={{ ...overlay, mask: maskInset, WebkitMask: maskInset }} /> : null}
     </span>
   );
 }

@@ -12,6 +12,7 @@ export function StructuredData() {
           email: "kirk@strobeck.com",
           contactType: "customer support",
           url: "https://www.gainmaps.com/contact",
+          areaServed: "Worldwide",
         },
       },
       {

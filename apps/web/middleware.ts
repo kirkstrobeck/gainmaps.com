@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parseSiteMode, parseSiteUltra } from "@/lib/site-appearance";
 import { TEXT_ULTRA_SLIDER_DEFAULT } from "@/lib/text-ultra";
 import { PHOTOS } from "@/lib/photos/catalog";
-import { MARKDOWN_PATHS } from "@/lib/page-markdown";
+import { MARKDOWN_PATHS, markdownForPath } from "@/lib/page-markdown";
 import { appendVary } from "@/lib/append-vary";
 
 const CANONICAL_HOST = "www.gainmaps.com";
@@ -62,10 +62,12 @@ export function middleware(request: NextRequest) {
   if (accept.includes("text/markdown")) {
     const { pathname } = request.nextUrl;
     if (MARKDOWN_PATHS.has(pathname)) {
-      const dest = request.nextUrl.clone();
-      dest.pathname = "/api/markdown";
-      dest.searchParams.set("path", pathname);
-      return NextResponse.rewrite(dest);
+      return new NextResponse(markdownForPath(pathname), {
+        headers: {
+          "content-type": "text/markdown; charset=utf-8",
+          "vary": "Accept, Accept-Encoding",
+        },
+      });
     }
     const body = `# 404 — Page Not Found\n\nThis path does not exist on Gainmaps.\n\n## Where to look next\n\n- [Home](/)\n- [Gallery](/photos)\n- [Developers](/developers)\n- [Docs](/docs)\n- [OpenAPI spec](/openapi.json)\n- [Sitemap](/sitemap.xml)\n- [Agent index](/llms.txt)\n`;
     return new NextResponse(body, {

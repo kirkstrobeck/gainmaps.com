@@ -30,14 +30,14 @@ describe("markdown-path HTML responses advertise Vary: Accept", () => {
   });
 });
 
-describe("markdown Accept still rewrites MARKDOWN_PATHS", () => {
+describe("markdown Accept returns the negotiated representation", () => {
   for (const path of MARKDOWN_PATHS) {
-    it(`${path} rewrites to /api/markdown`, () => {
+    it(`${path} returns markdown with cache-safe headers`, async () => {
       const response = middleware(request(path, "text/markdown"));
-      const rewrite = response.headers.get("x-middleware-rewrite") ?? "";
-      expect(rewrite).toContain("/api/markdown");
-      const rewritten = new URL(rewrite);
-      expect(rewritten.searchParams.get("path")).toBe(path);
+      expect(response.status).toBe(200);
+      expect(response.headers.get("content-type")).toContain("text/markdown");
+      expect(response.headers.get("vary")).toBe("Accept, Accept-Encoding");
+      expect(await response.text()).toMatch(/^# /);
     });
   }
 });

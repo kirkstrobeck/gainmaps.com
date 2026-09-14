@@ -6,11 +6,11 @@ describe("SeamCornerButtons", () => {
   it("reports pressed state and snaps", () => {
     const snapTo = vi.fn();
     render(<SeamCornerButtons seamSide="sdr" snapTo={snapTo} />);
-    expect(screen.getByRole("button", { name: "Show Standard" })).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Show Ultra" })).toHaveAttribute("aria-pressed", "false");
-    fireEvent.click(screen.getByRole("button", { name: "Show Ultra" }));
+    expect(screen.getByRole("button", { name: "SDR: Show Standard" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Ultra: Show Ultra" })).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(screen.getByRole("button", { name: "Ultra: Show Ultra" }));
     expect(snapTo).toHaveBeenCalledWith(0);
-    fireEvent.click(screen.getByRole("button", { name: "Show Standard" }));
+    fireEvent.click(screen.getByRole("button", { name: "SDR: Show Standard" }));
     expect(snapTo).toHaveBeenCalledWith(100);
   });
 

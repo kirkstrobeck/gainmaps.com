@@ -15,7 +15,7 @@ const nextConfigPath = join(WEB_ROOT, "next.config.ts")
 const envExamplePath = join(WEB_ROOT, ".env.example")
 
 const POSTHOG_IMPORT_PATTERN =
-  /from\s+["']posthog-js["']|require\s*\(\s*["']posthog-js["']\s*\)/
+  /from\s+["']posthog-js(?:\/dist\/module\.slim)?["']|(?:require|import)\s*\(\s*["']posthog-js(?:\/dist\/module\.slim)?["']\s*\)/
 
 function listSourceFiles(dir: string): readonly string[] {
   const entries = readdirSync(dir, { withFileTypes: true })
@@ -96,9 +96,11 @@ describe("instrumentation-client.ts source", () => {
   const src = readFileSync(instrumentationPath, "utf8")
   const helperSrc = readFileSync(helperPath, "utf8")
 
-  it("statically imports posthog-js", () => {
-    expect(src).toMatch(/import\s+posthog\s+from\s+["']posthog-js["']/)
-    expect(src).not.toMatch(/import\s*\(\s*["']posthog-js["']\s*\)/)
+  it("loads slim posthog after load becomes idle or the user interacts", () => {
+    expect(src).not.toMatch(/import\s+posthog\s+from\s+["']posthog-js["']/)
+    expect(src).toMatch(/import\s*\(\s*["']posthog-js\/dist\/module\.slim["']\s*\)/)
+    expect(src).toMatch(/requestIdleCallback/)
+    expect(src).toMatch(/pointerdown/)
   })
 
   it("uses posthogClientConfig helper for token and host", () => {
@@ -134,9 +136,9 @@ describe("instrumentation-client.ts source", () => {
     expect(src).toMatch(/if\s*\(\s*!config\s*\)\s*return/)
   })
 
-  it("does not defer init on window load or document.readyState", () => {
-    expect(src).not.toMatch(/addEventListener\s*\(\s*["']load["']/)
-    expect(src).not.toMatch(/document\.readyState/)
+  it("queues early events until the deferred client is ready", () => {
+    expect(src).toMatch(/queue\.push/)
+    expect(src).toMatch(/queue\.forEach/)
   })
 })
 

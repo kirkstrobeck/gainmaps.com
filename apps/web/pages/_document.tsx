@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-head-element -- plain tags avoid the documented Next 15 fallback worker mismatch below */
 // Barebones _document for Next.js 15.5.22 Pages Router fallback pages.
 // All next/document components (Html, Head, Main, NextScript) call useHtmlContext()
 // which fails in the SSG worker due to a React instance mismatch between

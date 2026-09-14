@@ -27,6 +27,7 @@ export function HdrProcessor() {
   const [workerState, setWorkerState] = useState<"checking" | "ready" | "error">("checking");
   const [dragActive, setDragActive] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const hasJobs = jobs.length > 0;
   const queueRunning = useRef(false);
   const inflightIds = useRef(new Set<string>());
   const downloaded = useRef(new Set<string>());
@@ -74,6 +75,7 @@ export function HdrProcessor() {
   }, [autoDownload, downloadJob, jobs]);
 
   useEffect(() => {
+    if (!hasJobs) return;
     const gate = { open: true };
     ensureProcessorRegistration()
       .then(() => {
@@ -94,7 +96,7 @@ export function HdrProcessor() {
         }
       });
     return () => { gate.open = false; };
-  }, []);
+  }, [hasJobs]);
 
   useEffect(() => () => {
     coalescer.cancel();

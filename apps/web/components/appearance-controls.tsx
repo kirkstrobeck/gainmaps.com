@@ -1,7 +1,7 @@
 "use client";
 
 import { DarkModeIcon as MoonFilled, LightModeIcon as SunFilled } from "@/components/icons";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { UltraIcon } from "@/components/ultra-icon";
 import { Label } from "@/components/ui/label";
@@ -175,7 +175,7 @@ export function AppearanceControls({ initial }: { initial: AppearanceState }) {
   const [intensity, setIntensity] = useState(clampIntensity(initial.intensity));
   const [prefersDark, setPrefersDark] = useState(false);
 
-  const state: AppearanceState = { mode, system, ultra, intensity };
+  const state = useMemo<AppearanceState>(() => ({ mode, system, ultra, intensity }), [intensity, mode, system, ultra]);
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -203,7 +203,7 @@ export function AppearanceControls({ initial }: { initial: AppearanceState }) {
     return () => {
       delete document.documentElement.dataset.appearanceEdr;
     };
-  }, [mode, system, ultra, intensity, prefersDark]);
+  }, [prefersDark, state]);
 
   return (
     <div className="appearance-bar-inner">

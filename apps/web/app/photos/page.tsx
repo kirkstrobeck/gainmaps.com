@@ -5,7 +5,7 @@ import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
 import { PageChrome } from "@/components/page-chrome";
 import { PhotoCredit } from "@/components/photo-pair";
-import { SeamComparePhoto } from "@/components/seam-compare";
+import { GallerySeamController, GallerySeamPhoto } from "@/components/gallery-seam";
 import {
   PHOTOS,
   PHOTO_GALLERY_SIZES,
@@ -58,10 +58,11 @@ export default function Base() {
         <ul className="mt-10 grid list-none grid-cols-1 gap-8 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {PHOTOS.map((photo, index) => (
             <li key={photo.id} className="photo-card">
-              <PhotoCard photo={photo} priority={index < 3 ? true : undefined} deferUltra={index >= 3} lazy={index >= 3} />
+              <PhotoCard photo={photo} priority={index === 0 ? true : undefined} />
             </li>
           ))}
         </ul>
+        <GallerySeamController />
       </div>
     </main>
   );
@@ -70,25 +71,13 @@ export default function Base() {
 function PhotoCard({
   photo,
   priority,
-  deferUltra,
-  lazy,
 }: {
   photo: Photo;
   priority?: boolean;
-  deferUltra?: boolean;
-  lazy?: boolean;
 }) {
   return (
     <article className="grid gap-3">
-      <SeamComparePhoto
-        photo={photo}
-        width="100%"
-        className="aspect-video"
-        priority={priority}
-        deferUltra={deferUltra}
-        lazy={lazy}
-        sizes={PHOTO_GALLERY_SIZES}
-      />
+      <GallerySeamPhoto photo={photo} priority={Boolean(priority)} sizes={PHOTO_GALLERY_SIZES} />
       <div className="flex items-center justify-between gap-2">
         <PhotoCredit photo={photo} />
         <a

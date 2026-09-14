@@ -6,6 +6,7 @@ import { useEffect, useRef, type CSSProperties } from "react";
 
 import { startUltraFill } from "@/lib/ultra-fill";
 import { SITE_APPEARANCE_EVENT, readSiteUltra } from "@/lib/site-appearance";
+import { useHdrDisplay } from "@/lib/use-hdr-display";
 
 type Props = {
   intensity: number;
@@ -15,9 +16,11 @@ type Props = {
 
 /** A rectangle of Ultra white. Shape it with a CSS mask on the parent's terms. */
 export function UltraFillCanvas({ intensity, className, style }: Props) {
+  const hdrDisplay = useHdrDisplay();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    if (!hdrDisplay) return;
     const canvas = canvasRef.current;
     /* v8 ignore next */
     if (!canvas) return;
@@ -46,7 +49,7 @@ export function UltraFillCanvas({ intensity, className, style }: Props) {
       window.removeEventListener(SITE_APPEARANCE_EVENT, onAppearance);
       session?.stop();
     };
-  }, [intensity]);
+  }, [hdrDisplay, intensity]);
 
   return (
     <canvas

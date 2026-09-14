@@ -42,4 +42,12 @@ describe("StructuredData", () => {
     expect(org.contactPoint).toBeDefined();
     expect(org.contactPoint.email).toBe("kirk@strobeck.com");
   });
+
+  it("includes the Organization service area used for entity resolution", () => {
+    const { container } = render(<StructuredData />);
+    const script = container.querySelector('script[type="application/ld+json"]');
+    const json = JSON.parse(script!.textContent ?? "{}");
+    const org = json["@graph"].find((node: { "@type": string }) => node["@type"] === "Organization");
+    expect(org.contactPoint.areaServed).toBe("Worldwide");
+  });
 });

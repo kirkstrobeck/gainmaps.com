@@ -4,7 +4,7 @@ import { FOOTER_LINKS } from "@/lib/nav";
 const FOCUS =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]";
 
-const LINK_CLASS = `text-xs text-[var(--muted)] transition hover:text-[var(--accent)] ${FOCUS}`;
+const LINK_CLASS = `inline-flex min-h-11 items-center px-1 text-xs text-[var(--muted)] transition hover:text-[var(--accent)] ${FOCUS}`;
 
 const CREDIT_HREF = "https://www.linkedin.com/in/kirkstrobeck";
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { UltraFillCanvas } from "@/components/ultra-fill-canvas";
 import { SITE_APPEARANCE_EVENT } from "@/lib/site-appearance";
 
@@ -13,10 +13,37 @@ describe("UltraFillCanvas", () => {
   beforeEach(() => {
     start.mockClear();
     document.documentElement.dataset.ultra = "on";
+    vi.stubGlobal("matchMedia", vi.fn(() => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
   });
 
   afterEach(() => {
     delete document.documentElement.dataset.ultra;
+    vi.unstubAllGlobals();
+  });
+
+  it("waits until the display reports high dynamic range", () => {
+    let onChange: (() => void) | undefined;
+    const media = {
+      matches: false,
+      addEventListener: vi.fn((_event: string, listener: () => void) => { onChange = listener; }),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal("matchMedia", vi.fn(() => media));
+    render(<UltraFillCanvas intensity={2} />);
+    expect(start).not.toHaveBeenCalled();
+    media.matches = true;
+    act(() => onChange?.());
+    expect(start).toHaveBeenCalledOnce();
+  });
+
+  it("uses the readable fallback when matchMedia is unavailable", () => {
+    vi.stubGlobal("matchMedia", undefined);
+    render(<UltraFillCanvas intensity={2} />);
+    expect(start).not.toHaveBeenCalled();
   });
 
   it("starts a session when ultra is on and tears it down", () => {

@@ -13,7 +13,7 @@
     "build:worker": "esbuild worker/hdr-service-worker.ts --bundle --format=iife --platform=browser --target=es2022 --outfile=public/hdr-service-worker.js --legal-comments=none",
     "start": "next start --hostname 0.0.0.0",
     "start:isolated": "NODE_ENV=production NEXT_DIST_DIR=.next-prod next start --hostname 0.0.0.0",
-    "lint": "next lint",
+    "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "e2e": "playwright test smoke.spec.ts --browser chromium --reporter line",
     "fps": "tsx ../../tools/fps/measure.ts",

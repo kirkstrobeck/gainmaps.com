@@ -51,10 +51,10 @@ describe("SeamComparePhoto input", () => {
 
   it("SDR snap is 100 and Ultra snap is 0, middle snap clears side", () => {
     render(<SeamComparePhoto photo={photo} />);
-    fireEvent.click(screen.getByRole("button", { name: "Show Standard" }));
-    expect(screen.getByRole("button", { name: "Show Standard" })).toHaveAttribute("aria-pressed", "true");
-    fireEvent.click(screen.getByRole("button", { name: "Show Ultra" }));
-    expect(screen.getByRole("button", { name: "Show Ultra" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "SDR: Show Standard" }));
+    expect(screen.getByRole("button", { name: "SDR: Show Standard" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "Ultra: Show Ultra" }));
+    expect(screen.getByRole("button", { name: "Ultra: Show Ultra" })).toHaveAttribute("aria-pressed", "true");
   });
 });
 

@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- gain-map JPEGs must reach the browser unchanged */
+
 import { useEffect, useRef, useState } from "react";
 import { registerDisplayCheckSetter } from "@/lib/display-check-store";
 import { ANALYTICS_EVENTS, track } from "@/lib/analytics";
@@ -25,9 +27,6 @@ export function DisplayCheckModal() {
       setAnswer("question");
       setVisible(true);
     });
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      setVisible(true);
-    }
   }, []);
 
   useEffect(() => {
@@ -104,7 +103,7 @@ export function DisplayCheckModal() {
                 ref={buttonRef}
                 type="button"
                 onClick={() => answerDisplayCheck("yes")}
-                className="rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+                className="rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] px-4 py-2.5 text-sm font-bold text-[var(--accent-foreground)] transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
               >
                 Yes
               </button>
@@ -127,7 +126,7 @@ export function DisplayCheckModal() {
             <button
               ref={buttonRef}
               onClick={dismiss}
-              className="block w-full rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="block w-full rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-bold text-[var(--accent-foreground)] transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               Done
             </button>
@@ -154,7 +153,7 @@ export function DisplayCheckModal() {
             <button
               ref={buttonRef}
               onClick={dismiss}
-              className="block w-full rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-bold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
+              className="block w-full rounded-[calc(var(--radius)-2px)] bg-[var(--accent)] px-4 py-2.5 text-center text-sm font-bold text-[var(--accent-foreground)] transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
             >
               Done
             </button>

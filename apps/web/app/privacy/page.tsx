@@ -49,6 +49,16 @@ export default function PrivacyPage() {
               on this domain. No personally identifiable information is collected or sold.
             </p>
           </section>
+          <section>
+            <h2 className="font-display text-xl font-semibold tracking-normal text-[var(--foreground)]">Image processing</h2>
+            <p className="mt-4">
+              Images selected in the converter are decoded and encoded on your device. The site
+              does not upload image bytes to Gainmaps servers, create a cloud copy, or associate a
+              conversion with an account. Closing or reloading the page clears the working data
+              held by the browser for that conversion. Downloaded results are saved only where
+              your browser places them.
+            </p>
+          </section>
         </div>
       </div>
     </main>

@@ -104,7 +104,9 @@ describe("HdrProcessor", () => {
 
   it("adds files from empty state and processes them", async () => {
     render(<HdrProcessor />);
+    expect(ensure).not.toHaveBeenCalled();
     fireEvent.click(screen.getByText("add"));
+    await waitFor(() => expect(ensure).toHaveBeenCalledOnce());
     await waitFor(() => expect(screen.getByText("a.png")).toBeInTheDocument());
     fireEvent.click(screen.getByText("boost"));
     fireEvent.click(screen.getByText("auto"));

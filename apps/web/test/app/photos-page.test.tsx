@@ -10,10 +10,6 @@ vi.mock("@/components/ultra-word", () => ({
   UltraWord: ({ text }: { text: string }) => <span>{text}</span>,
 }));
 
-vi.mock("@/components/seam-compare", () => ({
-  SeamComparePhoto: ({ photo }: { photo: { alt: string } }) => <img alt={photo.alt} />,
-}));
-
 describe("photos index", () => {
   it("renders the Photos heading", async () => {
     const Base = (await import("@/app/photos/page")).default;

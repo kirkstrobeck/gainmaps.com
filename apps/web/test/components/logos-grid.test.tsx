@@ -3,9 +3,10 @@ import { render, screen } from "@testing-library/react";
 import { LogosGrid } from "@/components/logos-grid";
 import type { Company } from "@/lib/logos/companies";
 
-vi.mock("@/components/logo-pair", () => ({
-  LogoPair: ({ company, lazy }: { company: Company; lazy?: boolean }) => (
-    <span data-testid="logo-pair" data-lazy={lazy ? "true" : "false"}>{company.name}</span>
+vi.mock("@/components/gallery-seam", () => ({
+  GallerySeamController: () => null,
+  GallerySeamLogo: ({ company, priority }: { company: Company; priority: boolean }) => (
+    <span data-testid="logo-pair" data-priority={priority ? "true" : "false"}>{company.name}</span>
   ),
 }));
 
@@ -46,13 +47,13 @@ describe("LogosGrid", () => {
     expect(screen.queryByRole("button", { name: /show more/i })).toBeNull();
   });
 
-  it("marks the first 4 logo pairs eager and the rest lazy", () => {
+  it("prioritizes only the first logo pair", () => {
     const companies = makeCompanies(6);
     render(<LogosGrid companies={companies} />);
     const pairs = screen.getAllByTestId("logo-pair");
     expect(pairs.length).toBe(6);
     pairs.forEach((pair, index) => {
-      expect(pair.getAttribute("data-lazy")).toBe(index >= 4 ? "true" : "false");
+      expect(pair.getAttribute("data-priority")).toBe(index === 0 ? "true" : "false");
     });
   });
 

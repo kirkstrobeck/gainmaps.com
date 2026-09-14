@@ -1,5 +1,7 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element -- object URLs and gain-map JPEGs cannot use image optimization */
+
 import {
   CloseIcon as CloseFilled,
   AutoAwesomeIcon as SparklesFilled,

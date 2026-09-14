@@ -1,10 +1,11 @@
 /* Ultra mode by Kirk Strobeck */
 export const dynamic = "force-dynamic";
+import type { Metadata } from "next";
 import { ThumbUpIcon } from "@/components/icons";
 import { HomeDropZone } from "@/components/home-drop-zone";
 import { SiteNav } from "@/components/site-nav";
 import { UltraIcon } from "@/components/ultra-icon";
-import { PHOTOS } from "@/lib/photos/catalog";
+import { PHOTOS, photoGainmapSrc } from "@/lib/photos/catalog";
 import { PRODUCT_HUNT_URL } from "@/lib/product-hunt";
 import { HeroSection } from "@/components/hero-section";
 import { ImageProofSection } from "@/components/image-proof-section";
@@ -13,6 +14,17 @@ import { UltraSkillCard } from "@/components/ultra-skill-card";
 import { COMPANIES } from "@/lib/logos/companies";
 import { headers, cookies } from "next/headers";
 import { shuffle } from "@/lib/shuffle";
+
+export const metadata: Metadata = {
+  title: "Gainmaps · HDR gain map image converter",
+  description: "Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    images: [{ url: photoGainmapSrc(PHOTOS[0]!), width: 1280, height: 640 }],
+  },
+};
 
 type Search = { [key: string]: string | string[] | undefined };
 
@@ -38,7 +50,6 @@ export default async function Base({
 
   return (
     <main>
-      <meta name="description" content="Convert photos to HDR gain map images instantly in your browser. Local and private — no upload, no server." />
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:rounded-[var(--radius)] focus:bg-[var(--accent)] focus:px-4 focus:py-2 focus:text-[var(--accent-foreground)]">
         Skip to content
       </a>

@@ -99,12 +99,12 @@ export function HeroPhotoRotator({
   // Always attached to the root <div> before effects run — never null in an effect.
   const rootRef = useRef<HTMLDivElement>(null!);
   const readySlugRef = useRef<string | null>(null);
+  const ringRef = useRef<SVGCircleElement>(null);
   const reducedMotion = useReducedMotion();
   const candidates = useMemo(() => uniquePhotos([initialPhoto].concat(photos ?? [])), [initialPhoto, photos]);
   const [index, setIndex] = useState(0);
   const [inViewport, setInViewport] = useState(false);
   const [readySlug, setReadySlug] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
 
   const currentPhoto = candidates[index] ?? initialPhoto;
   const nextIndex = candidates.length > 1 ? (index + 1) % candidates.length : index;
@@ -113,7 +113,7 @@ export function HeroPhotoRotator({
 
   useEffect(() => {
     setIndex(0);
-    setProgress(0);
+    ringRef.current?.setAttribute("stroke-dashoffset", String(RING_CIRCUMFERENCE));
   }, [initialPhoto.slug]);
 
   useEffect(() => {
@@ -150,7 +150,7 @@ export function HeroPhotoRotator({
 
   useEffect(() => {
     if (!running || !nextPhoto) {
-      setProgress(0);
+      ringRef.current?.setAttribute("stroke-dashoffset", String(RING_CIRCUMFERENCE));
       return;
     }
 
@@ -159,7 +159,7 @@ export function HeroPhotoRotator({
     const tick = (now: number) => {
       if (start === 0) start = now;
       const nextProgress = Math.min(1, (now - start) / ROTATION_MS);
-      setProgress(nextProgress);
+      ringRef.current?.setAttribute("stroke-dashoffset", String(RING_CIRCUMFERENCE * (1 - nextProgress)));
 
       if (nextProgress >= 1 && readySlugRef.current === nextPhoto.slug) {
         setIndex(nextIndex);
@@ -172,8 +172,6 @@ export function HeroPhotoRotator({
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [running, nextPhoto, nextIndex]);
-
-  const ringOffset = RING_CIRCUMFERENCE * (1 - progress);
 
   return (
     <div ref={rootRef} className={className}>
@@ -190,6 +188,7 @@ export function HeroPhotoRotator({
             <svg aria-label="Photo rotation progress" className="size-6" viewBox="0 0 36 36" fill="none">
               <circle cx="18" cy="18" r={RING_RADIUS} stroke="rgba(255,255,255,0.28)" strokeWidth="3" />
               <circle
+                ref={ringRef}
                 cx="18"
                 cy="18"
                 r={RING_RADIUS}
@@ -197,7 +196,7 @@ export function HeroPhotoRotator({
                 strokeWidth="3"
                 strokeLinecap="round"
                 strokeDasharray={RING_CIRCUMFERENCE}
-                strokeDashoffset={ringOffset}
+                strokeDashoffset={RING_CIRCUMFERENCE}
                 transform="rotate(-90 18 18)"
               />
             </svg>

@@ -9,8 +9,13 @@ describe("DisplayCheckModal", () => {
     document.body.style.overflow = "";
   });
 
-  it("shows the display question when not previously dismissed", () => {
+  function renderOpen() {
     render(<DisplayCheckModal />);
+    act(() => openDisplayCheck());
+  }
+
+  it("shows the display question when requested", () => {
+    renderOpen();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Can you see the symbol?")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Yes" })).toBeInTheDocument();
@@ -18,7 +23,7 @@ describe("DisplayCheckModal", () => {
   });
 
   it("shows the yes answer and dismisses", () => {
-    render(<DisplayCheckModal />);
+    renderOpen();
     fireEvent.click(screen.getByRole("button", { name: "Yes" }));
     expect(screen.getByText("Yes, you can see it.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
@@ -27,7 +32,7 @@ describe("DisplayCheckModal", () => {
   });
 
   it("shows the no answer with three square example photos", () => {
-    render(<DisplayCheckModal />);
+    renderOpen();
     fireEvent.click(screen.getByRole("button", { name: "No" }));
     expect(screen.getByText(/No, you can.t/)).toBeInTheDocument();
     expect(screen.getByText(/hard to show what this display cannot show/)).toBeInTheDocument();
@@ -41,8 +46,7 @@ describe("DisplayCheckModal", () => {
     }
   });
 
-  it("stays hidden when already dismissed", () => {
-    localStorage.setItem("display-check-dismissed", "1");
+  it("stays hidden until requested", () => {
     render(<DisplayCheckModal />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -51,7 +55,7 @@ describe("DisplayCheckModal", () => {
     const prior = document.createElement("button");
     document.body.appendChild(prior);
     prior.focus();
-    render(<DisplayCheckModal />);
+    renderOpen();
     const dialog = screen.getByRole("dialog");
     const event = new MouseEvent("click", { bubbles: true });
     const stop = vi.spyOn(event, "stopPropagation");
@@ -63,7 +67,7 @@ describe("DisplayCheckModal", () => {
   });
 
   it("dismisses on Escape key", () => {
-    render(<DisplayCheckModal />);
+    renderOpen();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     fireEvent.keyDown(screen.getByRole("presentation"), { key: "Escape" });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -71,13 +75,13 @@ describe("DisplayCheckModal", () => {
   });
 
   it("ignores a non-Escape key on the overlay", () => {
-    render(<DisplayCheckModal />);
+    renderOpen();
     fireEvent.keyDown(screen.getByRole("presentation"), { key: "Enter" });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("dismisses on click-outside", () => {
-    render(<DisplayCheckModal />);
+    renderOpen();
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("presentation"));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -86,9 +90,6 @@ describe("DisplayCheckModal", () => {
 
   it("reopens via openDisplayCheck after dismissal", async () => {
     render(<DisplayCheckModal />);
-    fireEvent.click(screen.getByRole("button", { name: "Yes" }));
-    fireEvent.click(screen.getByRole("button", { name: "Done" }));
-    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     await act(async () => { openDisplayCheck(); });
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText("Can you see the symbol?")).toBeInTheDocument();

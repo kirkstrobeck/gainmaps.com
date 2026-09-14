@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { preload } from "react-dom";
 import { HdrProcessor } from "@/components/hdr-processor";
 import { SiteNav } from "@/components/site-nav";
 import { UltraWord } from "@/components/ultra-word";
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
 };
 
 export default function Base() {
-  preload("/hdr-service-worker.js", { as: "script" });
   return (
     <main className="flex h-[100dvh] flex-col overflow-hidden">
       <SiteNav />

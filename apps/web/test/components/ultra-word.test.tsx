@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { render } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, render } from "@testing-library/react";
 
 import { UltraWord } from "@/components/ultra-word";
 import { foundationHeadroomFor, TEXT_ULTRA_FOUNDATION_RATIO } from "@/lib/text-ultra";
@@ -11,6 +11,37 @@ function rect(): DOMRect {
 describe("UltraWord", () => {
   beforeEach(() => {
     Object.defineProperty(Range.prototype, "getBoundingClientRect", { configurable: true, value: rect });
+    vi.stubGlobal("matchMedia", vi.fn(() => ({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
+  });
+
+  it("leaves only readable text on a standard-range display", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
+    const { container } = render(<UltraWord text="Gain" typeClassName="font-bold" intensity={1.5} />);
+    expect(container.querySelector("svg")).toBeNull();
+    expect(container.querySelector("canvas")).toBeNull();
+  });
+
+  it("adds the Ultra overlay when HDR capability becomes available", () => {
+    let onChange: (() => void) | undefined;
+    const media = {
+      matches: false,
+      addEventListener: vi.fn((_event: string, listener: () => void) => { onChange = listener; }),
+      removeEventListener: vi.fn(),
+    };
+    vi.stubGlobal("matchMedia", vi.fn(() => media));
+    const { container } = render(<UltraWord text="Gain" typeClassName="font-bold" intensity={1.5} />);
+    media.matches = true;
+    act(() => onChange?.());
+    expect(container.querySelector("mask text")).toHaveTextContent("Gain");
+    expect(container.querySelectorAll("canvas")).toHaveLength(2);
   });
 
   it("keeps the selectable word readable as the fallback", () => {

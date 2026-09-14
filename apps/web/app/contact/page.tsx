@@ -38,6 +38,20 @@ export default function ContactPage() {
               kirk@strobeck.com
             </a>.
           </p>
+          <p>
+            Include the input format, operating system, browser or CLI version, and the exact
+            command or conversion step that failed. For rendering questions, say whether the
+            display has HDR enabled and whether the same file behaves differently in another
+            compatible viewer. Those details make reports reproducible and help separate encoder
+            issues from display capability or application support.
+          </p>
+          <p>
+            Security reports should avoid public issue threads when they contain private files or
+            exploit details. Email a concise reproduction instead. Gainmaps does not offer account
+            support or retain uploaded images because browser conversions stay on the device.
+            General documentation, installation commands, and the public API are available from
+            the developer page before contacting the project.
+          </p>
         </div>
       </div>
     </main>

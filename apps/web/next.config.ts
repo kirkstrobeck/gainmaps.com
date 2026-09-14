@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   outputFileTracingRoot: root,
   reactStrictMode: true,
+  // Keep metadata in <head> for audits, crawlers, and clients that snapshot
+  // before React relocates streamed metadata.
+  htmlLimitedBots: /.*/,
   // Let our /ingest/flags/ rewrite fire before Next.js redirects the trailing slash.
   skipTrailingSlashRedirect: true,
   images: {

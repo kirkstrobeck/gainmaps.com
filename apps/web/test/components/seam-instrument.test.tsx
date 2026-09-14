@@ -101,13 +101,13 @@ describe("SeamInstrument", () => {
 
   it("corner buttons snap the seam fully to one side and back to the middle", () => {
     renderInstrument();
-    fireEvent.click(screen.getByRole("button", { name: "Show Standard" }));
+    fireEvent.click(screen.getByRole("button", { name: "SDR: Show Standard" }));
     expect(screen.getByRole("slider")).toHaveAttribute("aria-valuenow", "100");
-    expect(screen.getByRole("button", { name: "Show Standard" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "SDR: Show Standard" })).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.click(screen.getByRole("button", { name: "Show Ultra" }));
+    fireEvent.click(screen.getByRole("button", { name: "Ultra: Show Ultra" }));
     expect(screen.getByRole("slider")).toHaveAttribute("aria-valuenow", "0");
-    expect(screen.getByRole("button", { name: "Show Ultra" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Ultra: Show Ultra" })).toHaveAttribute("aria-pressed", "true");
 
     // Dragging again clears the snapped seamSide.
     const root = document.querySelector(".inst") as HTMLElement;
@@ -117,7 +117,7 @@ describe("SeamInstrument", () => {
     });
     root.setPointerCapture = () => {};
     fireEvent.pointerDown(root, { clientX: 200, clientY: 30, pointerId: 1 });
-    expect(screen.getByRole("button", { name: "Show Ultra" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Ultra: Show Ultra" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("removes the animating class once the snap transition finishes", () => {
@@ -125,7 +125,7 @@ describe("SeamInstrument", () => {
     try {
       renderInstrument();
       const root = document.querySelector(".inst") as HTMLElement;
-      fireEvent.click(screen.getByRole("button", { name: "Show Standard" }));
+      fireEvent.click(screen.getByRole("button", { name: "SDR: Show Standard" }));
       expect(root).toHaveClass("inst--animating");
       vi.advanceTimersByTime(350);
       expect(root).not.toHaveClass("inst--animating");

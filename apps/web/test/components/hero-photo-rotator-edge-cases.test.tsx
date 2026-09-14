@@ -78,12 +78,14 @@ describe("HeroPhotoRotator edge cases", () => {
       observerCallbackRef.callback?.([{ isIntersecting: true } as IntersectionObserverEntry]);
     });
 
-    let now = 0;
-    await waitFor(() => {
-      now += 2000;
-      act(() => { rafCb?.(now); });
-      expect(screen.getByTestId("seam-photo")).toHaveTextContent(PHOTOS[1]!.slug);
+    await waitFor(() => expect(imageCountRef.count).toBe(2));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
     });
+    act(() => { rafCb?.(1); });
+    act(() => { rafCb?.(8001); });
+    expect(screen.getByTestId("seam-photo")).toHaveTextContent(PHOTOS[1]!.slug);
 
     // Same initialPhoto (no slug change → index does not reset), but the
     // candidate list shrinks to just the initial photo — index 1 is now out

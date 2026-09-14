@@ -7,7 +7,6 @@ interface GPURenderPipeline {
 // Use unknown so createBuffer/createSampler (which return unknown) are assignable
 type GPUBuffer = unknown;
 type GPUSampler = unknown;
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface GPUDevice extends GpuDevice {}
 
 interface GPUCanvasContext {

@@ -20,7 +20,7 @@ export function SeamCornerButtons({ seamSide, snapTo }: SeamCornerButtonsProps) 
           type="button"
           className={cn("inst-switch-btn", FOCUS)}
           aria-pressed={seamSide === "sdr"}
-          aria-label="Show Standard"
+          aria-label="SDR: Show Standard"
           onClick={() => snapTo(100)}
         >
           SDR
@@ -34,7 +34,7 @@ export function SeamCornerButtons({ seamSide, snapTo }: SeamCornerButtonsProps) 
           type="button"
           className={cn("inst-switch-btn", FOCUS)}
           aria-pressed={seamSide === "ultra"}
-          aria-label="Show Ultra"
+          aria-label="Ultra: Show Ultra"
           onClick={() => snapTo(0)}
         >
           <span className="inst-dot" aria-hidden />

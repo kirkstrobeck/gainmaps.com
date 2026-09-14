@@ -92,16 +92,13 @@ describe("HeroPhotoRotator", () => {
       observerCallbackRef.callback?.([{ isIntersecting: true } as IntersectionObserverEntry]);
     });
 
-    // Repeatedly drive the (stubbed) animation frame forward with real waits
-    // between attempts so the preload promise chain — which resolves via real
-    // microtasks/effects — has a chance to mark the next photo ready.
-    let now = 0;
-    await waitFor(() => {
-      now += 2000;
-      act(() => {
-        rafCb?.(now); // past ROTATION_MS eventually — progress clamps to 1 and rotates
-      });
-      expect(screen.getByTestId("seam-photo")).toHaveTextContent(PHOTOS[1]!.slug);
+    await waitFor(() => expect(imageCountRef.count).toBe(2));
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
     });
+    act(() => { rafCb?.(1); });
+    act(() => { rafCb?.(8001); });
+    expect(screen.getByTestId("seam-photo")).toHaveTextContent(PHOTOS[1]!.slug);
   });
 });
