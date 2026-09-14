@@ -1,0 +1,141 @@
+/* === Seam Instrument === */
+.inst {
+  position: relative;
+  overflow: hidden;
+  background: var(--inst-bg);
+  --seam-x: 50%;
+  touch-action: none;
+  user-select: none;
+  cursor: ew-resize;
+}
+
+.inst-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inst-sdr {
+  clip-path: inset(0 calc(100% - var(--seam-x)) 0 0);
+}
+
+.inst-handle {
+  position: absolute;
+  top: 50%;
+  left: var(--seam-x);
+  width: 26px;
+  height: 26px;
+  background: rgba(11, 14, 18, 0.72);
+  border-radius: 999px;
+  cursor: ew-resize;
+  transform: translate(-13px, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inst-handle:focus-visible {
+  outline: 2px solid rgba(196, 114, 58, 0.8);
+  outline-offset: 2px;
+}
+
+/* Expand handle touch target to 44x44 without growing the visual circle */
+.inst-handle::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+
+/* Corner SDR/Ultra buttons — bottom-left and bottom-right */
+.inst-corner {
+  position: absolute;
+  bottom: 8px;
+  padding: 0 6px;
+  z-index: 10;
+}
+
+.inst-corner-sdr {
+  left: 0;
+}
+
+.inst-corner-ultra {
+  right: 0;
+}
+
+.inst-switch-btn {
+  position: relative;
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(244, 241, 236, 1);
+  background: rgba(11, 14, 18, 0.72);
+  border: 1px solid rgba(244, 241, 236, 0.4);
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 44×44 hit target via ::before */
+.inst-switch-btn::before {
+  content: "";
+  position: absolute;
+  inset: -9px;
+}
+
+.inst-switch-btn:hover {
+  background: rgba(11, 14, 18, 0.88);
+  border-color: rgba(244, 241, 236, 0.7);
+}
+
+.inst-switch-btn:active {
+  background: rgba(11, 14, 18, 0.95);
+  transform: scale(0.97);
+}
+
+.inst-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #c4723a;
+  box-shadow: 0 0 8px #c4723a;
+  flex-shrink: 0;
+}
+
+/* Img fills for photo instrument */
+.inst-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-user-drag: none;
+}
+
+/* Off-screen gallery cards skip layout/paint until they approach the viewport. */
+.photo-card:not(:first-child) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}
+
+/* Type inside the instrument — SDR text must be ordinary opaque text over an opaque SDR layer. */
+.inst-type-sdr-layer {
+  background: var(--inst-bg);
+}
+
+.inst-type-std {
+  color: rgb(244 241 236);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inst-sdr,
+  .inst-handle {
+    transition: none !important;
+  }
+}

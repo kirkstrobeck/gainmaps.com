@@ -1,0 +1,97 @@
+/* Ultra mode by Kirk Strobeck – https://UltraDarkMode.com */
+
+.ultra-fill {
+  dynamic-range-limit: inherit;
+}
+
+html[data-ultra="on"] .ultra-fill {
+  dynamic-range-limit: no-limit;
+}
+
+/* Ultra mode by Kirk Strobeck */
+html[data-ultra="on"] .ultra-icon,
+html[data-ultra="on"] .ultra-icon .ultra-fill,
+html[data-ultra="on"] .ultra-icon .ultra-backdrop {
+  dynamic-range-limit: no-limit;
+}
+
+html[data-ultra="off"] .ultra-icon,
+html[data-ultra="off"] .ultra-icon .ultra-fill,
+html[data-ultra="off"] .ultra-icon .ultra-backdrop,
+html[data-ultra="off"] .ultra-fill,
+html[data-ultra="off"] .ultra-backdrop,
+html[data-ultra="off"] .ultra-word {
+  dynamic-range-limit: standard;
+}
+
+/* Absolutely-positioned children (ultra overlay) extend 50% past edges; clip
+   prevents a horizontal scrollbar without hiding anything visible. */
+.ultra-word {
+  overflow: clip;
+  overflow-clip-margin: content-box;
+}
+
+.ultra-mask-defs {
+  opacity: 0;
+  z-index: 0;
+}
+
+.ultra-backdrop {
+  background: #ffffff;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ultra-word > .ultra-fill-foundation {
+  z-index: 1;
+}
+
+.ultra-word > .ultra-fill-inner {
+  z-index: 3;
+}
+
+/*
+  In light mode, UltraWord letterforms are white-on-white — invisible.
+  Suppress the fill canvas and shift the backdrop to foreground so the glyphs
+  read as dark text. UltraIcon keeps its white fill (it sits on coloured surfaces).
+*/
+html[data-mode="light"] .ultra-word > .ultra-backdrop {
+  background: var(--foreground);
+}
+html[data-mode="light"] .ultra-word > .ultra-fill {
+  opacity: 0;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-mode="dark"]) .ultra-word > .ultra-backdrop {
+    background: var(--foreground);
+  }
+  html:not([data-mode="dark"]) .ultra-word > .ultra-fill {
+    opacity: 0;
+  }
+}
+
+/*
+  The seam instrument (.inst) always has a dark background regardless of page
+  mode. UltraWord inside it must keep its white letterforms even in light mode,
+  so override the light-mode foreground-backdrop rule here.
+*/
+html[data-mode="light"] .inst .ultra-word > .ultra-backdrop {
+  background: #ffffff;
+}
+html[data-mode="light"] .inst .ultra-word > .ultra-fill {
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-mode="dark"]) .inst .ultra-word > .ultra-backdrop {
+    background: #ffffff;
+  }
+  html:not([data-mode="dark"]) .inst .ultra-word > .ultra-fill {
+    opacity: 1;
+  }
+}
+
+.ultra-fill[data-ultra-fill="unsupported"] {
+  display: none;
+}

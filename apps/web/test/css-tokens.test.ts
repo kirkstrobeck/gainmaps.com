@@ -22,14 +22,14 @@ async function sourceFiles(directory: string): Promise<string[]> {
 
 describe("CSS custom properties", () => {
   it("defines every var token used by the web source", async () => {
-    const globals = await readFile(join(ROOT, "app/globals.css"), "utf8");
     const layout = await readFile(join(ROOT, "app/layout.tsx"), "utf8");
-    const definitions = new Set([...globals.matchAll(DEFINITION), ...layout.matchAll(NEXT_FONT)].map((match) => match[1]));
+    const definitions = new Set([...layout.matchAll(NEXT_FONT)].map((match) => match[1]));
     const references = new Set<string>();
 
     const files = (await Promise.all(["app", "components", "lib"].map((directory) => sourceFiles(join(ROOT, directory))))).flat();
     for (const file of files) {
       const content = await readFile(file, "utf8");
+      for (const match of content.matchAll(DEFINITION)) definitions.add(match[1]);
       for (const match of content.matchAll(TOKEN)) references.add(match[1]);
     }
 

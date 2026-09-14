@@ -12,6 +12,7 @@ import {
   photoStandardSrcset,
   type Photo,
 } from "@/lib/photos/catalog";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
 
 const ROTATION_MS = 7000;
 const RING_RADIUS = 14;
@@ -65,27 +66,6 @@ function preloadPhoto(photo: Photo, sizes: string): Promise<void> {
     preloadImage(photoStandardSrc(photo, 1280), photoStandardSrcset(photo), sizes),
     preloadImage(photoGainmapSrc(photo, 1280), photoGainmapSrcset(photo), sizes),
   ]).then(() => undefined);
-}
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(media.matches);
-    update();
-
-    if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", update);
-      return () => media.removeEventListener("change", update);
-    }
-
-    media.addListener(update);
-    return () => media.removeListener(update);
-  }, []);
-
-  return reduced;
 }
 
 export function HeroPhotoRotator({
