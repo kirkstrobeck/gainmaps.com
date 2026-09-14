@@ -106,6 +106,15 @@ export function buildOpenApiSpec(): object {
           schema: { type: "integer", example: 3600 },
         },
       },
+      parameters: {
+        ApiVersionHeader: {
+          name: "x-api-version",
+          in: "header",
+          required: false,
+          schema: { type: "string", enum: ["1.1.0"], default: "1.1.0" },
+          description: "Requested API version. Omit to use the current version (1.1.0). When a breaking version is released the prior version string will be accepted for a sunset period announced via the Deprecation and Sunset response headers.",
+        },
+      },
     },
     paths: {
       "/api/photos": {
@@ -113,6 +122,7 @@ export function buildOpenApiSpec(): object {
           operationId: "listPhotos",
           summary: "List all photos",
           description: "Returns the full catalog of photos. No pagination — the full array is returned.",
+          parameters: [{ "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Array of photo records",
@@ -127,7 +137,7 @@ export function buildOpenApiSpec(): object {
           operationId: "getPhoto",
           summary: "Get a photo by slug",
           description: "Returns a single photo by slug.",
-          parameters: [SLUG_PARAM],
+          parameters: [SLUG_PARAM, { "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Photo record",
@@ -143,6 +153,7 @@ export function buildOpenApiSpec(): object {
           operationId: "listLogos",
           summary: "List all logos",
           description: "Returns the full catalog of brand logos. No pagination — the full array is returned.",
+          parameters: [{ "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Array of logo records",
@@ -157,7 +168,7 @@ export function buildOpenApiSpec(): object {
           operationId: "getLogo",
           summary: "Get a logo by slug",
           description: "Returns a single logo by slug.",
-          parameters: [SLUG_PARAM],
+          parameters: [SLUG_PARAM, { "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Logo record",
@@ -173,6 +184,7 @@ export function buildOpenApiSpec(): object {
           operationId: "getVersion",
           summary: "Get CLI version info",
           description: "Returns the current gainmap package version and install commands.",
+          parameters: [{ "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Version info",
