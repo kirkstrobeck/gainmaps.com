@@ -72,13 +72,11 @@ export function buildOpenApiSpec(): object {
         "**Versioning**: The API uses a single-version path prefix-free design. Breaking changes",
         "increment the `info.version` field and are announced via the /api/version endpoint.",
         "Non-breaking additions (new fields, new endpoints) are shipped without a version bump.",
+        "The current API version is returned in the `x-api-version` response header on every response.",
         "",
         "**Pagination**: List endpoints (`/api/photos`, `/api/logos`) return the full catalog.",
         "The catalogs are small (hundreds of items) so cursor/offset pagination is not implemented.",
         "Filter by slug using the per-item endpoints instead.",
-        "",
-        "**Rate limits**: 1000 requests per hour per IP. Limits are returned in `ratelimit-*` headers",
-        "on every response (`ratelimit-limit`, `ratelimit-remaining`, `ratelimit-reset`, `ratelimit-policy`).",
       ].join("\n"),
     },
     servers: [{ url: "https://www.gainmaps.com" }],
@@ -93,27 +91,6 @@ export function buildOpenApiSpec(): object {
           description: "Current API version (semver). Breaking changes increment the major segment.",
           schema: { type: "string", example: "1.1.0" },
         },
-        "RateLimit-Limit": {
-          description: "Maximum requests allowed in the current window.",
-          schema: { type: "integer", example: 1000 },
-        },
-        "RateLimit-Remaining": {
-          description: "Requests remaining in the current window.",
-          schema: { type: "integer", example: 999 },
-        },
-        "RateLimit-Reset": {
-          description: "Seconds until the current window resets.",
-          schema: { type: "integer", example: 3600 },
-        },
-      },
-      parameters: {
-        ApiVersionHeader: {
-          name: "x-api-version",
-          in: "header",
-          required: false,
-          schema: { type: "string", enum: ["1.1.0"], default: "1.1.0" },
-          description: "Requested API version. Omit to use the current version (1.1.0). When a breaking version is released the prior version string will be accepted for a sunset period announced via the Deprecation and Sunset response headers.",
-        },
       },
     },
     paths: {
@@ -122,7 +99,6 @@ export function buildOpenApiSpec(): object {
           operationId: "listPhotos",
           summary: "List all photos",
           description: "Returns the full catalog of photos. No pagination — the full array is returned.",
-          parameters: [{ "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Array of photo records",
@@ -137,7 +113,7 @@ export function buildOpenApiSpec(): object {
           operationId: "getPhoto",
           summary: "Get a photo by slug",
           description: "Returns a single photo by slug.",
-          parameters: [SLUG_PARAM, { "$ref": "#/components/parameters/ApiVersionHeader" }],
+          parameters: [SLUG_PARAM],
           responses: {
             "200": {
               description: "Photo record",
@@ -153,7 +129,6 @@ export function buildOpenApiSpec(): object {
           operationId: "listLogos",
           summary: "List all logos",
           description: "Returns the full catalog of brand logos. No pagination — the full array is returned.",
-          parameters: [{ "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Array of logo records",
@@ -168,7 +143,7 @@ export function buildOpenApiSpec(): object {
           operationId: "getLogo",
           summary: "Get a logo by slug",
           description: "Returns a single logo by slug.",
-          parameters: [SLUG_PARAM, { "$ref": "#/components/parameters/ApiVersionHeader" }],
+          parameters: [SLUG_PARAM],
           responses: {
             "200": {
               description: "Logo record",
@@ -184,7 +159,6 @@ export function buildOpenApiSpec(): object {
           operationId: "getVersion",
           summary: "Get CLI version info",
           description: "Returns the current gainmap package version and install commands.",
-          parameters: [{ "$ref": "#/components/parameters/ApiVersionHeader" }],
           responses: {
             "200": {
               description: "Version info",

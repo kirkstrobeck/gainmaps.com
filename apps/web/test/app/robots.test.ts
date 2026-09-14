@@ -4,8 +4,10 @@ import robots from "@/app/robots";
 describe("robots", () => {
   it("allows all user agents", () => {
     const result = robots();
-    expect((result.rules as { userAgent: string }).userAgent).toBe("*");
-    expect((result.rules as { allow: string }).allow).toBe("/");
+    const rules = result.rules as { userAgent: string; allow: string }[];
+    const wildcardRule = Array.isArray(rules) ? rules.find((r) => r.userAgent === "*") : (rules as { userAgent: string; allow: string });
+    expect(wildcardRule?.userAgent).toBe("*");
+    expect(wildcardRule?.allow).toBe("/");
   });
 
   it("includes sitemap URL", () => {

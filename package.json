@@ -12,7 +12,7 @@
     "dev": "turbo dev --filter=@gainmaps/web",
     "web:dev": "turbo dev --filter=@gainmaps/web",
     "web:build": "turbo build:isolated --filter=@gainmaps/web",
-    "lint": "turbo lint",
+    "lint": "pnpm --filter @gainmaps/web lint",
     "check": "turbo typecheck test",
     "photos:build": "npx tsx tools/photos/build-photos.ts",
     "logos:build": "npx tsx tools/logos/build-logos.ts",

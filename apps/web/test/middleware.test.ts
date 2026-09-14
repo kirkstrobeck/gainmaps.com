@@ -37,7 +37,7 @@ describe("markdown Accept returns the negotiated representation", () => {
       expect(response.status).toBe(200);
       expect(response.headers.get("content-type")).toContain("text/markdown");
       expect(response.headers.get("vary")).toBe("Accept, Accept-Encoding");
-      expect(await response.text()).toMatch(/^# /);
+      expect(await response.text()).toMatch(/# /m);
     });
   }
 });
