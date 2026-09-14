@@ -24,9 +24,10 @@ import sharp from "sharp";
 
 import { COMPANIES } from "../../apps/web/lib/logos/companies.ts";
 import { encodeLogoVariants, LOGO_WIDTHS } from "./encode-logo-variants.ts";
+import { inkMetric, shouldKeep } from "./ink-metric.ts";
 import { CANVAS, BOOST, downloadSvg, errorMessage, rasterize } from "./logo-pipeline.ts";
 import { fetchSvglIndex, resolveCommonsFiles, resolveSeed, type SvglEntry } from "./logo-resolve.ts";
-import { normalizeLogoSvg } from "./logo-svg-normalize.ts";
+import { normalizeLogoSvg, stripBackgroundPlate } from "./logo-svg-normalize.ts";
 import { LOGO_SEEDS } from "./sources.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -90,6 +91,14 @@ async function backfillOne(
     : await downloadSvg(resolved.url!).catch((error: unknown) => errorMessage(error));
   if (typeof svg === "string") {
     console.log(`  fail  ${slug.padEnd(16)} download failed — ${svg}`);
+    return;
+  }
+
+  // Measure AFTER plate stripping so a large background plate does not distort the metric.
+  const svgForMetric = Buffer.from(stripBackgroundPlate(svg.toString("utf8")));
+  const metric = await inkMetric(svgForMetric);
+  if (!shouldKeep(metric)) {
+    console.log(`  skip  ${slug.padEnd(16)} ink metric too low (${(metric.preservedFraction * 100).toFixed(1)}% preserved) — excluded`);
     return;
   }
 

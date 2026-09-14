@@ -30,9 +30,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { encodeLogoVariants } from "./encode-logo-variants.ts";
+import { inkMetric, shouldKeep } from "./ink-metric.ts";
 import { BOOST, CANVAS, downloadSvg, errorMessage, FETCH_CONCURRENCY, mapChunked, rasterize } from "./logo-pipeline.ts";
 import { fetchSvglIndex, resolveCommonsFiles, resolveSeed, type Resolved } from "./logo-resolve.ts";
-import { normalizeLogoSvg } from "./logo-svg-normalize.ts";
+import { normalizeLogoSvg, stripBackgroundPlate } from "./logo-svg-normalize.ts";
 import { renderCompaniesModule } from "./render-companies-module.ts";
 import { LOGO_SEEDS, type LogoSeed } from "./sources.ts";
 
@@ -119,6 +120,14 @@ async function removeTreeSerially(target: string): Promise<void> {
 async function buildOne(entry: Resolved): Promise<Outcome> {
   const svg = await downloadSvg(entry.url).catch((error: unknown) => errorMessage(error));
   if (typeof svg === "string") return { ok: false, seed: entry.seed, reason: svg };
+
+  // Measure AFTER plate stripping so a large dark background plate does not
+  // suppress the preservedFraction of an otherwise colorful logo (e.g. McDonald's).
+  const svgForMetric = Buffer.from(stripBackgroundPlate(svg.toString("utf8")));
+  const metric = await inkMetric(svgForMetric);
+  if (!shouldKeep(metric)) {
+    return { ok: false, seed: entry.seed, reason: `ink metric too low (preservedFraction=${metric.preservedFraction.toFixed(3)}) — not a good Ultra HDR example` };
+  }
 
   // The directory already exists: main carves the whole tree out up front, so
   // nothing here touches directory metadata. See removeTreeSerially.

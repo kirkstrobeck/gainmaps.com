@@ -23,7 +23,7 @@ describe("encode", () => {
     assert.equal(headroomFromBoost(0), 2);
     assert.ok(Math.abs(headroomFromBoost(0.5) - WINDOW_GAIN_CALIBRATION.headroom) < 1e-9);
     assert.equal(headroomFromBoost(1), 6);
-    assert.equal(resolveHeadroom({}), headroomFromBoost(0.5));
+    assert.equal(resolveHeadroom({}), headroomFromBoost(1)); // DEFAULT_BOOST=1 (max headroom)
     assert.equal(resolveHeadroom({ headroom: 4 }), 4);
     assert.equal(resolveHeadroom({ headroom: 0 }), 1);
     assert.equal(resolveHeadroom({ headroom: Number.NaN, boost: 0 }), 2);
