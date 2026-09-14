@@ -2,6 +2,7 @@
 
 /** Post-download SVG fixups shared by build-logos.ts and backfill-logo-assets.ts. */
 import type { LogoSeed } from "./sources.ts";
+import { detectBackgroundPlate, type Canvas } from "./plate-detect.ts";
 
 const DARK_LUMINANCE_THRESHOLD = 0.36; // mirrors apps/web/test/lib/logo-file-parity.test.ts
 /** Plate coverage must reach this fraction in BOTH axes to be stripped. */
@@ -36,58 +37,17 @@ export function reverseDarkInkToWhite(svg: Buffer): Buffer {
 }
 
 /** Return [vbW, vbH] from viewBox, or fall back to width/height attributes. */
-function parseViewBox(svgText: string): [number, number] | null {
+function parseViewBox(svgText: string): Canvas | null {
   const vbm = svgText.match(/viewBox\s*=\s*["']([^"']+)["']/i);
   if (vbm) {
     const parts = vbm[1]!.trim().split(/[\s,]+/).map(Number);
-    return parts.length >= 4 ? [parts[2]!, parts[3]!] : null;
+    return parts.length >= 4 ? { x: parts[0]!, y: parts[1]!, width: parts[2]!, height: parts[3]! } : null;
   }
   // Fall back to top-level width / height attributes
   const svgTag = svgText.match(/<svg\b[^>]*>/is)?.[0] ?? "";
   const w = parseFloat(svgTag.match(/\bwidth\s*=\s*["']?([+-]?\d*\.?\d+)/i)?.[1] ?? "0");
   const h = parseFloat(svgTag.match(/\bheight\s*=\s*["']?([+-]?\d*\.?\d+)/i)?.[1] ?? "0");
-  return w > 0 && h > 0 ? [w, h] : null;
-}
-
-/** Scan a path `d` attribute for all absolute coordinates; return bounding box. */
-function pathCoordBounds(d: string): { xMin: number; xMax: number; yMin: number; yMax: number } | null {
-  let cx = 0, cy = 0;
-  let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity;
-
-  function track(x: number, y: number): void {
-    if (x < xMin) xMin = x;
-    if (x > xMax) xMax = x;
-    if (y < yMin) yMin = y;
-    if (y > yMax) yMax = y;
-  }
-
-  // Tokenise: split on command letters, keeping the letter
-  const tokens = d.match(/[MmLlHhVvCcSsQqAaZz][^MmLlHhVvCcSsQqAaZz]*/g);
-  if (!tokens) return null;
-
-  for (const token of tokens) {
-    const cmd = token[0]!;
-    const nums = token.slice(1).trim().split(/[\s,]+/).map(Number).filter((n) => !isNaN(n));
-    switch (cmd) {
-      case "M": for (let i = 0; i + 1 < nums.length; i += 2) { cx = nums[i]!; cy = nums[i+1]!; track(cx, cy); } break;
-      case "m": for (let i = 0; i + 1 < nums.length; i += 2) { cx += nums[i]!; cy += nums[i+1]!; track(cx, cy); } break;
-      case "L": for (let i = 0; i + 1 < nums.length; i += 2) { cx = nums[i]!; cy = nums[i+1]!; track(cx, cy); } break;
-      case "l": for (let i = 0; i + 1 < nums.length; i += 2) { cx += nums[i]!; cy += nums[i+1]!; track(cx, cy); } break;
-      case "H": for (const n of nums) { cx = n; track(cx, cy); } break;
-      case "h": for (const n of nums) { cx += n; track(cx, cy); } break;
-      case "V": for (const n of nums) { cy = n; track(cx, cy); } break;
-      case "v": for (const n of nums) { cy += n; track(cx, cy); } break;
-      case "C": for (let i = 0; i + 5 < nums.length; i += 6) { cx = nums[i+4]!; cy = nums[i+5]!; track(cx, cy); } break;
-      case "c": for (let i = 0; i + 5 < nums.length; i += 6) { cx += nums[i+4]!; cy += nums[i+5]!; track(cx, cy); } break;
-      case "S": for (let i = 0; i + 3 < nums.length; i += 4) { cx = nums[i+2]!; cy = nums[i+3]!; track(cx, cy); } break;
-      case "s": for (let i = 0; i + 3 < nums.length; i += 4) { cx += nums[i+2]!; cy += nums[i+3]!; track(cx, cy); } break;
-      case "Q": for (let i = 0; i + 3 < nums.length; i += 4) { cx = nums[i+2]!; cy = nums[i+3]!; track(cx, cy); } break;
-      case "q": for (let i = 0; i + 3 < nums.length; i += 4) { cx += nums[i+2]!; cy += nums[i+3]!; track(cx, cy); } break;
-      case "A": for (let i = 0; i + 6 < nums.length; i += 7) { cx = nums[i+5]!; cy = nums[i+6]!; track(cx, cy); } break;
-      case "a": for (let i = 0; i + 6 < nums.length; i += 7) { cx += nums[i+5]!; cy += nums[i+6]!; track(cx, cy); } break;
-    }
-  }
-  return xMin <= xMax && yMin <= yMax ? { xMin, xMax, yMin, yMax } : null;
+  return w > 0 && h > 0 ? { x: 0, y: 0, width: w, height: h } : null;
 }
 
 /**
@@ -100,32 +60,9 @@ function pathCoordBounds(d: string): { xMin: number; xMax: number; yMin: number;
 export function stripBackgroundPlate(svgText: string): string {
   const vb = parseViewBox(svgText);
   if (!vb) return svgText;
-  const [vbW, vbH] = vb;
-
-  // Match <rect ...> or <path ...> tags (single-line or multiline, self-closing or open)
-  return svgText.replace(/<(rect|path)\b([^>]*?)\/?>/gis, (full, tagName: string, attrs: string) => {
-    const tag = tagName.toLowerCase();
-    if (tag === "rect") {
-      const x = parseFloat(attrs.match(/\bx\s*=\s*["']?([+-]?\d*\.?\d+)/i)?.[1] ?? "0");
-      const y = parseFloat(attrs.match(/\by\s*=\s*["']?([+-]?\d*\.?\d+)/i)?.[1] ?? "0");
-      const w = parseFloat(attrs.match(/\bwidth\s*=\s*["']?([+-]?\d*\.?\d+)/i)?.[1] ?? "0");
-      const h = parseFloat(attrs.match(/\bheight\s*=\s*["']?([+-]?\d*\.?\d+)/i)?.[1] ?? "0");
-      // Coverage check: bounding box vs viewBox
-      const covW = (Math.min(x + w, vbW) - Math.max(x, 0)) / vbW;
-      const covH = (Math.min(y + h, vbH) - Math.max(y, 0)) / vbH;
-      const isPlate = covW >= PLATE_COVERAGE && covH >= PLATE_COVERAGE;
-      return isPlate ? "" : full;
-    }
-    // <path>
-    const dMatch = attrs.match(/\bd\s*=\s*["']([^"']*)/i);
-    if (!dMatch) return full;
-    const bounds = pathCoordBounds(dMatch[1]!);
-    if (!bounds) return full;
-    const spanW = bounds.xMax - bounds.xMin;
-    const spanH = bounds.yMax - bounds.yMin;
-    const isPlate = spanW / vbW >= PLATE_COVERAGE && spanH / vbH >= PLATE_COVERAGE;
-    return isPlate ? "" : full;
-  });
+  const plate = detectBackgroundPlate(svgText, vb, PLATE_COVERAGE);
+  if (!plate) return svgText;
+  return svgText.slice(0, plate.start) + svgText.slice(plate.end);
 }
 
 export function normalizeLogoSvg(seed: LogoSeed, svg: Buffer): Buffer {
