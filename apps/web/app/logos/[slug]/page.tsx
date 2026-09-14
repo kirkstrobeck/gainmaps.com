@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${company.name} · Logos · Gainmaps`,
     description: `The ${company.name} brand mark as a standard SVG and as a gain map.`,
+    alternates: { canonical: `/logos/${company.slug}` },
   };
 }
 

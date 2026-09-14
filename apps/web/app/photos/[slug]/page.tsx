@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${photo.alt} · Photos · Gainmaps`,
     description: `${photo.alt} by ${photo.photographer}. Standard Unsplash SDR beside an Ultra HDR gain map.`,
+    alternates: { canonical: `/photos/${photo.slug}` },
   };
 }
 
