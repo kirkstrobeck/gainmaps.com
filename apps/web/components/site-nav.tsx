@@ -94,14 +94,14 @@ function ShareCluster({ menu = false }: ShareClusterProps = {}) {
       }
       track(ANALYTICS_EVENTS.shareAction, { action: "native_share", surface: menu ? "nav_menu" : "nav", status: "failed" });
     }
-  }, []);
+  }, [menu]);
 
   const handleCopy = useCallback(async () => {
     await navigator.clipboard.writeText(window.location.href);
     track(ANALYTICS_EVENTS.shareAction, { action: "copy_link", surface: menu ? "nav_menu" : "nav", status: "success" });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }, []);
+  }, [menu]);
 
   const actionClass = menu ? menuShareButtonClass : shareButtonClass;
   const productHuntClass = menu ? menuProductHuntButtonClass : productHuntButtonClass;
