@@ -6,7 +6,7 @@ export function LogosGrid({ companies }: { companies: readonly Company[] }) {
     <ul className="mt-10 grid list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
       {companies.map((company, index) => (
         <li key={company.slug} className="grid gap-3 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--panel)] p-4 transition hover:border-[color-mix(in_srgb,var(--accent)_40%,var(--border))]">
-          <GallerySeamLogo company={company} priority={index === 0} />
+          <GallerySeamLogo company={company} priority={index < 3} />
           <div className="flex items-baseline justify-between px-0.5">
             <a
               href={`/logos/${company.slug}`}

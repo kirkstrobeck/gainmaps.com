@@ -24,20 +24,22 @@ export const metadata: Metadata = {
   openGraph: { type: "website", url: "/photos" },
 };
 
+// Preload above-fold photos: first 3 (one desktop row) for each format.
+const PRIORITY_COUNT = 3;
+
 export default function Base() {
-  const firstPhoto = PHOTOS[0];
   /* v8 ignore next */
-  if (firstPhoto) {
-    preload(photoStandardSrc(firstPhoto), {
+  for (const photo of PHOTOS.slice(0, PRIORITY_COUNT)) {
+    preload(photoStandardSrc(photo), {
       as: "image",
       fetchPriority: "high",
-      imageSrcSet: photoStandardSrcset(firstPhoto),
+      imageSrcSet: photoStandardSrcset(photo),
       imageSizes: PHOTO_GALLERY_SIZES,
     });
-    preload(photoGainmapSrc(firstPhoto), {
+    preload(photoGainmapSrc(photo), {
       as: "image",
       fetchPriority: "high",
-      imageSrcSet: photoGainmapSrcset(firstPhoto),
+      imageSrcSet: photoGainmapSrcset(photo),
       imageSizes: PHOTO_GALLERY_SIZES,
     });
   }
@@ -59,7 +61,7 @@ export default function Base() {
         <ul className="mt-10 grid list-none grid-cols-1 gap-8 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {PHOTOS.map((photo, index) => (
             <li key={photo.id} className="photo-card">
-              <PhotoCard photo={photo} priority={index === 0 ? true : undefined} />
+              <PhotoCard photo={photo} priority={index < PRIORITY_COUNT ? true : undefined} />
             </li>
           ))}
         </ul>

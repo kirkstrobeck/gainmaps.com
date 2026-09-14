@@ -47,13 +47,13 @@ describe("LogosGrid", () => {
     expect(screen.queryByRole("button", { name: /show more/i })).toBeNull();
   });
 
-  it("prioritizes only the first logo pair", () => {
+  it("prioritizes the first row of logo pairs (index < 3)", () => {
     const companies = makeCompanies(6);
     render(<LogosGrid companies={companies} />);
     const pairs = screen.getAllByTestId("logo-pair");
     expect(pairs.length).toBe(6);
     pairs.forEach((pair, index) => {
-      expect(pair.getAttribute("data-priority")).toBe(index === 0 ? "true" : "false");
+      expect(pair.getAttribute("data-priority")).toBe(index < 3 ? "true" : "false");
     });
   });
 
