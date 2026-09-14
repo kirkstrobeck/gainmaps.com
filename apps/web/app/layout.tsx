@@ -18,6 +18,7 @@ const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
   display: "optional",
+  preload: false,
 });
 
 const bricolageGrotesque = Bricolage_Grotesque({
@@ -25,6 +26,7 @@ const bricolageGrotesque = Bricolage_Grotesque({
   subsets: ["latin"],
   axes: ["wdth"],
   display: "optional",
+  preload: false,
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -32,6 +34,7 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   display: "optional",
+  preload: false,
 });
 
 export const metadata: Metadata = {
