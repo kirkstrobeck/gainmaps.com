@@ -19,8 +19,8 @@ vi.mock("@/components/logos-grid", () => ({
   LogosGrid: () => <div data-testid="grid" />,
 }));
 
-vi.mock("@/components/logo-pair", () => ({
-  LogoPair: () => <div data-testid="pair" />,
+vi.mock("@/components/seam-compare-logo", () => ({
+  SeamCompareLogo: ({ company }: { company: { name: string } }) => <div data-testid="seam-logo" aria-label={company.name} />,
 }));
 
 describe("logos index", () => {

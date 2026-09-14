@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
   PHOTOS,
-  PAGE_SIZE,
   PHOTO_GALLERY_SIZES,
   PHOTO_HERO_SIZES,
   PHOTO_STORAGE_BASE_URL,
@@ -11,9 +10,6 @@ import {
   photoGainmapSrc,
   photoGainmapSrcset,
   withUnsplashReferral,
-  photosPageCount,
-  photosForPage,
-  clampPhotoPage,
 } from "@/lib/photos/catalog";
 
 const FIRST = PHOTOS[0]!;
@@ -116,43 +112,4 @@ describe("withUnsplashReferral", () => {
     const out = withUnsplashReferral("https://example.com");
     expect(out).toContain("?utm_source");
   });
-});
-
-describe("photosPageCount", () => {
-  it("matches current catalog size / PAGE_SIZE", () => {
-    expect(photosPageCount()).toBe(Math.ceil(PHOTOS.length / PAGE_SIZE));
-  });
-});
-
-describe("photosForPage", () => {
-  it("returns first page correctly", () => {
-    const page = photosForPage(1);
-    expect(page.length).toBe(PAGE_SIZE);
-    expect(page[0]).toBe(PHOTOS[0]);
-  });
-  it("clamps below 1 to page 1", () => {
-    expect(photosForPage(0)[0]).toBe(PHOTOS[0]);
-  });
-  it("clamps above total to last page", () => {
-    const lastPage = photosForPage(999);
-    expect(lastPage.length).toBeGreaterThan(0);
-  });
-  it("last page has remaining photos", () => {
-    const total = photosPageCount();
-    const lastPage = photosForPage(total);
-    expect(lastPage.length).toBe(PHOTOS.length - (total - 1) * PAGE_SIZE);
-  });
-});
-
-describe("clampPhotoPage", () => {
-  it("clamps NaN to 1", () => expect(clampPhotoPage(NaN)).toBe(1));
-  it("clamps Infinity to 1", () => expect(clampPhotoPage(Infinity)).toBe(1));
-  it("clamps 0 to 1", () => expect(clampPhotoPage(0)).toBe(1));
-  it("clamps -5 to 1", () => expect(clampPhotoPage(-5)).toBe(1));
-  it("floors 1.9 to 1", () => expect(clampPhotoPage(1.9)).toBe(1));
-  it("clamps excess page to total", () => {
-    const total = photosPageCount();
-    expect(clampPhotoPage(999)).toBe(total);
-  });
-  it("returns valid page unchanged", () => expect(clampPhotoPage(2)).toBe(2));
 });

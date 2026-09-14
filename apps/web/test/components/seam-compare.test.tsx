@@ -46,17 +46,33 @@ describe("SeamComparePhoto", () => {
     vi.unstubAllGlobals();
   });
 
-  it("uses lazy loading by default", () => {
+  it("uses eager loading by default", () => {
     const { container } = render(<SeamComparePhoto photo={photo} />);
     const imgs = Array.from(container.querySelectorAll("img"));
     expect(imgs.length).toBeGreaterThan(0);
     for (const img of imgs) {
-      expect(img).toHaveAttribute("loading", "lazy");
+      expect(img).toHaveAttribute("loading", "eager");
     }
   });
 
   it("uses eager loading when priority is true", () => {
     render(<SeamComparePhoto photo={photo} priority />);
+    const imgs = screen.getAllByRole("img");
+    for (const img of imgs) {
+      expect(img).toHaveAttribute("loading", "eager");
+    }
+  });
+
+  it("uses lazy loading when lazy is true and priority is not set", () => {
+    render(<SeamComparePhoto photo={photo} lazy />);
+    const imgs = screen.getAllByRole("img");
+    for (const img of imgs) {
+      expect(img).toHaveAttribute("loading", "lazy");
+    }
+  });
+
+  it("priority overrides lazy — a priority image is never lazy", () => {
+    render(<SeamComparePhoto photo={photo} priority lazy />);
     const imgs = screen.getAllByRole("img");
     for (const img of imgs) {
       expect(img).toHaveAttribute("loading", "eager");

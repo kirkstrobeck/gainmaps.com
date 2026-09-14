@@ -9,12 +9,14 @@ export function SeamCompareLogo({
   height,
   className,
   sizes = "(max-width: 640px) 100vw, 512px",
+  lazy = false,
 }: {
   company: Company;
   width?: number | string;
   height?: number | string;
   className?: string;
   sizes?: string;
+  lazy?: boolean;
 }) {
   return (
     <SeamInstrument
@@ -31,7 +33,7 @@ export function SeamCompareLogo({
           width={512}
           height={512}
           className="inst-img preview-original"
-          loading="lazy"
+          loading={lazy ? "lazy" : "eager"}
           fetchPriority="low"
           decoding="async"
         />
@@ -46,7 +48,7 @@ export function SeamCompareLogo({
           width={512}
           height={512}
           className="inst-img gainmap-image"
-          loading="lazy"
+          loading={lazy ? "lazy" : "eager"}
           fetchPriority="low"
           decoding="async"
         />

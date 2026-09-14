@@ -10,7 +10,8 @@ import { UltraWord } from "@/components/ultra-word";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
 import { PageChrome } from "@/components/page-chrome";
-import { PhotoCredit, PhotoPair } from "@/components/photo-pair";
+import { PhotoCredit } from "@/components/photo-pair";
+import { SeamComparePhoto } from "@/components/seam-compare";
 import { UltraIcon } from "@/components/ultra-icon";
 import { PHOTOS, photoBySlug, photoGainmapSrc, type Photo } from "@/lib/photos/catalog";
 
@@ -59,15 +60,14 @@ export default async function Base({ params }: Params) {
 
         {/* Photo proof — no heavy card chrome, let images breathe */}
         <section className="mt-10">
-          <PhotoPair photo={photo} size="detail" />
+          <SeamComparePhoto photo={photo} width="100%" priority sizes="(min-width: 1024px) 1024px, 100vw" />
           <div className="mt-4">
             <PhotoCredit photo={photo} />
           </div>
           <p className="mt-5 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            Left: the SDR base extracted from the gain map JPEG via{" "}
-            <code className="text-[var(--foreground)]">gainmap extract-sdr</code>
-            . Right: the same photograph as an Ultra HDR gain map image. Both sides
-            are local long-edge-capped JPEGs so resolution and codec match.
+            Drag the seam — left of it is the SDR base (dynamic-range-limit: standard), right of it
+            is the same JPEG decoded as an Ultra HDR gain map. Both use local long-edge-capped JPEGs
+            so resolution and codec match exactly.
           </p>
         </section>
 

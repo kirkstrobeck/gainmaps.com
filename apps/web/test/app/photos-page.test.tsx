@@ -10,38 +10,30 @@ vi.mock("@/components/ultra-word", () => ({
   UltraWord: ({ text }: { text: string }) => <span>{text}</span>,
 }));
 
-vi.mock("@/components/ultra-icon", () => ({
-  UltraIcon: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
-}));
-
 vi.mock("@/components/seam-compare", () => ({
   SeamComparePhoto: ({ photo }: { photo: { alt: string } }) => <img alt={photo.alt} />,
 }));
 
 describe("photos index", () => {
-  it("renders page 1 without a previous link", async () => {
+  it("renders the Photos heading", async () => {
     const Base = (await import("@/app/photos/page")).default;
-    const ui = await Base({ searchParams: Promise.resolve({}) });
+    const ui = Base();
     render(ui);
     expect(screen.getByRole("heading", { name: "Photos" })).toBeInTheDocument();
-    expect(screen.getByText("Next")).toBeInTheDocument();
-    expect(document.querySelector(".photo-card")).not.toBeNull();
   });
 
-  it("renders a middle page from an array search param", async () => {
+  it("renders every photo in the catalog, no pagination", async () => {
     const Base = (await import("@/app/photos/page")).default;
-    const ui = await Base({ searchParams: Promise.resolve({ page: ["2"] }) });
+    const ui = Base();
     render(ui);
-    expect(screen.getByText("Previous")).toBeInTheDocument();
-    expect(screen.getByText("Next")).toBeInTheDocument();
+    expect(document.querySelectorAll(".photo-card").length).toBe(PHOTOS.length);
   });
 
-  it("renders the last page without a next link", async () => {
+  it("has no Previous/Next pagination controls", async () => {
     const Base = (await import("@/app/photos/page")).default;
-    const ui = await Base({ searchParams: Promise.resolve({ page: "99" }) });
+    const ui = Base();
     render(ui);
-    expect(screen.getByText("Previous")).toBeInTheDocument();
+    expect(screen.queryByText("Previous")).not.toBeInTheDocument();
     expect(screen.queryByText("Next")).not.toBeInTheDocument();
-    expect(PHOTOS.length).toBeGreaterThan(0);
   });
 });

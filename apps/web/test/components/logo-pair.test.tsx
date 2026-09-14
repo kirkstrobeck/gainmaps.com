@@ -34,4 +34,18 @@ describe("LogoPair", () => {
     expect(ultra.getAttribute("src")).toBe(company.gainmapPath);
     expect(sdr.getAttribute("srcset")).toBe(ultra.getAttribute("srcset"));
   });
+
+  it("defaults to eager loading when lazy is not passed", () => {
+    render(<LogoPair company={company} size="card" />);
+    const sdr = screen.getByAltText(`${company.name} logo, Standard`);
+    expect(sdr).toHaveAttribute("loading", "eager");
+  });
+
+  it("forwards lazy to the underlying images", () => {
+    render(<LogoPair company={company} size="card" lazy />);
+    const sdr = screen.getByAltText(`${company.name} logo, Standard`);
+    const ultra = screen.getByAltText(`${company.name} logo, Ultra`);
+    expect(sdr).toHaveAttribute("loading", "lazy");
+    expect(ultra).toHaveAttribute("loading", "lazy");
+  });
 });

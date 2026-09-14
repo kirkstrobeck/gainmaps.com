@@ -49,4 +49,20 @@ describe("SeamCompareLogo", () => {
     expect(root.style.width).toBe("128px");
     expect(root.style.height).toBe("128px");
   });
+
+  it("uses eager loading by default", () => {
+    render(<SeamCompareLogo company={company} />);
+    const sdr = screen.getByAltText(`${company.name} logo, Standard`);
+    const ultra = screen.getByAltText(`${company.name} logo, Ultra`);
+    expect(sdr).toHaveAttribute("loading", "eager");
+    expect(ultra).toHaveAttribute("loading", "eager");
+  });
+
+  it("uses lazy loading when lazy is true", () => {
+    render(<SeamCompareLogo company={company} lazy />);
+    const sdr = screen.getByAltText(`${company.name} logo, Standard`);
+    const ultra = screen.getByAltText(`${company.name} logo, Ultra`);
+    expect(sdr).toHaveAttribute("loading", "lazy");
+    expect(ultra).toHaveAttribute("loading", "lazy");
+  });
 });

@@ -9,7 +9,7 @@ import { ArrowBackIcon as ArrowLeftFilled, ArrowForwardIcon as ArrowRightFilled 
 import { UltraWord } from "@/components/ultra-word";
 import { TEXT_ULTRA_INTENSITY } from "@/lib/text-ultra";
 
-import { LogoPair } from "@/components/logo-pair";
+import { SeamCompareLogo } from "@/components/seam-compare-logo";
 import { PageChrome } from "@/components/page-chrome";
 import { UltraIcon } from "@/components/ultra-icon";
 import { COMPANIES, companyBySlug } from "@/lib/logos/companies";
@@ -61,11 +61,12 @@ export default async function Base({ params }: Params) {
 
         {/* Logo proof — no heavy card chrome */}
         <section className="mt-10">
-          <LogoPair company={company} size="detail" />
+          <SeamCompareLogo company={company} width="100%" className="aspect-square" sizes="(max-width: 640px) 100vw, 512px" />
           <p className="mt-6 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-            Left: the source vector. Right: the same mark rasterized and encoded as an Ultra HDR
-            gain map at 0.5 boost. JPEG has no alpha channel, so the SVG masks the opaque
-            matte. Only the mark's own pixels survive, with the checkerboard behind them.
+            Drag the seam — left of it is the SDR JPEG (standard dynamic range), right of it is the
+            same JPEG as an Ultra HDR gain map at full boost — 6x headroom. The encoder zeroes the
+            gain wherever the source alpha is 0, so only the mark's own ink gets the Ultra boost;
+            the checkerboard behind it stays flat SDR.
           </p>
         </section>
 

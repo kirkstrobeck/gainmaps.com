@@ -16,8 +16,11 @@ vi.mock("@/components/ultra-icon", () => ({
 }));
 
 vi.mock("@/components/photo-pair", () => ({
-  PhotoPair: () => <div data-testid="pair" />,
   PhotoCredit: () => <div data-testid="credit" />,
+}));
+
+vi.mock("@/components/seam-compare", () => ({
+  SeamComparePhoto: ({ photo }: { photo: { alt: string } }) => <div data-testid="seam-photo" aria-label={photo.alt} />,
 }));
 
 vi.mock("@/lib/photos/catalog", async (importOriginal) => {

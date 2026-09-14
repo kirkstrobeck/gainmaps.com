@@ -31,8 +31,6 @@ export type Photo = {
   readonly alt: string;
 };
 
-export const PAGE_SIZE = 12;
-
 export const PHOTOS: readonly Photo[] = [
   { id: "qsdkMlbfne4", slug: "a-seal-rests-on-a-shallow-sandbar-in-calm-water", unsplashPhotoId: "photo-1784978516675-8daa424836f5", photographer: "Jeremy Hynes", photographerUrl: "https://unsplash.com/@hynesight", photoUrl: "https://unsplash.com/photos/a-seal-rests-on-a-shallow-sandbar-in-calm-water-qsdkMlbfne4", width: 7660, height: 3830, alt: "A seal rests on a shallow sandbar in calm water" },
   { id: "l3Pvd4M3Css", slug: "low-sun-with-lens-flare-over-a-forested-valley-and-granite-c", unsplashPhotoId: "photo-1787170426598-858e57c774dd", photographer: "Priyank Pathak", photographerUrl: "https://unsplash.com/@ppriyank", photoUrl: "https://unsplash.com/photos/low-sun-over-yosemite-valley-cliffs-l3Pvd4M3Css", width: 9459, height: 5475, alt: "Low sun with lens flare over a forested valley and granite cliffs in Yosemite" },
@@ -165,21 +163,4 @@ export function photoGainmapSrcset(photo: Photo): string {
 export function withUnsplashReferral(url: string): string {
   const join = url.includes("?") ? "&" : "?";
   return `${url}${join}utm_source=gainmaps&utm_medium=referral`;
-}
-
-export function photosPageCount(): number {
-  return Math.ceil(PHOTOS.length / PAGE_SIZE);
-}
-
-export function photosForPage(page: number): readonly Photo[] {
-  const total = photosPageCount();
-  const current = Math.min(Math.max(page, 1), Math.max(total, 1));
-  const start = (current - 1) * PAGE_SIZE;
-  return PHOTOS.slice(start, start + PAGE_SIZE);
-}
-
-export function clampPhotoPage(page: number): number {
-  const total = photosPageCount();
-  if (!Number.isFinite(page) || page < 1) return 1;
-  return Math.min(Math.floor(page), Math.max(total, 1));
 }

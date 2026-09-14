@@ -18,6 +18,7 @@ export function SeamComparePhoto({
   priority = false,
   sizes = DEFAULT_STD_SIZES,
   deferUltra = false,
+  lazy = false,
 }: {
   photo: Photo;
   width?: number | string;
@@ -26,11 +27,12 @@ export function SeamComparePhoto({
   priority?: boolean;
   sizes?: string;
   deferUltra?: boolean;
+  lazy?: boolean;
 }) {
   const stdSrc = photoStandardSrc(photo, 400);
   const gainSrc = photoGainmapSrc(photo, 400);
   const intrinsic = photoIntrinsicSize(photo);
-  const loading: "lazy" | "eager" = priority ? "eager" : "lazy";
+  const loading: "lazy" | "eager" = priority ? "eager" : lazy ? "lazy" : "eager";
   const fetchPriority: "high" | "low" = priority ? "high" : "low";
 
   return (
