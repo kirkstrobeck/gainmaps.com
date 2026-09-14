@@ -4,7 +4,7 @@ import { requireCompany } from "@/lib/logos/require-company";
 
 describe("requireCompany", () => {
   it("returns the company for a known slug", () => {
-    expect(requireCompany("instagram")).toEqual(companyBySlug("instagram"));
+    expect(requireCompany("toyota")).toEqual(companyBySlug("toyota"));
   });
 
   it("throws with a message naming an unknown slug", () => {

@@ -57,10 +57,10 @@ describe("logos/[slug]", () => {
     expect(screen.getByText(/Interbrand Best Global Brands 2025/)).toBeInTheDocument();
   });
 
-  it("renders American Express with the 2024 ranking copy", async () => {
-    const amex = COMPANIES.find((c) => c.slug === "american-express")!;
+  it("renders the fallback-ranked company with the 2024 ranking copy", async () => {
+    const fallback = COMPANIES.find((c) => c.rank > 100)!;
     const Base = (await import("@/app/logos/[slug]/page")).default;
-    const ui = await Base({ params: Promise.resolve({ slug: amex.slug }) });
+    const ui = await Base({ params: Promise.resolve({ slug: fallback.slug }) });
     render(ui);
     expect(screen.getByText("Interbrand Best Global Brands 2024")).toBeInTheDocument();
   });

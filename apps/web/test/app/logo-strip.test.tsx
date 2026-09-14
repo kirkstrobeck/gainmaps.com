@@ -6,11 +6,11 @@ describe("LOGO_STRIP", () => {
     expect(LOGO_STRIP).toHaveLength(3);
   });
 
-  it("is instagram, lego, american-express in that order", () => {
+  it("is microsoft, toyota, mcdonalds in that order", () => {
     expect(LOGO_STRIP.map((c) => c.slug)).toEqual([
-      "instagram",
-      "lego",
-      "american-express",
+      "microsoft",
+      "toyota",
+      "mcdonalds",
     ]);
   });
 });

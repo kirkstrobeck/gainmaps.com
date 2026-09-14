@@ -21,12 +21,12 @@ describe("GET /api/logos", () => {
 
 describe("GET /api/logos/[slug]", () => {
   it("returns 200 for valid slug", async () => {
-    const res = await logoSlugGET(new Request("http://localhost/api/logos/instagram"), {
-      params: Promise.resolve({ slug: "instagram" }),
+    const res = await logoSlugGET(new Request("http://localhost/api/logos/toyota"), {
+      params: Promise.resolve({ slug: "toyota" }),
     });
     expect(res.status).toBe(200);
     const data = await res.json();
-    expect(data.slug).toBe("instagram");
+    expect(data.slug).toBe("toyota");
   });
 
   it("returns 404 for invalid slug", async () => {
