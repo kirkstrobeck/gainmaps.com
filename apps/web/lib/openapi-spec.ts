@@ -55,71 +55,105 @@ const NOT_FOUND_RESPONSE = {
   content: { "application/json": { schema: ERROR_SCHEMA } },
 };
 
+const SERVER_ERROR_RESPONSE = {
+  description: "Internal server error",
+  content: { "application/json": { schema: { "$ref": "#/components/schemas/Error" } } },
+};
+
 export function buildOpenApiSpec(): object {
   return {
     openapi: "3.1.0",
     info: {
       title: "Gainmaps API",
       version: "1.1.0",
-      description: "Public JSON API for the Gainmaps photo and logo catalogs, version info, and OpenAPI spec.",
+      description: [
+        "Public JSON API for the Gainmaps photo and logo catalogs, version info, and OpenAPI spec.",
+        "",
+        "**Versioning**: The API uses a single-version path prefix-free design. Breaking changes",
+        "increment the `info.version` field and are announced via the /api/version endpoint.",
+        "Non-breaking additions (new fields, new endpoints) are shipped without a version bump.",
+        "",
+        "**Pagination**: List endpoints (`/api/photos`, `/api/logos`) return the full catalog.",
+        "The catalogs are small (hundreds of items) so cursor/offset pagination is not implemented.",
+        "Filter by slug using the per-item endpoints instead.",
+        "",
+        "**Rate limits**: 1000 requests per hour per IP. Limits are returned in `ratelimit-*` headers",
+        "on every response (`ratelimit-limit`, `ratelimit-remaining`, `ratelimit-reset`, `ratelimit-policy`).",
+      ].join("\n"),
     },
     servers: [{ url: "https://www.gainmaps.com" }],
+    components: {
+      schemas: {
+        Error: ERROR_SCHEMA,
+        Photo: PHOTO_SCHEMA,
+        Logo: LOGO_SCHEMA,
+      },
+    },
     paths: {
       "/api/photos": {
         get: {
           operationId: "listPhotos",
-          description: "Returns the full list of photos in the Gainmaps catalog.",
+          summary: "List all photos",
+          description: "Returns the full catalog of photos. No pagination — the full array is returned.",
           responses: {
             "200": {
               description: "Array of photo records",
-              content: { "application/json": { schema: { type: "array", items: PHOTO_SCHEMA } } },
+              content: { "application/json": { schema: { type: "array", items: { "$ref": "#/components/schemas/Photo" } } } },
             },
+            "500": SERVER_ERROR_RESPONSE,
           },
         },
       },
       "/api/photos/{slug}": {
         get: {
           operationId: "getPhoto",
+          summary: "Get a photo by slug",
           description: "Returns a single photo by slug.",
           parameters: [SLUG_PARAM],
           responses: {
             "200": {
               description: "Photo record",
-              content: { "application/json": { schema: PHOTO_SCHEMA } },
+              content: { "application/json": { schema: { "$ref": "#/components/schemas/Photo" } } },
             },
             "404": NOT_FOUND_RESPONSE,
+            "500": SERVER_ERROR_RESPONSE,
           },
         },
       },
       "/api/logos": {
         get: {
           operationId: "listLogos",
-          description: "Returns the full list of brand logos in the Gainmaps catalog.",
+          summary: "List all logos",
+          description: "Returns the full catalog of brand logos. No pagination — the full array is returned.",
           responses: {
             "200": {
               description: "Array of logo records",
-              content: { "application/json": { schema: { type: "array", items: LOGO_SCHEMA } } },
+              content: { "application/json": { schema: { type: "array", items: { "$ref": "#/components/schemas/Logo" } } } },
             },
+            "500": SERVER_ERROR_RESPONSE,
           },
         },
       },
       "/api/logos/{slug}": {
         get: {
           operationId: "getLogo",
+          summary: "Get a logo by slug",
           description: "Returns a single logo by slug.",
           parameters: [SLUG_PARAM],
           responses: {
             "200": {
               description: "Logo record",
-              content: { "application/json": { schema: LOGO_SCHEMA } },
+              content: { "application/json": { schema: { "$ref": "#/components/schemas/Logo" } } },
             },
             "404": NOT_FOUND_RESPONSE,
+            "500": SERVER_ERROR_RESPONSE,
           },
         },
       },
       "/api/version": {
         get: {
           operationId: "getVersion",
+          summary: "Get CLI version info",
           description: "Returns the current gainmap package version and install commands.",
           responses: {
             "200": {
@@ -139,6 +173,7 @@ export function buildOpenApiSpec(): object {
                 },
               },
             },
+            "500": SERVER_ERROR_RESPONSE,
           },
         },
       },

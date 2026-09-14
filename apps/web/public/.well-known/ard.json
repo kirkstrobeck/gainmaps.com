@@ -1,0 +1,19 @@
+{
+  "@context": "https://agenticresourcediscovery.org/context.json",
+  "entries": [
+    {
+      "urn": "urn:air:gainmaps.com:api:rest",
+      "displayName": "Gainmaps REST API",
+      "media": "application/vnd.oai.openapi+json;version=3.1",
+      "url": "https://www.gainmaps.com/openapi.json",
+      "description": "Public JSON API for photos, logos, version info, and the gainmap CLI catalog."
+    },
+    {
+      "urn": "urn:air:gainmaps.com:skills:agent-skills",
+      "displayName": "Gainmaps Agent Skills",
+      "media": "application/json",
+      "url": "https://www.gainmaps.com/.well-known/agent-skills/index.json",
+      "description": "Agent-installable skills: ultra-text HDR letterforms, browser image converter, and CLI batch encoder."
+    }
+  ]
+}

@@ -42,7 +42,7 @@ for (const [name, path] of routes) {
           encoding: "utf8", env: { ...process.env, CHROME_PATH: chrome }, maxBuffer: 20 * 1024 * 1024,
         })
       : spawnSync("npx", ["--yes", "lighthouse", ...lhArgs], {
-          encoding: "utf8", env: { ...process.env, CHROME_PATH: chrome }, maxBuffer: 20 * 1024 * 1024, shell: true,
+          encoding: "utf8", env: { ...process.env, CHROME_PATH: chrome }, maxBuffer: 20 * 1024 * 1024,
         });
     process.stdout.write(result.stdout);
     process.stderr.write(result.stderr);

@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "0.2.0",
+  "name": "Gainmaps",
+  "url": "https://www.gainmaps.com",
+  "skills": [
+    {
+      "name": "ultra-text",
+      "description": "Add Ultra-white HDR letterforms to headlines and logotypes using a WebGPU canvas. Text stays real, selectable, and copyable. Works with any coding agent that supports the skills convention.",
+      "install": "npx skills add kirkstrobeck/gainmaps",
+      "url": "https://www.gainmaps.com/text"
+    },
+    {
+      "name": "gainmap-convert",
+      "description": "Convert photos to HDR gain map images (ISO 21496-1 Ultra HDR JPEG) locally in a browser service worker. Accepts JPEG, PNG, HEIC, WebP, or AVIF input.",
+      "url": "https://www.gainmaps.com/convert"
+    },
+    {
+      "name": "gainmap-cli",
+      "description": "Batch-encode HDR gain map images from the terminal using the gainmap CLI. Install via npm, Homebrew, or curl.",
+      "install": "npm install -g gainmap",
+      "url": "https://www.gainmaps.com/developers"
+    }
+  ]
+}

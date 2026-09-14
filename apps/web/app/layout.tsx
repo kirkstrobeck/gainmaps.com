@@ -17,18 +17,21 @@ import { PHOTOS, photoGainmapSrc } from "@/lib/photos/catalog";
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
+  display: "optional",
 });
 
 const bricolageGrotesque = Bricolage_Grotesque({
   variable: "--font-bricolage-grotesque",
   subsets: ["latin"],
   axes: ["wdth"],
+  display: "optional",
 });
 
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "optional",
 });
 
 export const metadata: Metadata = {
