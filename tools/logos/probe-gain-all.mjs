@@ -2,7 +2,7 @@
 /**
  * Content-aware gainmap corner probe.
  *
- * Walk all logo slug directories and verify that BACKGROUND corner pixels
+ * Walk all logo slug directories and verify that BACKGROUND sample pixels
  * in every gain-map JPEG variant have raw byte ≤ PASS_RAW_BYTE_MAX.
  *
  * "Background" means: the corresponding pixel in the rasterized logo.svg
@@ -45,13 +45,28 @@ function findGainMapSlice(bytes) {
   return bytes.subarray(soi);
 }
 
-function cornerPoints(w, h) {
-  return [
+function samplePoints(w, h, alpha) {
+  const points = new Map();
+  const add = (x, y) => {
+    if (x < 0 || y < 0 || x >= w || y >= h) return;
+    if (alpha[y * w + x] >= CONTENT_ALPHA_MIN) return;
+    points.set(`${x}:${y}`, [x, y]);
+  };
+  // Corners catch the original white-background regression without testing
+  // JPEG ringing beside logo ink.
+  [
     [0, 0], [0, 1], [1, 0], [1, 1],
     [0, h - 1], [0, h - 2], [1, h - 1],
     [w - 1, 0], [w - 2, 0], [w - 1, 1],
     [w - 1, h - 1], [w - 2, h - 1], [w - 1, h - 2],
-  ].filter(([x, y]) => x >= 0 && y >= 0 && x < w && y < h);
+  ].forEach(([x, y]) => add(x, y));
+  if (points.size > 0) return [...points.values()];
+  // A full-bleed mark can cover every corner while retaining a transparent
+  // interior gap. Sample that grid only as a fallback; zero samples is FAIL.
+  for (let y = 0; y < 17; y += 1) {
+    for (let x = 0; x < 17; x += 1) add(Math.round(x * (w - 1) / 16), Math.round(y * (h - 1) / 16));
+  }
+  return [...points.values()];
 }
 
 /** Rasterize logo.svg → 1024×1024 alpha channel (Uint8Array, length=1024*1024). */
@@ -93,22 +108,28 @@ function resizeAlpha(alpha1024, targetW) {
   return out;
 }
 
+function zeroSampleFailure(samples, width, height) {
+  if (samples.length > 0) return null;
+  return { status: "zero-background-samples", fail: true, width, height, samples: 0 };
+}
+
 async function probeFile(path, alphaMask) {
   if (!existsSync(path)) return { status: "missing", fail: true };
+  if (!alphaMask) return { status: "missing-alpha-mask", fail: true };
   const bytes = await readFile(path);
   const gmSlice = findGainMapSlice(bytes);
   if (!gmSlice) return { status: "no-gainmap-stream", fail: true };
 
   const { data, info } = await sharp(gmSlice).raw().toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
-  const resizedAlpha = alphaMask ? resizeAlpha(alphaMask, width) : null;
-
-  const corners = cornerPoints(width, height);
+  const resizedAlpha = resizeAlpha(alphaMask, width);
+  const samples = samplePoints(width, height, resizedAlpha);
+  const sampleFailure = zeroSampleFailure(samples, width, height);
+  if (sampleFailure) return sampleFailure;
   let maxCornerRaw = 0;
   const failedCorners = [];
 
-  for (const [x, y] of corners) {
-    if (resizedAlpha && resizedAlpha[y * width + x] >= CONTENT_ALPHA_MIN) continue;
+  for (const [x, y] of samples) {
     const offset = (y * width + x) * channels;
     const maxRaw = Math.max(data[offset] ?? 0, data[offset + 1] ?? 0, data[offset + 2] ?? 0);
     if (maxRaw > maxCornerRaw) maxCornerRaw = maxRaw;
@@ -116,7 +137,16 @@ async function probeFile(path, alphaMask) {
   }
 
   const pass = failedCorners.length === 0;
-  return { status: pass ? "pass" : "fail", fail: !pass, width, height, maxCornerRaw, failedCorners };
+  return { status: pass ? "pass" : "fail", fail: !pass, width, height, samples: samples.length, maxCornerRaw, failedCorners };
+}
+
+if (process.argv.includes("--self-test-zero-samples")) {
+  const opaque = new Uint8Array(16).fill(255);
+  const samples = samplePoints(4, 4, opaque);
+  const result = zeroSampleFailure(samples, 4, 4);
+  if (!result?.fail || result.status !== "zero-background-samples") throw new Error("zero-sample probe must fail");
+  console.log("PASS zero-background-samples is a failure");
+  process.exit(0);
 }
 
 const slugs = readdirSync(LOGOS_DIR, { withFileTypes: true })
@@ -136,17 +166,17 @@ for (const slug of slugs) {
     const label = result.fail ? "FAIL" : "PASS";
     const dims = result.width ? `${result.width}x${result.height}` : "";
     const detail = result.fail
-      ? ` maxCornerRaw=${result.maxCornerRaw} failedCorners=${result.failedCorners?.length ?? "?"}`
-      : ` maxCornerRaw=${result.maxCornerRaw}`;
+      ? ` samples=${result.samples ?? 0} maxCornerRaw=${result.maxCornerRaw} failedCorners=${result.failedCorners?.length ?? "?"}`
+      : ` samples=${result.samples ?? 0} maxCornerRaw=${result.maxCornerRaw}`;
     console.log(`${label}  ${slug}/${variant}  ${dims}${detail}`);
     if (result.fail) totalFail++;
   }
 }
 
 console.log("");
-if (totalFail > 0) {
-  console.log(`FAILED ${totalFail} of ${totalFiles} files`);
-  process.exit(1);
-} else {
+if (totalFail === 0) {
   console.log(`ALL PASS ${totalFiles} files`);
+  process.exit(0);
 }
+console.log(`FAILED ${totalFail} of ${totalFiles} files`);
+process.exit(1);
