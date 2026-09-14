@@ -1,6 +1,5 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { SeamInstrument } from "@/components/seam-instrument";
 import { logoGainmapSrcset, type Company } from "@/lib/logos/companies";
 
@@ -23,18 +22,14 @@ export function SeamCompareLogo({
     <SeamInstrument
       width={width}
       height={height}
-      className={`inst-logo${className ? ` ${className}` : ""}`}
+      className={className}
       sdr={
-        <div className="logo-mask" style={{ "--logo-mask": `url(${company.svgPath})` } as CSSProperties}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={company.gainmapPath} srcSet={logoGainmapSrcset(company)} sizes={sizes} alt={`${company.name} logo, Standard`} width={512} height={512} className="inst-img preview-original" loading={lazy ? "lazy" : "eager"} fetchPriority="low" decoding="async" />
-        </div>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={company.gainmapPath} srcSet={logoGainmapSrcset(company)} sizes={sizes} alt={`${company.name} logo, Standard`} width={512} height={512} className="inst-img preview-original" loading={lazy ? "lazy" : "eager"} fetchPriority="low" decoding="async" />
       }
       ultra={
-        <div className="logo-mask" style={{ "--logo-mask": `url(${company.svgPath})` } as CSSProperties}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={company.gainmapPath} srcSet={logoGainmapSrcset(company)} sizes={sizes} alt={`${company.name} logo, Ultra`} width={512} height={512} className="inst-img gainmap-image" loading={lazy ? "lazy" : "eager"} fetchPriority="low" decoding="async" />
-        </div>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={company.gainmapPath} srcSet={logoGainmapSrcset(company)} sizes={sizes} alt={`${company.name} logo, Ultra`} width={512} height={512} className="inst-img gainmap-image" loading={lazy ? "lazy" : "eager"} fetchPriority="low" decoding="async" />
       }
     />
   );

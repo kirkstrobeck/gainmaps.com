@@ -286,32 +286,6 @@ body {
   -webkit-user-drag: none;
 }
 
-/* Logo JPEGs carry a checkerboard matte; the matching SVG alpha reveals only
-   their ink, leaving both comparison sides on the actual page background. */
-.inst-logo {
-  background: var(--background);
-}
-
-.logo-mask {
-  --logo-mask: none;
-  position: absolute;
-  inset: 0;
-  -webkit-mask-image: var(--logo-mask);
-  -webkit-mask-size: contain;
-  -webkit-mask-position: center;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-mode: alpha;
-  mask-image: var(--logo-mask);
-  mask-size: contain;
-  mask-position: center;
-  mask-repeat: no-repeat;
-  mask-mode: alpha;
-}
-
-.inst-logo .inst-img {
-  object-fit: contain;
-}
-
 /* Off-screen gallery cards skip layout/paint until they approach the viewport. */
 .photo-card {
   content-visibility: auto;

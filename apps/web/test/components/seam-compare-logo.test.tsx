@@ -6,20 +6,12 @@ import { COMPANIES } from "@/lib/logos/companies";
 const company = COMPANIES[0]!;
 
 describe("SeamCompareLogo", () => {
-  it("masks each comparison image independently with the matching SVG", () => {
+  it("renders a Standard-labelled tile and an Ultra-labelled tile", () => {
     render(<SeamCompareLogo company={company} />);
     const sdr = screen.getByAltText(`${company.name} logo, Standard`);
     const ultra = screen.getByAltText(`${company.name} logo, Ultra`);
     expect(sdr).toHaveClass("preview-original");
     expect(ultra).toHaveClass("gainmap-image");
-    expect(sdr.parentElement).toHaveClass("logo-mask");
-    expect(ultra.parentElement).toHaveClass("logo-mask");
-    expect(sdr.parentElement).not.toBe(ultra.parentElement);
-    expect(sdr.parentElement?.parentElement).toHaveClass("inst-sdr");
-    expect(ultra.parentElement?.parentElement).toHaveClass("inst-layer");
-    expect(ultra.parentElement?.parentElement).not.toHaveClass("inst-sdr");
-    expect(sdr.parentElement).toHaveStyle({ "--logo-mask": `url(${company.svgPath})` });
-    expect(ultra.parentElement).toHaveStyle({ "--logo-mask": `url(${company.svgPath})` });
   });
 
   it("feeds both slots from company.gainmapPath — local has no separate SDR asset", () => {
@@ -54,7 +46,6 @@ describe("SeamCompareLogo", () => {
     );
     const root = container.querySelector(".inst") as HTMLElement;
     expect(root).toHaveClass("my-class");
-    expect(root).toHaveClass("inst-logo");
     expect(root.style.width).toBe("128px");
     expect(root.style.height).toBe("128px");
   });
