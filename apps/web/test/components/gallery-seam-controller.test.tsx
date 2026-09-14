@@ -90,6 +90,25 @@ describe("GallerySeamController", () => {
     expect(screen.getByRole("img")).toHaveAttribute("src", "/fallback.jpg");
   });
 
+  it("rebuilds compact photo metadata with its bounded srcset", () => {
+    render(<><img alt="photo" data-seam-src="slug/gainmap" data-seam-count="2" /><GallerySeamController photoStorageBase="https://images.example" /></>);
+    const image = screen.getByRole("img");
+    observerCallback([{ target: image, isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+    expect(image).toHaveAttribute("src", "https://images.example/photos/slug/gainmap-400.jpg");
+    expect(image).toHaveAttribute("srcset", "https://images.example/photos/slug/gainmap-400.jpg 400w, https://images.example/photos/slug/gainmap-800.jpg 800w");
+    expect(image).not.toHaveAttribute("data-seam-src");
+  });
+
+  it("loads deferred images with explicit srcset widths", () => {
+    render(<><img alt="widths" data-seam-src="/photo.jpg" data-seam-widths="400,800" /><GallerySeamController /></>);
+    const image = screen.getByRole("img");
+    expect(observe).toHaveBeenCalledWith(image);
+    observerCallback([{ target: image, isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+    expect(image).toHaveAttribute("src", "/photo.jpg");
+    expect(image).toHaveAttribute("srcset", "/photo-400.jpg 400w, /photo-800.jpg 800w");
+    expect(image).not.toHaveAttribute("data-seam-widths");
+  });
+
   it("ignores unrelated pointer, click, and keyboard events", () => {
     render(<><button type="button">outside</button><button data-seam-snap="0">orphan snap</button><button role="slider">orphan slider</button><div data-gallery-seam data-testid="no-slider" /><GallerySeamController /></>);
     const outside = screen.getByRole("button", { name: "outside" });

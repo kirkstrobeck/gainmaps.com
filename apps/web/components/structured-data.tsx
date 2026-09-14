@@ -7,6 +7,10 @@ export function StructuredData() {
         "@id": "https://www.gainmaps.com/#organization",
         name: "Gainmaps",
         url: "https://www.gainmaps.com",
+        address: {
+          "@type": "PostalAddress",
+          addressCountry: "US",
+        },
         contactPoint: {
           "@type": "ContactPoint",
           email: "kirk@strobeck.com",

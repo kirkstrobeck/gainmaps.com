@@ -22,22 +22,32 @@ function snap(inst: HTMLElement, percent: number): void {
   window.setTimeout(() => inst.classList.remove("inst--animating"), 350);
 }
 
-function responsiveSources(src: string, widths: string): string {
-  const values = widths.split(",");
+const PHOTO_WIDTHS = [400, 800, 1280, 1600, 2048, 2560];
+
+function responsiveSources(src: string, widths: readonly number[] | string): string {
+  const values = typeof widths === "string" ? widths.split(",") : widths;
   const base = src.replace(/(?:-\d+)?\.jpg$/, "");
   return values.map((width) => `${base}-${width}.jpg ${width}w`).join(", ");
 }
 
-export function GallerySeamController() {
+export function GallerySeamController({ photoStorageBase }: { photoStorageBase?: string }) {
   useEffect(() => {
     let active: { inst: HTMLElement; rect: DOMRect; pointer: number } | null = null;
     const deferred = document.querySelectorAll<HTMLImageElement>("img[data-seam-src]");
     const loadDeferredImage = (image: HTMLImageElement) => {
-      image.srcset = image.dataset.seamWidths
-        ? responsiveSources(image.dataset.seamSrc!, image.dataset.seamWidths)
+      const path = image.dataset.seamSrc!;
+      const count = Number(image.dataset.seamCount);
+      const photoWidths = photoStorageBase && Number.isInteger(count) && count > 0
+        ? PHOTO_WIDTHS.slice(0, count) : undefined;
+      const src = photoWidths ? `${photoStorageBase}/photos/${path}-400.jpg` : path;
+      image.srcset = photoWidths
+        ? responsiveSources(src, photoWidths)
+        : image.dataset.seamWidths
+          ? responsiveSources(src, image.dataset.seamWidths)
         : image.dataset.seamSrcset ?? "";
-      image.src = image.dataset.seamSrc!;
+      image.src = src;
       delete image.dataset.seamSrc;
+      delete image.dataset.seamCount;
       delete image.dataset.seamWidths;
       delete image.dataset.seamSrcset;
     };
@@ -47,7 +57,7 @@ export function GallerySeamController() {
         loadDeferredImage(entry.target as HTMLImageElement);
         observer?.unobserve(entry.target);
       });
-    }, { rootMargin: "200px" }) : null;
+    }, { rootMargin: "900px" }) : null;
     deferred.forEach((image) => {
       if (observer) observer.observe(image);
       if (!observer) loadDeferredImage(image);
@@ -99,6 +109,6 @@ export function GallerySeamController() {
       document.removeEventListener("click", onClick);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, []);
+  }, [photoStorageBase]);
   return null;
 }

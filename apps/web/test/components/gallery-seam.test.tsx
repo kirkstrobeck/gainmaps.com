@@ -19,14 +19,21 @@ describe("gallery seam markup", () => {
     });
   });
 
-  it("keeps the standard photo native-lazy and defers the Ultra request", () => {
+  it("keeps non-priority pairs native-lazy with compact deferred metadata", () => {
     render(<GallerySeamPhoto photo={PHOTOS[1]!} priority={false} sizes={PHOTO_GALLERY_SIZES} />);
     const standard = screen.getByRole("img", { name: /Standard$/ });
     const ultra = screen.getByRole("img", { name: /Ultra$/ });
     expect(standard).toHaveAttribute("loading", "lazy");
     expect(standard).toHaveAttribute("fetchpriority", "low");
+    expect(standard).not.toHaveAttribute("src");
+    expect(standard).toHaveAttribute("data-seam-src", `${PHOTOS[1]!.slug}/standard`);
+    expect(standard).toHaveAttribute("data-seam-count", "6");
     expect(ultra).not.toHaveAttribute("src");
-    expect(ultra).toHaveAttribute("data-seam-src", expect.stringContaining("gainmap-400.jpg"));
+    expect(ultra).toHaveAttribute("data-seam-src", `${PHOTOS[1]!.slug}/gainmap`);
+    expect(ultra).toHaveAttribute("data-seam-count", "6");
+    expect(document.querySelectorAll(".inst-corner")).toHaveLength(0);
+    expect(screen.getByRole("button", { name: "SDR: Show Standard" })).toHaveAttribute("data-seam-snap", "100");
+    expect(screen.getByRole("button", { name: "Ultra: Show Ultra" })).toHaveAttribute("data-seam-snap", "0");
   });
 
   it("renders eager and native-lazy logo pairs", () => {

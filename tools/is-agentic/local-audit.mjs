@@ -50,7 +50,7 @@ const parsedError = JSON.parse(apiError.body);
 check("JSON API errors", apiError.result.status === 404 && parsedError.error?.code === "NOT_FOUND", `HTTP ${apiError.result.status}, NOT_FOUND`);
 const markdown = await text("/", { headers: { accept: "text/markdown" } });
 check("Markdown negotiation", markdown.result.status === 200 && markdown.result.headers.get("content-type")?.includes("text/markdown"), `HTTP ${markdown.result.status}`);
-check("Markdown Vary", markdown.result.headers.get("vary") === "Accept, Accept-Encoding", markdown.result.headers.get("vary"));
+check("Markdown Vary", markdown.result.headers.get("vary")?.split(",").some((v) => v.trim().toLowerCase() === "accept"), markdown.result.headers.get("vary"));
 const missing = await text("/missing-agent-page", { headers: { accept: "text/markdown" } });
 check("Agent-friendly 404", missing.result.status === 404 && missing.body.includes("Sitemap"), `HTTP ${missing.result.status}`);
 

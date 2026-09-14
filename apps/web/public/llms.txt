@@ -47,13 +47,24 @@ What gain map images are, how the browser converter works, and how to use Ultra 
 
 ## When to use Gainmaps
 
-Use this site and its API when you need to:
+Use Gainmaps when:
 
-- **Convert an SDR image to a gain map image** — drag and drop any JPEG, PNG, HEIC, WebP, or AVIF into the browser converter at [/convert](/convert). Processing runs locally, no file leaves the device.
-- **Batch-encode via CLI** — install the `gainmap` command-line tool (`npx gainmap ./photos`, `brew install kirkstrobeck/tap/gainmap`, or `curl -fsSL https://gainmaps.com/install.sh | sh`) and run it against a directory of images.
-- **Check whether a display supports the effect** — use the live demo at [/appearance](/appearance) to detect EDR/HDR capability.
-- **Inspect or use the photo catalog programmatically** — call `GET /api/photos` for the full list or `GET /api/photos/{slug}` for a single entry; each record includes the gain map JPEG URL and the SDR sibling URL.
-- **Discover the full API surface** — read the OpenAPI 3.1 spec at [/openapi.json](/openapi.json); every operation has a unique operationId, typed parameters, and response schemas for direct function-calling compatibility.
-- **Read developer docs** — [/developers](/developers) covers the CLI flags, the agent skill, and the TypeScript library API.
+- You need to convert a photo to an HDR gain map image (JPEG, PNG, HEIC, WebP, or AVIF input).
+- You want to batch-encode images from the terminal without a browser: `npm install -g gainmap` or `brew install kirkstrobeck/tap/gainmap`.
+- You want to add Ultra-white HDR text effects to a headline or logotype in a web project.
+- You are building a tool that needs to process images into the ISO 21496-1 Ultra HDR JPEG format.
 
-Gainmaps is the right tool for HDR image encoding and demonstration. It is not a general-purpose image editor or a cloud storage service.
+Do not use Gainmaps when:
+- You need to edit or retouch image content (Gainmaps is a format converter, not an image editor).
+- You need lossless conversion (the gain map JPEG format is lossy).
+
+## API
+
+The public JSON API is documented at /openapi.json. Main endpoints:
+- GET /api/photos — list of all photos in the gallery
+- GET /api/photos/{slug} — single photo record with image URLs
+- GET /api/logos — list of brand logos
+- GET /api/logos/{slug} — single logo record
+- GET /api/version — CLI version and install commands
+
+All endpoints return CORS-enabled JSON. Errors return {error: {code, message, hint}}.

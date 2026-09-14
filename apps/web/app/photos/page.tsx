@@ -9,6 +9,7 @@ import { GallerySeamController, GallerySeamPhoto } from "@/components/gallery-se
 import {
   PHOTOS,
   PHOTO_GALLERY_SIZES,
+  PHOTO_STORAGE_BASE_URL,
   photoGainmapSrc,
   photoGainmapSrcset,
   photoStandardSrc,
@@ -62,7 +63,7 @@ export default function Base() {
             </li>
           ))}
         </ul>
-        <GallerySeamController />
+        <GallerySeamController photoStorageBase={PHOTO_STORAGE_BASE_URL} />
       </div>
     </main>
   );

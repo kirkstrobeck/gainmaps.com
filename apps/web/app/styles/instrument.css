@@ -82,6 +82,21 @@
   gap: 4px;
 }
 
+/* Gallery controls are direct children, avoiding two positional wrappers per card. */
+.inst[data-gallery-seam] > .inst-switch-btn {
+  position: absolute;
+  bottom: 8px;
+  z-index: 10;
+}
+
+.inst[data-gallery-seam] > [data-seam-snap="100"] {
+  left: 6px;
+}
+
+.inst[data-gallery-seam] > [data-seam-snap="0"] {
+  right: 6px;
+}
+
 /* 44×44 hit target via ::before */
 .inst-switch-btn::before {
   content: "";

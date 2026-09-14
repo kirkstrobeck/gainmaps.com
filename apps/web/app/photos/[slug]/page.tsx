@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { preload } from "react-dom";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArrowBackIcon as ArrowLeftFilled, ArrowForwardIcon as ArrowRightFilled } from "@/components/icons";
@@ -13,7 +14,7 @@ import { PageChrome } from "@/components/page-chrome";
 import { PhotoCredit } from "@/components/photo-pair";
 import { SeamComparePhoto } from "@/components/seam-compare";
 import { UltraIcon } from "@/components/ultra-icon";
-import { PHOTOS, photoBySlug, photoGainmapSrc, type Photo } from "@/lib/photos/catalog";
+import { PHOTOS, photoBySlug, photoGainmapSrc, photoGainmapSrcset, type Photo } from "@/lib/photos/catalog";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -34,6 +35,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function Base({ params }: Params) {
   const photo = photoBySlug((await params).slug);
   if (!photo) notFound();
+
+  preload(photoGainmapSrc(photo), {
+    as: "image",
+    fetchPriority: "high",
+    imageSrcSet: photoGainmapSrcset(photo),
+    imageSizes: "(min-width: 1024px) 1024px, 100vw",
+  });
 
   const neighbours = surrounding(photo.slug);
 

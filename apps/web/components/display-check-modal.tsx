@@ -116,6 +116,7 @@ export function DisplayCheckModal() {
                 width={200}
                 height={200}
                 alt="HDR display test with a hidden symbol inside a bright square"
+                fetchPriority="high"
               />
             </div>
             <p className="mx-auto max-w-sm text-center text-sm leading-6 text-[var(--muted)]">
