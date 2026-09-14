@@ -21,7 +21,9 @@
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
      id="defs4567"><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath4577"></clipPath><linearGradient
+       id="clipPath4577"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path4579" /></clipPath><linearGradient
        x1="0"
        y1="0"
        x2="1"
@@ -136,7 +138,9 @@
          offset="1"
          id="stop4703" /></linearGradient><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath4711"></clipPath><linearGradient
+       id="clipPath4711"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path4713" /></clipPath><linearGradient
        x1="0"
        y1="0"
        x2="1"
@@ -196,7 +200,9 @@
          offset="1"
          id="stop5507" /></linearGradient><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath5515"></clipPath><linearGradient
+       id="clipPath5515"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path5517" /></clipPath><linearGradient
        x1="0"
        y1="0"
        x2="1"
@@ -247,7 +253,9 @@
          offset="1"
          id="stop5581" /></linearGradient><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath5589"></clipPath><linearGradient
+       id="clipPath5589"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path5591" /></clipPath><linearGradient
        x1="0"
        y1="0"
        x2="1"
@@ -324,7 +332,9 @@
          offset="1"
          id="stop6705" /></radialGradient><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath6713"></clipPath><linearGradient
+       id="clipPath6713"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path6715" /></clipPath><linearGradient
        x1="0"
        y1="0"
        x2="1"
@@ -346,7 +356,9 @@
          offset="1"
          id="stop6741" /></linearGradient><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath6749"></clipPath><linearGradient
+       id="clipPath6749"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path6751" /></clipPath><linearGradient
        x1="0"
        y1="0"
        x2="1"
@@ -368,7 +380,9 @@
          offset="1"
          id="stop6797" /></linearGradient><clipPath
        clipPathUnits="userSpaceOnUse"
-       id="clipPath6805"></clipPath></defs><sodipodi:namedview
+       id="clipPath6805"><path
+         d="m 0,283.465 1119.685,0 L 1119.685,0 0,0 0,283.465 z"
+         id="path6807" /></clipPath></defs><sodipodi:namedview
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1"

@@ -27,6 +27,7 @@ import { encodeLogoVariants, LOGO_WIDTHS } from "./encode-logo-variants.ts";
 import { GATE_FEASIBLE, inkMetric, shouldKeep } from "./ink-metric.ts";
 import { CANVAS, BOOST, downloadSvg, errorMessage, rasterize } from "./logo-pipeline.ts";
 import { fetchSvglIndex, resolveCommonsFiles, resolveSeed, type SvglEntry } from "./logo-resolve.ts";
+import { aspectDelta, hasAspectParity, svgGeometry } from "./logo-source-parity.ts";
 import { normalizeLogoSvg } from "./logo-svg-normalize.ts";
 import { LOGO_SEEDS } from "./sources.ts";
 
@@ -117,14 +118,36 @@ async function backfillOne(
   const directory = join(publicRoot, slug);
   await mkdir(directory, { recursive: true });
 
-  await writeFile(join(directory, "logo.source.svg"), svg);
-
   // Read the existing logo.svg BEFORE potentially overwriting it, so the fallback can
-  // use the pre-existing content when the freshly normalized SVG renders blank.
+  // use the pre-existing content when the freshly normalized SVG renders blank. A
+  // fetched replacement must also preserve its shipped aspect before it may touch
+  // either source or normalized assets.
   const existingLogoPath = join(directory, "logo.svg");
   const existingLogoContent = existsSync(existingLogoPath)
     ? await readFile(existingLogoPath)
     : null;
+  if (existingLogoContent && !localSvgPath) {
+    const parity = (() => {
+      try {
+        return hasAspectParity(existingLogoContent, svg);
+      } catch (error: unknown) {
+        return errorMessage(error);
+      }
+    })();
+    if (typeof parity === "string") {
+      console.log(`  fail  ${slug.padEnd(16)} source parity guard could not read SVG geometry — ${parity}`);
+      return;
+    }
+    if (!parity) {
+      const delta = aspectDelta(svgGeometry(existingLogoContent), svgGeometry(svg));
+      console.log(`  unresolved  ${slug.padEnd(16)} fetched source changes shipped aspect by ${(delta * 100).toFixed(3)}% — preserved existing assets`);
+      return;
+    }
+  }
+
+  // A resolver fallback may reuse the normalized local asset. It is useful for
+  // rasterization but must never rewrite an approved raw source with that asset.
+  if (!localSvgPath) await writeFile(join(directory, "logo.source.svg"), svg);
 
   const normalized = normalizeLogoSvg(seed, svg);
   await writeFile(existingLogoPath, normalized);

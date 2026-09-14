@@ -4,16 +4,16 @@ cd /workspace
 log=sandbox-shots-tmp/excluded-logos.log
 
 echo "REQUIRED OUTCOMES"
-awk -F '\t' '$1 ~ /^(coca-cola|cisco|oracle|tesla|visa|google|mcdonalds|netflix|ikea|spotify|toyota|microsoft|youtube)$/ {print}' "$log"
+awk -F '\t' '$1 == "slug" { data = 1; next } data && $1 ~ /^(coca-cola|cisco|oracle|tesla|visa|google|mcdonalds|netflix|ikea|spotify|toyota|microsoft|youtube)$/ {print}' "$log"
 
 echo "DECISION COUNTS"
-awk -F '\t' 'NR > 4 {count[$10]++} END {for (key in count) print key, count[key]}' "$log" | sort
+awk -F '\t' '$1 == "slug" { data = 1; next } data { count[$16]++ } END {for (key in count) print key, count[key]}' "$log" | sort
 
 echo "CANDIDATE DROP LIST"
-awk -F '\t' 'NR > 4 && $10 == "DROP" {print $1}' "$log" | paste -sd, -
+awk -F '\t' '$1 == "slug" { data = 1; next } data && $16 == "DROP" {print $1}' "$log" | paste -sd, -
 
 echo "FAILURE ROWS"
-awk -F '\t' 'NR > 4 && ($10 == "FETCH-FAIL" || $10 == "ERROR") {print}' "$log"
+awk -F '\t' '$1 == "slug" { data = 1; next } data && ($16 == "FETCH-FAIL" || $16 == "ERROR") {print}' "$log"
 
 echo "REFETCHED SOURCE SIZES"
 for slug in toyota spotify ikea qualcomm mastercard; do

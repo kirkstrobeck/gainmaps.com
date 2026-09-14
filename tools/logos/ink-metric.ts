@@ -2,9 +2,10 @@
 // Gainmaps by Kirk Strobeck – https://gainmaps.com
 
 /**
- * Shipped-tile exclusion metric at 128px. Provisional best measurable cut:
- * Tesla (0.683965) < 0.707314 < McDonald's (0.730662). Seven required sources
- * normalize to zero ink, so the production gate is infeasible and disabled.
+ * Shipped-tile exclusion metric at 128px. The best observed cut is Tesla
+ * (0.683965) < 0.706836 < Toyota (0.729707), but historical Visa is a DROP at
+ * 0.950023, so no scalar threshold satisfies all required outcomes. Production
+ * derivation remains disabled.
  */
 import sharp from "sharp";
 
@@ -20,7 +21,7 @@ const TILE_SIZE = 128;
 export const BRIGHT_LUM = 0.36;
 export const SATURATION_MIN = 0.85;
 export const LUMINANCE_FLOOR = 0.04;
-export const SCORE_MIN = 0.707314;
+export const SCORE_MIN = 0.706836;
 export const GATE_FEASIBLE = false;
 export type InkMetricResult = ShippedInkStats & { readonly raw: InkPixelStats };
 
@@ -50,7 +51,17 @@ export async function rawColorMetric(svgBuffer: Buffer, size = SIZE): Promise<In
 export async function inkMetric(seed: LogoSeed, svgBuffer: Buffer): Promise<InkMetricResult> {
   const raw = await rawColorMetric(svgBuffer);
   const normalized = normalizeLogoSvg(seed, svgBuffer);
-  const raster = await rasterize(normalized);
+  const shipped = await shippedLogoMetric(normalized);
+  return { ...shipped, raw };
+}
+
+/**
+ * Measure an already-normalized shipped logo exactly as its 128px tile is
+ * rasterized. This deliberately does not fetch, strip, or normalize again:
+ * shipped logo.svg is the immutable visual input used to judge the site.
+ */
+export async function shippedLogoMetric(svgBuffer: Buffer): Promise<ShippedInkStats> {
+  const raster = await rasterize(svgBuffer);
   const tile = await resizeRgbaSquare(raster, CANVAS, TILE_SIZE);
   const shipped = shippedPixelStats(tile, {
     brightLum: BRIGHT_LUM,
@@ -58,9 +69,9 @@ export async function inkMetric(seed: LogoSeed, svgBuffer: Buffer): Promise<InkM
     luminanceFloor: LUMINANCE_FLOOR,
   });
   if (shipped.inkPixels === 0) throw new Error("rasterized SVG has zero ink pixels at 128px");
-  return { ...shipped, raw };
+  return shipped;
 }
 
-export function shouldKeep(metric: InkMetricResult): boolean {
+export function shouldKeep(metric: ShippedInkStats): boolean {
   return metric.inkPixels > 0 && metric.score >= SCORE_MIN;
 }

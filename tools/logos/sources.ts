@@ -8,8 +8,8 @@
  * parent: Google rather than Alphabet, Facebook and Instagram rather than Meta,
  * Coca-Cola rather than The Coca-Cola Company.
  *
- * `svglTitle` is an exact api.svgl.app title. When present the pipeline takes
- * the svgl asset first, because those are hand-curated brand SVGs.
+ * `svglTitle` is an exact api.svgl.app title. The resolver tries the hand-
+ * curated svgl asset before the Commons/Wikidata fallback.
  *
  * `wikipedia` is an en.wikipedia article title, resolved through redirects to a
  * Wikidata item and then to its P154 (logo image) file.
@@ -44,10 +44,10 @@ export type LogoSeed = {
 export const LOGO_SEEDS: readonly LogoSeed[] = [
   { rank: 1, name: "Apple", slug: "apple", wikipedia: "Apple Inc.", svglTitle: "Apple" },
   { rank: 2, name: "Microsoft", slug: "microsoft", wikipedia: "Microsoft", svglTitle: "Microsoft" },
-  { rank: 3, name: "Amazon", slug: "amazon", wikipedia: "Amazon (company)", svglTitle: "Amazon" },
+  { rank: 3, name: "Amazon", slug: "amazon", wikipedia: "Amazon (company)", commonsFile: "Amazon logo.svg" },
   { rank: 4, name: "Google", slug: "google", wikipedia: "Google", svglTitle: "Google" },
   { rank: 5, name: "Samsung", slug: "samsung", wikipedia: "Samsung", svglTitle: "Samsung" },
-  { rank: 6, name: "Toyota", slug: "toyota", wikipedia: "Toyota", svglTitle: "Toyota" },
+  { rank: 6, name: "Toyota", slug: "toyota", wikipedia: "Toyota", commonsFile: "Toyota Symbol.svg" },
   { rank: 7, name: "Coca-Cola", slug: "coca-cola", wikipedia: "Coca-Cola" },
   { rank: 8, name: "Instagram", slug: "instagram", wikipedia: "Instagram", directSvgUrl: "https://commons.wikimedia.org/wiki/Special:FilePath/Instagram_wordmark_(2026).svg" },
   { rank: 9, name: "Louis Vuitton", slug: "louis-vuitton", wikipedia: "Louis Vuitton" },
@@ -58,7 +58,7 @@ export const LOGO_SEEDS: readonly LogoSeed[] = [
   { rank: 12, name: "Nike", slug: "nike", wikipedia: "Nike, Inc.", svglTitle: "Nike" },
   { rank: 13, name: "YouTube", slug: "youtube", wikipedia: "YouTube", svglTitle: "YouTube" },
   { rank: 14, name: "BMW", slug: "bmw", wikipedia: "BMW" },
-  { rank: 15, name: "Mercedes-Benz", slug: "mercedes-benz", wikipedia: "Mercedes-Benz", svglTitle: "Mercedes" },
+  { rank: 15, name: "Mercedes-Benz", slug: "mercedes-benz", wikipedia: "Mercedes-Benz", commonsFile: "Mercedes-Benz Logo 2010.svg" },
   { rank: 15, name: "NVIDIA", slug: "nvidia", wikipedia: "Nvidia", svglTitle: "NVIDIA" },
   { rank: 16, name: "Disney", slug: "disney", wikipedia: "The Walt Disney Company", svglTitle: "Disney" },
   { rank: 16, name: "Oracle", slug: "oracle", wikipedia: "Oracle Corporation" },
@@ -74,7 +74,7 @@ export const LOGO_SEEDS: readonly LogoSeed[] = [
   { rank: 25, name: "Spotify", slug: "spotify", wikipedia: "Spotify", svglTitle: "Spotify" },
   { rank: 26, name: "IKEA", slug: "ikea", wikipedia: "IKEA", svglTitle: "IKEA" },
   { rank: 27, name: "Nescafé", slug: "nescafe", wikipedia: "Nescafé" },
-  { rank: 28, name: "ALDI", slug: "aldi", wikipedia: "Aldi", svglTitle: "ALDI" },
+  { rank: 28, name: "ALDI", slug: "aldi", wikipedia: "Aldi", commonsFile: "AldiNord-WorldwideLogo.svg" },
   { rank: 29, name: "LinkedIn", slug: "linkedin", wikipedia: "LinkedIn", svglTitle: "LinkedIn" },
   { rank: 30, name: "J.P. Morgan", slug: "jpmorgan", wikipedia: "JPMorgan Chase", svglTitle: "JPMorgan Chase" },
   { rank: 31, name: "Prada", slug: "prada", wikipedia: "Prada" },

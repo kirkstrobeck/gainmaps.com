@@ -1,10 +1,11 @@
 // Gainmaps by Kirk Strobeck – https://gainmaps.com
 
 /**
- * Resolves a seed to a downloadable premium SVG URL: api.svgl.app first
- * (hand-curated brand SVGs), then the primary Wikipedia infobox image.
+ * Resolves a seed to a downloadable premium SVG URL using the order that
+ * historically built the shipped set: explicit source URL, svgl, then an
+ * explicit Commons override or the Wikidata P154 logo image.
  */
-import { USER_AGENT, mapChunked } from "./logo-pipeline.ts";
+import { USER_AGENT, chunk, mapChunked } from "./logo-pipeline.ts";
 import type { LogoSeed } from "./sources.ts";
 
 export type SvglEntry = {
@@ -63,45 +64,76 @@ export async function fetchSvglIndex(): Promise<ReadonlyMap<string, SvglEntry>> 
   return new Map(entries.map((entry) => [entry.title, entry]));
 }
 
-/** Resolve the first image in the article's primary infobox, never gallery/history art. */
+/** Wikipedia title -> Wikidata item -> P154 (logo image) -> Commons file name. */
 export async function resolveCommonsFiles(seeds: readonly LogoSeed[]): Promise<ReadonlyMap<string, string>> {
   const titles = [...new Set(seeds.map((seed) => seed.wikipedia))];
-  const rows = await mapChunked(titles, 4, primaryImageForTitle);
-  return new Map(rows.filter((row): row is readonly [string, string] => row !== null));
+  const items = await mapChunked(chunk(titles, 20), 1, wikidataItemsForTitles);
+  const byTitle = new Map(items.flatMap((group) => [...group]));
+  const ids = [...new Set([...byTitle.values()])];
+  const logos = await mapChunked(chunk(ids, 40), 1, logoFilesForItems);
+  const byItem = new Map(logos.flatMap((group) => [...group]));
+
+  return new Map(
+    titles.flatMap((title) => {
+      const item = byTitle.get(title);
+      const file = item ? byItem.get(item) : undefined;
+      return file ? [[title, file] as const] : [];
+    }),
+  );
 }
 
-async function primaryImageForTitle(title: string): Promise<readonly [string, string] | null> {
+async function wikidataItemsForTitles(titles: readonly string[]): Promise<ReadonlyMap<string, string>> {
   const url = new URL("https://en.wikipedia.org/w/api.php");
   url.search = new URLSearchParams({
-    action: "parse",
+    action: "query",
     format: "json",
     formatversion: "2",
     redirects: "1",
-    prop: "text",
-    page: title,
+    prop: "pageprops",
+    ppprop: "wikibase_item",
+    titles: titles.join("|"),
   }).toString();
-  const data = (await getJson(url)) as { parse?: { text?: string } };
-  const html = data.parse?.text ?? "";
-  const start = html.search(/<table[^>]*class="[^"]*\binfobox\b/i);
-  if (start < 0) return null;
-  const end = matchingTableEnd(html, start);
-  const image = html.slice(start, end).match(/<img\b[^>]*\bsrc="([^"]+)"/i)?.[1];
-  if (!image) return null;
-  const filePart = image.match(/\/([^/]+\.svg)\/[^/]+$/i)?.[1];
-  if (!filePart) return null;
-  const file = decodeURIComponent(filePart).replace(/&amp;.*$/, "");
-  return [title, file];
+  const data = (await getJson(url)) as {
+    query: {
+      normalized?: readonly { from: string; to: string }[];
+      redirects?: readonly { from: string; to: string }[];
+      pages?: readonly { title: string; pageprops?: { wikibase_item?: string } }[];
+    };
+  };
+  const normalized = new Map((data.query.normalized ?? []).map((row) => [row.from, row.to]));
+  const redirects = new Map((data.query.redirects ?? []).map((row) => [row.from, row.to]));
+  const pages = new Map((data.query.pages ?? []).map((page) => [page.title, page.pageprops?.wikibase_item]));
+
+  return new Map(
+    titles.flatMap((title) => {
+      const normalizedTitle = normalized.get(title) ?? title;
+      const settled = redirects.get(normalizedTitle) ?? normalizedTitle;
+      const item = pages.get(settled);
+      return item ? [[title, item] as const] : [];
+    }),
+  );
 }
 
-function matchingTableEnd(html: string, start: number): number {
-  const tags = html.slice(start).matchAll(/<\/?table\b[^>]*>/gi);
-  let depth = 0;
-  for (const match of tags) {
-    if (!match[0].startsWith("</")) depth += 1;
-    if (match[0].startsWith("</")) depth -= 1;
-    if (depth === 0) return start + match.index + match[0].length;
-  }
-  return start;
+async function logoFilesForItems(ids: readonly string[]): Promise<ReadonlyMap<string, string>> {
+  const url = new URL("https://www.wikidata.org/w/api.php");
+  url.search = new URLSearchParams({
+    action: "wbgetentities",
+    format: "json",
+    props: "claims",
+    ids: ids.join("|"),
+  }).toString();
+  const data = (await getJson(url)) as {
+    entities: Record<string, { claims?: Record<string, readonly { mainsnak?: { datavalue?: { value?: string } } }[]> }>;
+  };
+  return new Map(
+    Object.entries(data.entities).flatMap(([id, entity]) => {
+      const values = (entity.claims?.P154 ?? [])
+        .map((claim) => claim.mainsnak?.datavalue?.value)
+        .filter((value): value is string => typeof value === "string");
+      const file = values.find((value) => /\.svg$/i.test(value));
+      return file ? [[id, file] as const] : [];
+    }),
+  );
 }
 
 async function getJson(url: URL): Promise<unknown> {

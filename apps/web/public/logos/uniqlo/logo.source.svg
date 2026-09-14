@@ -56,7 +56,11 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-364.0975,-319.35808)">
-    
+    <path
+       inkscape:connector-curvature="0"
+       d="m 364.0975,522.50915 203.6794,0 0,-203.15107 -203.6794,0 0,203.15107 z"
+       style="fill:#ed1d24;fill-opacity:1;fill-rule:nonzero;stroke:none"
+       id="path2995" />
     <path
        inkscape:connector-curvature="0"
        d="m 514.04729,347.07141 13.04016,0 0,64.17615 -13.04016,0 0,-64.17615 z"
