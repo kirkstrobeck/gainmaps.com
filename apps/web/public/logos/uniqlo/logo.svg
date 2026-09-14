@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
-<svg
+<svg fill="#ffffff"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -56,11 +56,7 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(-364.0975,-319.35808)">
-    <path
-       inkscape:connector-curvature="0"
-       d="m 364.0975,522.50915 203.6794,0 0,-203.15107 -203.6794,0 0,203.15107 z"
-       style="fill:#FFFFFF;fill-opacity:1;fill-rule:nonzero;stroke:none"
-       id="path2995" />
+    
     <path
        inkscape:connector-curvature="0"
        d="m 514.04729,347.07141 13.04016,0 0,64.17615 -13.04016,0 0,-64.17615 z"

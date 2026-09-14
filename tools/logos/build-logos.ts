@@ -132,6 +132,8 @@ async function buildOne(entry: Resolved): Promise<Outcome> {
   // The directory already exists: main carves the whole tree out up front, so
   // nothing here touches directory metadata. See removeTreeSerially.
   const directory = join(publicRoot, entry.seed.slug);
+  // Save the raw (pre-normalization, post-stripBackgroundPlate) SVG for the audit.
+  await writeFile(join(directory, "logo.source.svg"), svgForMetric);
   const normalizedSvg = normalizeLogoSvg(entry.seed, svg);
   await writeFile(join(directory, "logo.svg"), normalizedSvg);
 

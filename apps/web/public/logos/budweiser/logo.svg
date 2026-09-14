@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
-<svg fill="#FFFFFF"
+<svg fill="#ffffff"
    version="1.1"
    id="svg2"
    width="1000"
@@ -18,23 +18,17 @@
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath52">
-      <path
-         d="M 0,0 H 1920 V 1080 H 0 Z"
-         id="path50" />
+      
     </clipPath>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath74">
-      <path
-         d="M 0,0 H 1920 V 1080 H 0 Z"
-         id="path72" />
+      
     </clipPath>
     <clipPath
        clipPathUnits="userSpaceOnUse"
        id="clipPath122">
-      <path
-         d="M 0,0 H 1920 V 1080 H 0 Z"
-         id="path120" />
+      
     </clipPath>
     <clipPath
        clipPathUnits="userSpaceOnUse"
@@ -42,9 +36,7 @@
       <g
          id="g1765"
          transform="translate(-401.0272,-242.3264)">
-        <path
-           d="M 0,0 H 1920 V 1080 H 0 Z"
-           id="path1763" />
+        
       </g>
     </clipPath>
   </defs>
@@ -69,10 +61,7 @@
      inkscape:current-layer="svg2" />
   <g
      id="g1961">
-    <path
-       d="m 896.46531,158.39827 c 0.003,0 0.005,-0.003 0.005,-0.003 C 896.47037,158.39574 1000,-3.62888e-6 1000,-3.62888e-6 L 501.43293,82.337123 V 66.281345 c -2.38989,3.865842 -5.27851,8.544347 -8.45321,13.691209 L 207.10232,-3.62888e-6 158.02612,75.08139 c -5.31395,-0.658232 -10.94942,-1.058234 -16.87856,-1.058234 -28.96218,0 -46.623025,11.701325 -46.666064,28.303944 -0.0051,1.3114 0.108862,2.56963 0.339243,3.7747 2.637988,-14.476023 19.726681,-24.362149 46.326821,-24.362149 4.20761,0 8.26333,0.202533 12.16715,0.551902 L 123.34747,128.13989 C 98.230883,127.79305 85.592844,117.3854 85.582717,102.18026 v 7.69877 c 0,14.18742 10.992461,24.20519 32.853333,25.77229 L 4.98512e-6,316.84717 500.00001,234.27207 l 292.89768,82.5751 94.19795,-144.11212 c 4.20762,-0.18228 7.62789,-1.23545 10.91904,-2.92153 v -7.7165 c -1.70887,0.87595 -3.45571,1.57722 -5.32661,2.08102 z"
-       style="fill:#FFFFFF;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.53166"
-       id="path20" />
+    
     <path
        id="path24"
        style="fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:2.53166"

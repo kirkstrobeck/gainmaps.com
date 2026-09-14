@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<svg fill="#FFFFFF"
+<svg fill="#ffffff"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -51,7 +51,7 @@
                    transform="translate(-45.93334,-1.7666667)">
                   <path
                      id="path21"
-                     style="fill:#FFFFFF"
+                     style="fill:#ffffff"
                      d="m 42.203702,26.5 c 0,8.678608 -7.025096,15.703704 -15.703702,15.703704 L 26.5,26.5 l 15.703702,0 z M 26.5,10.796296 26.5,26.5 l -15.703702,0 c 0,-8.678608 7.025095,-15.703704 15.703702,-15.703704 z" />
                 </g>
                 <path

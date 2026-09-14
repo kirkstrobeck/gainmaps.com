@@ -96,22 +96,59 @@ async function backfillOne(
 
   // Measure AFTER plate stripping so a large background plate does not distort the metric.
   const svgForMetric = Buffer.from(stripBackgroundPlate(svg.toString("utf8")));
-  const metric = await inkMetric(svgForMetric);
-  if (!shouldKeep(metric)) {
-    console.log(`  skip  ${slug.padEnd(16)} ink metric too low (${(metric.preservedFraction * 100).toFixed(1)}% preserved) — excluded`);
-    return;
+  const metric = await inkMetric(svgForMetric).catch((error: unknown) => errorMessage(error));
+
+  // Logos already on disk (in COMPANIES) are re-encoded unconditionally — they were
+  // previously approved and we only need to refresh their stale gainmap assets.
+  // The metric still gates NEW logos being added for the first time.
+  const alreadyOnDisk = existsSync(join(publicRoot, slug, "logo.svg"));
+  if (!alreadyOnDisk) {
+    if (typeof metric === "string") {
+      console.log(`  fail  ${slug.padEnd(16)} inkMetric failed — ${metric}`);
+      return;
+    }
+    if (!shouldKeep(metric)) {
+      console.log(`  skip  ${slug.padEnd(16)} ink metric too low (${(metric.preservedFraction * 100).toFixed(1)}% preserved) — excluded`);
+      return;
+    }
+  } else if (typeof metric === "string") {
+    console.log(`  warn  ${slug.padEnd(16)} inkMetric failed (${metric}) — re-encoding from existing logo.svg`);
   }
 
   const directory = join(publicRoot, slug);
   await mkdir(directory, { recursive: true });
 
-  const normalized = normalizeLogoSvg(seed, svg);
-  await writeFile(join(directory, "logo.svg"), normalized);
+  // Save the raw (pre-normalization, post-stripBackgroundPlate) SVG for the audit.
+  await writeFile(join(directory, "logo.source.svg"), svgForMetric);
 
-  const raster = await rasterize(normalized).catch((error: unknown) => errorMessage(error));
+  // Read the existing logo.svg BEFORE potentially overwriting it, so the fallback can
+  // use the pre-existing content when the freshly normalized SVG renders blank.
+  const existingLogoPath = join(directory, "logo.svg");
+  const existingLogoContent = existsSync(existingLogoPath)
+    ? await readFile(existingLogoPath)
+    : null;
+
+  const normalized = normalizeLogoSvg(seed, svg);
+  await writeFile(existingLogoPath, normalized);
+
+  // If the freshly normalized SVG renders blank (e.g., stripBackgroundPlate stripped the
+  // entire logo content because it spans the full viewBox), fall back to the pre-existing
+  // logo.svg so we can still re-encode the gainmap variants with correct dimensions.
+  let raster = await rasterize(normalized).catch((error: unknown) => errorMessage(error));
   if (typeof raster === "string") {
-    console.log(`  fail  ${slug.padEnd(16)} rasterize failed — ${raster}`);
-    return;
+    if (existingLogoContent) {
+      console.log(`  warn  ${slug.padEnd(16)} normalized blank — re-encoding from existing logo.svg`);
+      raster = await rasterize(existingLogoContent).catch((error: unknown) => errorMessage(error));
+      if (typeof raster === "string") {
+        console.log(`  fail  ${slug.padEnd(16)} rasterize failed even with existing logo.svg — ${raster}`);
+        return;
+      }
+      // Restore the working existing logo.svg so it isn't replaced with the blank version.
+      await writeFile(existingLogoPath, existingLogoContent);
+    } else {
+      console.log(`  fail  ${slug.padEnd(16)} rasterize failed — ${raster}`);
+      return;
+    }
   }
 
   await encodeLogoVariants(raster, CANVAS, directory, BOOST);

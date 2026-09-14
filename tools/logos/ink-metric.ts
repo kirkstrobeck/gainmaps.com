@@ -9,13 +9,19 @@
  * normalisation unchanged.  Logos where almost all colour is below the
  * threshold become boring white blobs on the dark instrument background
  * and are poor Ultra-HDR demonstrations.
+ *
+ * Threshold is 0.40 (not 0.30) to exclude logos whose raw SVG from
+ * Wikidata/svgl has partial bright content after background-plate
+ * stripping (e.g. Visa's 1992 logo has a gold stripe at ~38.6%).
+ * Any logo below 0.40 that is already on disk (logo.source.svg present)
+ * is kept regardless — the metric gates NEW logos only.
  */
 import sharp from "sharp";
 
 const SIZE = 512;
 const LUMINANCE_THRESHOLD = 0.36; // mirrors logo-svg-normalize.ts
 
-export const BRIGHT_FRACTION_THRESHOLD = 0.30;
+export const BRIGHT_FRACTION_THRESHOLD = 0.40;
 
 export type InkMetricResult = {
   inkPixels: number;
