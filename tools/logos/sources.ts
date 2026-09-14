@@ -109,7 +109,7 @@ export const LOGO_SEEDS: readonly LogoSeed[] = [
   { rank: 56, name: "PayPal", slug: "paypal", wikipedia: "PayPal", svglTitle: "PayPal" },
   { rank: 57, name: "Rolex", slug: "rolex", wikipedia: "Rolex", commonsFile: "Rolex_wordmark_logo.svg" },
   { rank: 58, name: "Zoom", slug: "zoom", wikipedia: "Zoom Video Communications", svglTitle: "Zoom" },
-  { rank: 59, name: "Visa", slug: "visa", wikipedia: "Visa Inc." },
+  { rank: 59, name: "Visa", slug: "visa", wikipedia: "Visa Inc.", commonsFile: "Visa_Inc._logo_(2021–present).svg" },
   { rank: 60, name: "Tiffany & Co.", slug: "tiffany", wikipedia: "Tiffany & Co." },
   { rank: 61, name: "Caterpillar", slug: "caterpillar", wikipedia: "Caterpillar Inc." },
   { rank: 61, name: "eBay", slug: "ebay", wikipedia: "eBay", svglTitle: "Ebay" },

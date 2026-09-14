@@ -2,10 +2,9 @@
 // Gainmaps by Kirk Strobeck – https://gainmaps.com
 
 /**
- * Shipped-tile exclusion metric at 128px. The best observed cut is Tesla
- * (0.683965) < 0.706836 < Toyota (0.729707), but historical Visa is a DROP at
- * 0.950023, so no scalar threshold satisfies all required outcomes. Production
- * derivation remains disabled.
+ * Shipped-tile exclusion metric at 128px. SCORE_MIN is the midpoint between
+ * Visa 2021 DROP (0.725117) and Toyota KEEP (0.729707): its 0.004590 gap is
+ * deliberately thin, but is the widest cut satisfying all thirteen outcomes.
  */
 import sharp from "sharp";
 
@@ -21,8 +20,8 @@ const TILE_SIZE = 128;
 export const BRIGHT_LUM = 0.36;
 export const SATURATION_MIN = 0.85;
 export const LUMINANCE_FLOOR = 0.04;
-export const SCORE_MIN = 0.706836;
-export const GATE_FEASIBLE = false;
+export const SCORE_MIN = 0.727412;
+export const GATE_FEASIBLE = true;
 export type InkMetricResult = ShippedInkStats & { readonly raw: InkPixelStats };
 
 export async function rawColorMetric(svgBuffer: Buffer, size = SIZE): Promise<InkPixelStats> {

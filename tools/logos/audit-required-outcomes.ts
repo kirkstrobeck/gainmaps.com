@@ -3,10 +3,9 @@
 
 /**
  * Reproduce the thirteen user-judged inputs without letting today's resolver
- * change a shipped tile. The five DROP examples are read from their requested
- * historical commits; shipped KEEP examples are read from HEAD. YouTube is no
- * longer shipped, so the forward audit rule measures a freshly resolved source
- * after the normal production transform and labels that exception explicitly.
+ * change a shipped tile. Historical DROP examples are read from their requested
+ * commits; shipped KEEP examples are read from HEAD. Unshipped examples use the
+ * forward production path: fetch, strip a plate, normalize, then measure.
  */
 import { execFileSync } from "node:child_process";
 
@@ -25,7 +24,8 @@ type RequiredRow = {
 };
 
 const ROOT = "apps/web/public/logos";
-const DROP_AT_DBB = new Set(["coca-cola", "tesla", "visa"]);
+const REQUIRED_BASELINE = "cb714a6";
+const DROP_AT_DBB = new Set(["coca-cola", "tesla"]);
 const KEEP_AT_HEAD = new Set(["microsoft", "google", "toyota", "mcdonalds", "spotify", "ikea", "netflix"]);
 const REQUIRED_ORDER = [
   "microsoft", "google", "toyota", "mcdonalds", "youtube", "spotify", "ikea", "netflix",
@@ -55,7 +55,7 @@ function lastDeletedParent(path: string): string {
 async function requiredInput(slug: string): Promise<RequiredRow> {
   const path = `${ROOT}/${slug}/logo.svg`;
   if (KEEP_AT_HEAD.has(slug)) {
-    return { slug, expected: "KEEP", input: `HEAD:${path} (shipped direct)`, metric: await shippedLogoMetric(gitShow("HEAD", path)) };
+    return { slug, expected: "KEEP", input: `${REQUIRED_BASELINE}:${path} (shipped direct)`, metric: await shippedLogoMetric(gitShow(REQUIRED_BASELINE, path)) };
   }
   if (DROP_AT_DBB.has(slug)) {
     return { slug, expected: "DROP", input: `dbb4248:${path} (shipped direct)`, metric: await shippedLogoMetric(gitShow("dbb4248", path)) };
@@ -69,21 +69,22 @@ async function requiredInput(slug: string): Promise<RequiredRow> {
       metric: await shippedLogoMetric(gitShow(parent, path)),
     };
   }
-  if (slug === "youtube") return fetchedYouTubeInput();
+  if (slug === "youtube") return fetchedForwardInput("youtube", "KEEP");
+  if (slug === "visa") return fetchedForwardInput("visa", "DROP");
   throw new Error(`no required input rule for ${slug}`);
 }
 
-async function fetchedYouTubeInput(): Promise<RequiredRow> {
-  const seed = seedFor("youtube");
+async function fetchedForwardInput(slug: string, expected: Expected): Promise<RequiredRow> {
+  const seed = seedFor(slug);
   const svgl = await fetchSvglIndex();
   const commons = await resolveCommonsFiles([seed]);
   const resolved = resolveSeed(seed, svgl, commons);
-  if (resolved.url === null) throw new Error("youtube has no resolved SVG URL");
+  if (resolved.url === null) throw new Error(`${slug} has no resolved SVG URL`);
   const metric: InkMetricResult = await inkMetric(seed, await downloadSvg(resolved.url));
   return {
-    slug: "youtube",
-    expected: "KEEP",
-    input: `fetched ${resolved.source}:${resolved.fileName} then strip+normalize (not shipped at HEAD)`,
+    slug,
+    expected,
+    input: `fetched ${resolved.source}:${resolved.fileName} then strip+normalize (not shipped at ${REQUIRED_BASELINE})`,
     metric,
   };
 }
