@@ -31,7 +31,7 @@ const QUALITY: Record<LogoWidth, number> = { 128: 75, 256: 80, 512: 90, 1024: 90
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../../packages/gainmap/dist/cli.js");
 
-async function resizeRgbaSquare(
+export async function resizeRgbaSquare(
   pixels: Uint8Array,
   srcSize: number,
   targetSize: number,

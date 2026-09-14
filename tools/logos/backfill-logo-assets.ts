@@ -24,10 +24,10 @@ import sharp from "sharp";
 
 import { COMPANIES } from "../../apps/web/lib/logos/companies.ts";
 import { encodeLogoVariants, LOGO_WIDTHS } from "./encode-logo-variants.ts";
-import { inkMetric, shouldKeep } from "./ink-metric.ts";
+import { GATE_FEASIBLE, inkMetric, shouldKeep } from "./ink-metric.ts";
 import { CANVAS, BOOST, downloadSvg, errorMessage, rasterize } from "./logo-pipeline.ts";
 import { fetchSvglIndex, resolveCommonsFiles, resolveSeed, type SvglEntry } from "./logo-resolve.ts";
-import { normalizeLogoSvg, stripBackgroundPlate } from "./logo-svg-normalize.ts";
+import { normalizeLogoSvg } from "./logo-svg-normalize.ts";
 import { LOGO_SEEDS } from "./sources.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -94,9 +94,7 @@ async function backfillOne(
     return;
   }
 
-  // Measure AFTER plate stripping so a large background plate does not distort the metric.
-  const svgForMetric = Buffer.from(stripBackgroundPlate(svg.toString("utf8")));
-  const metric = await inkMetric(svgForMetric).catch((error: unknown) => errorMessage(error));
+  const metric = await inkMetric(seed, svg).catch((error: unknown) => errorMessage(error));
 
   // Logos already on disk (in COMPANIES) are re-encoded unconditionally — they were
   // previously approved and we only need to refresh their stale gainmap assets.
@@ -108,18 +106,18 @@ async function backfillOne(
       return;
     }
     if (!shouldKeep(metric)) {
-      console.log(`  skip  ${slug.padEnd(16)} ink metric too low (${(metric.preservedFraction * 100).toFixed(1)}% preserved) — excluded`);
+      console.log(`  skip  ${slug.padEnd(16)} ink metric too low (${(metric.score * 100).toFixed(1)}% score) — excluded`);
       return;
     }
-  } else if (typeof metric === "string") {
+  }
+  if (alreadyOnDisk && typeof metric === "string") {
     console.log(`  warn  ${slug.padEnd(16)} inkMetric failed (${metric}) — re-encoding from existing logo.svg`);
   }
 
   const directory = join(publicRoot, slug);
   await mkdir(directory, { recursive: true });
 
-  // Save the raw (pre-normalization, post-stripBackgroundPlate) SVG for the audit.
-  await writeFile(join(directory, "logo.source.svg"), svgForMetric);
+  await writeFile(join(directory, "logo.source.svg"), svg);
 
   // Read the existing logo.svg BEFORE potentially overwriting it, so the fallback can
   // use the pre-existing content when the freshly normalized SVG renders blank.
@@ -136,19 +134,18 @@ async function backfillOne(
   // logo.svg so we can still re-encode the gainmap variants with correct dimensions.
   let raster = await rasterize(normalized).catch((error: unknown) => errorMessage(error));
   if (typeof raster === "string") {
-    if (existingLogoContent) {
-      console.log(`  warn  ${slug.padEnd(16)} normalized blank — re-encoding from existing logo.svg`);
-      raster = await rasterize(existingLogoContent).catch((error: unknown) => errorMessage(error));
-      if (typeof raster === "string") {
-        console.log(`  fail  ${slug.padEnd(16)} rasterize failed even with existing logo.svg — ${raster}`);
-        return;
-      }
-      // Restore the working existing logo.svg so it isn't replaced with the blank version.
-      await writeFile(existingLogoPath, existingLogoContent);
-    } else {
+    if (!existingLogoContent) {
       console.log(`  fail  ${slug.padEnd(16)} rasterize failed — ${raster}`);
       return;
     }
+    console.log(`  warn  ${slug.padEnd(16)} normalized blank — re-encoding from existing logo.svg`);
+    raster = await rasterize(existingLogoContent).catch((error: unknown) => errorMessage(error));
+    if (typeof raster === "string") {
+      console.log(`  fail  ${slug.padEnd(16)} rasterize failed even with existing logo.svg — ${raster}`);
+      return;
+    }
+    // Restore the working existing logo.svg so it isn't replaced with the blank version.
+    await writeFile(existingLogoPath, existingLogoContent);
   }
 
   await encodeLogoVariants(raster, CANVAS, directory, BOOST);
@@ -172,6 +169,7 @@ async function writeSdrVariants(directory: string): Promise<void> {
 }
 
 async function main(): Promise<void> {
+  if (!GATE_FEASIBLE) throw new Error("logo gate is infeasible; refusing to derive assets");
   const slugs = targetSlugs();
   if (slugs.length === 0) {
     console.log("nothing to backfill — every COMPANIES directory has the full file set");

@@ -11,6 +11,7 @@
  * under this repo's 200-line limit.
  */
 import sharp from "sharp";
+import { svgSourceProblem } from "./svg-source.ts";
 
 /** Wikimedia asks automated clients to identify themselves with a contact. */
 export const USER_AGENT = "gainmaps-logo-pipeline/1.0 (https://gainmaps.com; kirk@strobeck.com)";
@@ -33,11 +34,18 @@ export const RETRY_STATUSES = new Set([429, 503]);
 export const MAX_RETRIES = 5;
 export const RETRY_BASE_MS = 2000;
 
+export type DownloadedSvg = {
+  readonly bytes: Buffer;
+  readonly status: number;
+  readonly contentType: string;
+  readonly url: string;
+};
+
 /**
  * librsvg renders at 72 dpi against the SVG's intrinsic size, so a 24px icon
  * would come out 24px. Scale the density instead of upscaling the bitmap.
  */
-export async function rasterize(svg: Buffer): Promise<Uint8Array> {
+export async function rasterizeUnchecked(svg: Buffer): Promise<Uint8Array> {
   const probe = await sharp(svg).metadata();
   const longest = Math.max(probe.width ?? LOGO_BOX, probe.height ?? LOGO_BOX);
   const density = Math.min(2400, Math.max(72, Math.round((72 * LOGO_BOX) / Math.max(longest, 1))));
@@ -60,8 +68,24 @@ export async function rasterize(svg: Buffer): Promise<Uint8Array> {
     .toBuffer({ resolveWithObject: true });
 
   const pixels = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
-  if (inkCoverage(pixels) < 0.002) throw new Error("rendered blank");
   return pixels;
+}
+
+export async function rasterize(svg: Buffer): Promise<Uint8Array> {
+  const pixels = await rasterizeUnchecked(svg);
+  const inkPixels = countInkPixels(pixels);
+  if (inkPixels / (pixels.length / 4) < 0.002) {
+    throw new Error(`rendered blank (${inkPixels} ink pixels at ${CANVAS}px)`);
+  }
+  return pixels;
+}
+
+function countInkPixels(pixels: Uint8Array): number {
+  let inkPixels = 0;
+  for (let offset = 3; offset < pixels.length; offset += 4) {
+    if (pixels[offset]! > 8) inkPixels += 1;
+  }
+  return inkPixels;
 }
 
 /**
@@ -70,28 +94,29 @@ export async function rasterize(svg: Buffer): Promise<Uint8Array> {
  * a logo, not a blank, so colour tells us nothing here and alpha tells us all.
  */
 export function inkCoverage(pixels: Uint8Array): number {
-  const count = pixels.length / 4;
-  const inked = Array.from({ length: count }, (_, index) => index).filter(
-    (index) => pixels[index * 4 + 3]! > 8,
-  ).length;
-  return inked / count;
+  return countInkPixels(pixels) / (pixels.length / 4);
 }
 
-export async function downloadSvg(url: string, attempt = 0): Promise<Buffer> {
+export async function downloadSvgDetailed(url: string, attempt = 0): Promise<DownloadedSvg> {
   const response = await fetch(url, { headers: { "User-Agent": USER_AGENT, Accept: "image/svg+xml,*/*" } });
   if (RETRY_STATUSES.has(response.status) && attempt < MAX_RETRIES) {
     await sleep(retryDelay(response, attempt));
-    return downloadSvg(url, attempt + 1);
+    return downloadSvgDetailed(url, attempt + 1);
   }
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
+  const contentType = response.headers.get("content-type") ?? "unknown";
   const bytes = Buffer.from(await response.arrayBuffer());
-  if (bytes.byteLength > MAX_SVG_BYTES) throw new Error(`SVG too large (${bytes.byteLength} bytes)`);
-  // Commons files are sometimes namespace-prefixed at the root (`<svg:svg …>`).
-  if (!/<(?:[\w-]+:)?svg[\s>]/i.test(bytes.subarray(0, 4096).toString("utf8"))) {
-    throw new Error("response is not an SVG");
+  const detail = `content-type=${contentType}; bytes=${bytes.byteLength}; url=${response.url || url}`;
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status}; ${detail}`);
   }
-  return bytes;
+  if (bytes.byteLength > MAX_SVG_BYTES) throw new Error(`SVG too large; ${detail}`);
+  const problem = svgSourceProblem(bytes);
+  if (problem) throw new Error(`${problem}; ${detail}`);
+  return { bytes, status: response.status, contentType, url: response.url || url };
+}
+
+export async function downloadSvg(url: string): Promise<Buffer> {
+  return (await downloadSvgDetailed(url)).bytes;
 }
 
 /** Honour Retry-After when the server sends one, exponential backoff otherwise. */

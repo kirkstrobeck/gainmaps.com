@@ -109,7 +109,7 @@ export const LOGO_SEEDS: readonly LogoSeed[] = [
   { rank: 56, name: "PayPal", slug: "paypal", wikipedia: "PayPal", svglTitle: "PayPal" },
   { rank: 57, name: "Rolex", slug: "rolex", wikipedia: "Rolex", commonsFile: "Rolex_wordmark_logo.svg" },
   { rank: 58, name: "Zoom", slug: "zoom", wikipedia: "Zoom Video Communications", svglTitle: "Zoom" },
-  { rank: 59, name: "Visa", slug: "visa", wikipedia: "Visa Inc.", svglTitle: "Visa" },
+  { rank: 59, name: "Visa", slug: "visa", wikipedia: "Visa Inc." },
   { rank: 60, name: "Tiffany & Co.", slug: "tiffany", wikipedia: "Tiffany & Co." },
   { rank: 61, name: "Caterpillar", slug: "caterpillar", wikipedia: "Caterpillar Inc." },
   { rank: 61, name: "eBay", slug: "ebay", wikipedia: "eBay", svglTitle: "Ebay" },
@@ -166,4 +166,3 @@ export const LOGO_SEEDS: readonly LogoSeed[] = [
   // Starbucks is globally recognized and ships a first-party SVG on Commons.
   { rank: 102, name: "Starbucks", slug: "starbucks", wikipedia: "Starbucks", commonsFile: "Starbucks_Corporation_Logo_2011.svg" },
 ];
-

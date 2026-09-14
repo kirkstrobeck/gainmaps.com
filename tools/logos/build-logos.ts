@@ -30,10 +30,10 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { encodeLogoVariants } from "./encode-logo-variants.ts";
-import { inkMetric, shouldKeep } from "./ink-metric.ts";
+import { GATE_FEASIBLE, inkMetric, shouldKeep } from "./ink-metric.ts";
 import { BOOST, CANVAS, downloadSvg, errorMessage, FETCH_CONCURRENCY, mapChunked, rasterize } from "./logo-pipeline.ts";
 import { fetchSvglIndex, resolveCommonsFiles, resolveSeed, type Resolved } from "./logo-resolve.ts";
-import { normalizeLogoSvg, stripBackgroundPlate } from "./logo-svg-normalize.ts";
+import { normalizeLogoSvg } from "./logo-svg-normalize.ts";
 import { renderCompaniesModule } from "./render-companies-module.ts";
 import { LOGO_SEEDS, type LogoSeed } from "./sources.ts";
 
@@ -47,6 +47,7 @@ type Outcome =
   | { readonly ok: false; readonly seed: LogoSeed; readonly reason: string };
 
 async function main(): Promise<void> {
+  if (!GATE_FEASIBLE) throw new Error("logo gate is infeasible; refusing to derive assets");
   const svgl = await fetchSvglIndex();
   console.log(`svgl index: ${svgl.size} entries`);
 
@@ -111,8 +112,11 @@ async function removeTreeSerially(target: string): Promise<void> {
   const entries = await readdir(target, { withFileTypes: true }).catch(() => []);
   for (const entry of entries) {
     const child = join(target, entry.name);
-    if (entry.isDirectory()) await removeTreeSerially(child);
-    else await rm(child, { force: true });
+    if (entry.isDirectory()) {
+      await removeTreeSerially(child);
+      continue;
+    }
+    await rm(child, { force: true });
   }
   await rmdir(target).catch(() => undefined);
 }
@@ -121,19 +125,15 @@ async function buildOne(entry: Resolved): Promise<Outcome> {
   const svg = await downloadSvg(entry.url).catch((error: unknown) => errorMessage(error));
   if (typeof svg === "string") return { ok: false, seed: entry.seed, reason: svg };
 
-  // Measure AFTER plate stripping so a large dark background plate does not
-  // suppress the preservedFraction of an otherwise colorful logo (e.g. McDonald's).
-  const svgForMetric = Buffer.from(stripBackgroundPlate(svg.toString("utf8")));
-  const metric = await inkMetric(svgForMetric);
+  const metric = await inkMetric(entry.seed, svg);
   if (!shouldKeep(metric)) {
-    return { ok: false, seed: entry.seed, reason: `ink metric too low (preservedFraction=${metric.preservedFraction.toFixed(3)}) — not a good Ultra HDR example` };
+    return { ok: false, seed: entry.seed, reason: `ink metric too low (score=${metric.score.toFixed(3)}) — not a good Ultra HDR example` };
   }
 
   // The directory already exists: main carves the whole tree out up front, so
   // nothing here touches directory metadata. See removeTreeSerially.
   const directory = join(publicRoot, entry.seed.slug);
-  // Save the raw (pre-normalization, post-stripBackgroundPlate) SVG for the audit.
-  await writeFile(join(directory, "logo.source.svg"), svgForMetric);
+  await writeFile(join(directory, "logo.source.svg"), svg);
   const normalizedSvg = normalizeLogoSvg(entry.seed, svg);
   await writeFile(join(directory, "logo.svg"), normalizedSvg);
 
