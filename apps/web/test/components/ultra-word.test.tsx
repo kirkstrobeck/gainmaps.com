@@ -1,8 +1,14 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act, render } from "@testing-library/react";
 
 import { UltraWord } from "@/components/ultra-word";
 import { foundationHeadroomFor, TEXT_ULTRA_FOUNDATION_RATIO } from "@/lib/text-ultra";
+
+const start = vi.fn(() => ({ poke: vi.fn(), stop: vi.fn() }));
+
+vi.mock("@/lib/ultra-fill", () => ({
+  startUltraFill: (...args: unknown[]) => start(...args),
+}));
 
 function rect(): DOMRect {
   return { left: 10, top: 20, height: 30 } as DOMRect;
@@ -10,6 +16,8 @@ function rect(): DOMRect {
 
 describe("UltraWord", () => {
   beforeEach(() => {
+    start.mockClear();
+    document.documentElement.dataset.ultra = "on";
     Object.defineProperty(Range.prototype, "getBoundingClientRect", { configurable: true, value: rect });
     vi.stubGlobal("matchMedia", vi.fn(() => ({
       matches: true,
@@ -18,30 +26,28 @@ describe("UltraWord", () => {
     })));
   });
 
-  it("leaves only readable text on a standard-range display", () => {
+  afterEach(() => {
+    delete document.documentElement.dataset.ultra;
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps static mask and canvas boxes in SSR-compatible markup on SDR", () => {
     vi.stubGlobal("matchMedia", vi.fn(() => ({
       matches: false,
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
     })));
     const { container } = render(<UltraWord text="Gain" typeClassName="font-bold" intensity={1.5} />);
-    expect(container.querySelector("svg")).toBeNull();
-    expect(container.querySelector("canvas")).toBeNull();
+    expect(container.querySelectorAll("mask")).toHaveLength(2);
+    expect(container.querySelectorAll("canvas")).toHaveLength(2);
+    expect(start).not.toHaveBeenCalled();
   });
 
-  it("adds the Ultra overlay when HDR capability becomes available", () => {
-    let onChange: (() => void) | undefined;
-    const media = {
-      matches: false,
-      addEventListener: vi.fn((_event: string, listener: () => void) => { onChange = listener; }),
-      removeEventListener: vi.fn(),
-    };
-    vi.stubGlobal("matchMedia", vi.fn(() => media));
+  it("renders both masks and canvases immediately on HDR", () => {
     const { container } = render(<UltraWord text="Gain" typeClassName="font-bold" intensity={1.5} />);
-    media.matches = true;
-    act(() => onChange?.());
     expect(container.querySelector("mask text")).toHaveTextContent("Gain");
     expect(container.querySelectorAll("canvas")).toHaveLength(2);
+    expect(start).toHaveBeenCalledTimes(2);
   });
 
   it("keeps the selectable word readable as the fallback", () => {

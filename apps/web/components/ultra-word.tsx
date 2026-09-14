@@ -7,7 +7,6 @@ import { useLayoutEffect, useId, useRef, useState, type CSSProperties } from "re
 import { foundationHeadroomFor } from "@/lib/text-ultra";
 import { ultraOverlayGeometry } from "@/lib/ultra-overlay";
 import { useHdrDisplay } from "@/lib/use-hdr-display";
-
 import { UltraFillCanvas } from "./ultra-fill-canvas";
 
 type Props = {
@@ -110,7 +109,7 @@ export function UltraWord({ text, typeClassName, intensity }: Props) {
     <span className="ultra-word relative isolate inline-block overflow-clip">
       <span ref={readableRef} className={`${typeClassName} relative z-0 text-[var(--foreground)]`}>{text}</span>
 
-      {hdrDisplay ? <svg ref={overlayRef} aria-hidden className="pointer-events-none select-none ultra-mask-defs" style={overlay}>
+      <svg ref={overlayRef} aria-hidden className="pointer-events-none select-none ultra-mask-defs" style={overlay}>
         <defs>
           <filter id={maskBlurId} x="-4%" y="-4%" width="108%" height="108%">
             <feGaussianBlur stdDeviation="0.3" />
@@ -132,10 +131,10 @@ export function UltraWord({ text, typeClassName, intensity }: Props) {
             ))}
           </mask>
         </defs>
-      </svg> : null}
+      </svg>
 
-      {hdrDisplay ? <UltraFillCanvas intensity={foundationIntensity} className="pointer-events-none ultra-fill-foundation" style={{ ...overlay, mask, WebkitMask: mask }} /> : null}
-      {hdrDisplay ? <UltraFillCanvas intensity={intensity} className="pointer-events-none ultra-fill-inner" style={{ ...overlay, mask: maskInset, WebkitMask: maskInset }} /> : null}
+      <UltraFillCanvas intensity={foundationIntensity} className="pointer-events-none ultra-fill-foundation" style={{ ...overlay, mask, WebkitMask: mask }} />
+      <UltraFillCanvas intensity={intensity} className="pointer-events-none ultra-fill-inner" style={{ ...overlay, mask: maskInset, WebkitMask: maskInset }} />
     </span>
   );
 }

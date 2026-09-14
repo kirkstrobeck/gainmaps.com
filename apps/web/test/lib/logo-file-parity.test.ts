@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { COMPANIES } from "@/lib/logos/companies";
 
 const REPO_ROOT = join(process.cwd(), "../..");
-const WIDTHS = [128, 256, 512, 1024] as const;
+const WIDTHS = [128, 256, 512, 768, 1024] as const;
 const HEX_COLOR_PATTERN = /#[0-9a-f]{3,8}\b/gi;
 const EXPLICIT_PAINT_PATTERN = /\b(?:fill|stroke)\s*=\s*"(?!none\b)[^"]+"|style\s*=\s*"[^"]*(?:fill|stroke)\s*:/i;
 const ROOT_FILL_PATTERN = /<svg\b[^>]*\bfill\s*=\s*"(?!none\b)[^"]+"/i;

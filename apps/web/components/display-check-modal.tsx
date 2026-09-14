@@ -27,6 +27,29 @@ export function DisplayCheckModal() {
       setAnswer("question");
       setVisible(true);
     });
+    if (localStorage.getItem(STORAGE_KEY)) return;
+
+    let idleId = 0;
+    let timeoutId = 0;
+    const openFirstVisit = () => {
+      if (localStorage.getItem(STORAGE_KEY)) return;
+      setVisible(true);
+    };
+    const afterLoad = () => {
+      if (typeof window.requestIdleCallback === "function") {
+        idleId = window.requestIdleCallback(openFirstVisit, { timeout: 5000 });
+        return;
+      }
+      timeoutId = window.setTimeout(openFirstVisit, 0);
+    };
+    if (document.readyState === "complete") afterLoad();
+    if (document.readyState !== "complete") window.addEventListener("load", afterLoad, { once: true });
+
+    return () => {
+      window.cancelIdleCallback?.(idleId);
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("load", afterLoad);
+    };
   }, []);
 
   useEffect(() => {

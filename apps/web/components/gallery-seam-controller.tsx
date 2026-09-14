@@ -22,14 +22,23 @@ function snap(inst: HTMLElement, percent: number): void {
   window.setTimeout(() => inst.classList.remove("inst--animating"), 350);
 }
 
+function responsiveSources(src: string, widths: string): string {
+  const values = widths.split(",");
+  const base = src.replace(/(?:-\d+)?\.jpg$/, "");
+  return values.map((width) => `${base}-${width}.jpg ${width}w`).join(", ");
+}
+
 export function GallerySeamController() {
   useEffect(() => {
     let active: { inst: HTMLElement; rect: DOMRect; pointer: number } | null = null;
     const deferred = document.querySelectorAll<HTMLImageElement>("img[data-seam-src]");
     const loadDeferredImage = (image: HTMLImageElement) => {
+      image.srcset = image.dataset.seamWidths
+        ? responsiveSources(image.dataset.seamSrc!, image.dataset.seamWidths)
+        : image.dataset.seamSrcset ?? "";
       image.src = image.dataset.seamSrc!;
-      image.srcset = image.dataset.seamSrcset ?? "";
       delete image.dataset.seamSrc;
+      delete image.dataset.seamWidths;
       delete image.dataset.seamSrcset;
     };
     const observer = typeof IntersectionObserver === "function" ? new IntersectionObserver((entries) => {
@@ -38,7 +47,7 @@ export function GallerySeamController() {
         loadDeferredImage(entry.target as HTMLImageElement);
         observer?.unobserve(entry.target);
       });
-    }, { rootMargin: "900px" }) : null;
+    }, { rootMargin: "200px" }) : null;
     deferred.forEach((image) => {
       if (observer) observer.observe(image);
       if (!observer) loadDeferredImage(image);

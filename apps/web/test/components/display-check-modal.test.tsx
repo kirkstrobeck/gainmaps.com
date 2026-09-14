@@ -1,13 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { DisplayCheckModal } from "@/components/display-check-modal";
 import { openDisplayCheck } from "@/lib/display-check-store";
 
 describe("DisplayCheckModal", () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     localStorage.clear();
     document.body.style.overflow = "";
+    vi.stubGlobal("requestIdleCallback", vi.fn());
+    vi.stubGlobal("cancelIdleCallback", vi.fn());
   });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  function readyState(value: DocumentReadyState) {
+    Object.defineProperty(document, "readyState", { configurable: true, value });
+  }
 
   function renderOpen() {
     render(<DisplayCheckModal />);
@@ -47,8 +59,70 @@ describe("DisplayCheckModal", () => {
   });
 
   it("stays hidden until requested", () => {
+    localStorage.setItem("display-check-dismissed", "1");
     render(<DisplayCheckModal />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens a first visit only after load and idle", () => {
+    readyState("loading");
+    let idle: (() => void) | undefined;
+    vi.mocked(requestIdleCallback).mockImplementation((callback) => {
+      idle = callback;
+      return 7;
+    });
+    render(<DisplayCheckModal />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    act(() => window.dispatchEvent(new Event("load")));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    act(() => idle?.());
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("never schedules an answered visit", () => {
+    readyState("complete");
+    localStorage.setItem("display-check-dismissed", "1");
+    render(<DisplayCheckModal />);
+    expect(requestIdleCallback).not.toHaveBeenCalled();
+    act(() => window.dispatchEvent(new Event("load")));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("schedules idle immediately when the document is complete", () => {
+    readyState("complete");
+    render(<DisplayCheckModal />);
+    expect(requestIdleCallback).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("uses a timer when requestIdleCallback is unavailable", () => {
+    readyState("complete");
+    vi.stubGlobal("requestIdleCallback", undefined);
+    render(<DisplayCheckModal />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    act(() => vi.runOnlyPendingTimers());
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("does not reopen when an answer is stored before idle runs", () => {
+    readyState("complete");
+    let idle: (() => void) | undefined;
+    vi.mocked(requestIdleCallback).mockImplementation((callback) => {
+      idle = callback;
+      return 9;
+    });
+    render(<DisplayCheckModal />);
+    localStorage.setItem("display-check-dismissed", "1");
+    act(() => idle?.());
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("cancels scheduled idle work on unmount", () => {
+    readyState("complete");
+    vi.mocked(requestIdleCallback).mockReturnValue(11);
+    const { unmount } = render(<DisplayCheckModal />);
+    unmount();
+    expect(cancelIdleCallback).toHaveBeenCalledWith(11);
   });
 
   it("stops inner click from bubbling and restores focus on dismiss", () => {

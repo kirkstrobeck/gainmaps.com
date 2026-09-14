@@ -2,9 +2,9 @@ import type { ReactNode } from "react";
 
 import { GallerySeamController } from "@/components/gallery-seam-controller";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
-import { logoGainmapSrcset, type Company } from "@/lib/logos/companies";
+import { LOGO_SRC_WIDTHS, logoGainmapSrcset, type Company } from "@/lib/logos/companies";
 import {
-  photoGainmapSrc, photoGainmapSrcset, photoStandardSrc, photoStandardSrcset, type Photo,
+  PHOTO_SRC_WIDTHS, photoGainmapSrc, photoGainmapSrcset, photoStandardSrc, photoStandardSrcset, type Photo,
 } from "@/lib/photos/catalog";
 import { photoIntrinsicSize } from "@/lib/photos/photo-intrinsic";
 
@@ -32,20 +32,21 @@ export function GallerySeamPhoto({ photo, priority, sizes }: { photo: Photo; pri
   const intrinsic = photoIntrinsicSize(photo);
   const loading = priority ? "eager" : "lazy";
   const fetchPriority = priority ? "high" : "low";
+  const deferredWidths = PHOTO_SRC_WIDTHS.filter((width) => width <= photo.width).join(",");
   const image = (src: string, srcSet: string, label: string, className: string, defer = false) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={defer ? undefined : src} srcSet={defer ? undefined : srcSet} data-seam-src={defer ? src : undefined} data-seam-srcset={defer ? srcSet : undefined} sizes={sizes} alt={`${photo.alt}, ${label}`} width={intrinsic.width} height={intrinsic.height} className={className} loading={loading} fetchPriority={fetchPriority} decoding="async" draggable={false} />
+    <img src={defer ? undefined : src} srcSet={defer ? undefined : srcSet} data-seam-src={defer ? src : undefined} data-seam-widths={defer ? deferredWidths : undefined} sizes={sizes} alt={`${photo.alt}, ${label}`} width={intrinsic.width} height={intrinsic.height} className={className} loading={loading} fetchPriority={fetchPriority} decoding="async" draggable={false} />
   );
-  return <Instrument className="aspect-video" sdr={image(photoStandardSrc(photo, 400), photoStandardSrcset(photo), "Standard", "inst-img preview-original")} ultra={image(photoGainmapSrc(photo, 400), photoGainmapSrcset(photo), "Ultra", "inst-img gainmap-image", !priority)} />;
+  return <Instrument className="aspect-video" sdr={image(photoStandardSrc(photo, 400), photoStandardSrcset(photo), "Standard", "inst-img preview-original", !priority)} ultra={image(photoGainmapSrc(photo, 400), photoGainmapSrcset(photo), "Ultra", "inst-img gainmap-image", !priority)} />;
 }
 
 export function GallerySeamLogo({ company, priority }: { company: Company; priority: boolean }) {
   const loading = priority ? "eager" : "lazy";
-  const image = (label: string, className: string) => (
+  const image = (label: string, className: string, defer = false) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={company.gainmapPath} srcSet={logoGainmapSrcset(company)} sizes="(max-width: 640px) 100vw, 384px" alt={`${company.name} logo, ${label}`} width={512} height={512} className={className} loading={loading} fetchPriority={priority ? "high" : "low"} decoding="async" />
+    <img src={defer ? undefined : company.gainmapPath} srcSet={defer ? undefined : logoGainmapSrcset(company)} data-seam-src={defer ? company.gainmapPath : undefined} data-seam-widths={defer ? LOGO_SRC_WIDTHS.join(",") : undefined} sizes="(max-width: 640px) 100vw, 384px" alt={`${company.name} logo, ${label}`} width={512} height={512} className={className} loading={loading} fetchPriority={priority ? "high" : "low"} decoding="async" />
   );
-  return <Instrument className="aspect-square" sdr={image("Standard", "inst-img preview-original")} ultra={image("Ultra", "inst-img gainmap-image")} />;
+  return <Instrument className="aspect-square" sdr={image("Standard", "inst-img preview-original", !priority)} ultra={image("Ultra", "inst-img gainmap-image", !priority)} />;
 }
 
 export { GallerySeamController };

@@ -3,8 +3,8 @@ import sharp from "sharp";
 import { readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
-const WIDTHS = [128, 256, 512, 1024] as const;
-const QUALITY: Record<number, number> = { 128: 75, 256: 80, 512: 90, 1024: 90 };
+const WIDTHS = [128, 256, 512, 768, 1024] as const;
+const QUALITY: Record<number, number> = { 128: 75, 256: 80, 512: 90, 768: 90, 1024: 90 };
 const logosRoot = join(process.cwd(), "apps/web/public/logos");
 
 const slugs = readdirSync(logosRoot, { withFileTypes: true })

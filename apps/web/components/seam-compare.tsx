@@ -18,6 +18,7 @@ export function SeamComparePhoto({
   priority = false,
   sizes = DEFAULT_STD_SIZES,
   deferUltra = false,
+  deferStandard = false,
   lazy = false,
 }: {
   photo: Photo;
@@ -27,6 +28,7 @@ export function SeamComparePhoto({
   priority?: boolean;
   sizes?: string;
   deferUltra?: boolean;
+  deferStandard?: boolean;
   lazy?: boolean;
 }) {
   const stdSrc = photoStandardSrc(photo, 400);
@@ -51,6 +53,7 @@ export function SeamComparePhoto({
           className="inst-img preview-original"
           loading={loading}
           fetchPriority={fetchPriority}
+          defer={deferStandard}
         />
       }
       ultra={

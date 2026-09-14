@@ -24,6 +24,7 @@ const VARIANTS = [
   "logo-gainmap-128.jpg",
   "logo-gainmap-256.jpg",
   "logo-gainmap-512.jpg",
+  "logo-gainmap-768.jpg",
   "logo-gainmap-1024.jpg",
 ];
 const PASS_RAW_BYTE_MAX = 30;

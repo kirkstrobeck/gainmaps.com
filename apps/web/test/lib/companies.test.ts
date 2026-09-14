@@ -30,18 +30,19 @@ describe("companyBySlug", () => {
 });
 
 describe("logoGainmapSrcset", () => {
-  it("contains four width variants", () => {
+  it("contains five width variants", () => {
     const company = COMPANIES[0]!;
     const parts = logoGainmapSrcset(company).split(", ");
-    expect(parts.length).toBe(4);
+    expect(parts.length).toBe(5);
   });
 
-  it("contains 128w 256w 512w 1024w", () => {
+  it("contains 128w 256w 512w 768w 1024w", () => {
     const company = COMPANIES[0]!;
     const src = logoGainmapSrcset(company);
     expect(src).toContain("128w");
     expect(src).toContain("256w");
     expect(src).toContain("512w");
+    expect(src).toContain("768w");
     expect(src).toContain("1024w");
   });
 });

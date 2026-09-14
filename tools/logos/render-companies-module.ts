@@ -45,8 +45,10 @@ export function companyBySlug(slug: string): Company | undefined {
   return COMPANIES.find((company) => company.slug === slug);
 }
 
+export const LOGO_SRC_WIDTHS = [128, 256, 512, 768, 1024] as const;
+
 export function logoGainmapSrcset(company: Company): string {
-  return [128, 256, 512, 1024].map(w => \`/logos/\${company.slug}/logo-gainmap-\${w}.jpg \${w}w\`).join(", ");
+  return LOGO_SRC_WIDTHS.map(w => \`/logos/\${company.slug}/logo-gainmap-\${w}.jpg \${w}w\`).join(", ");
 }
 `;
 }

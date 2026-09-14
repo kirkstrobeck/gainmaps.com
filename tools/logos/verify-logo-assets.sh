@@ -10,7 +10,7 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 ROOT="apps/web/public/logos"
-FILES=(logo.svg logo-gainmap-128.jpg logo-gainmap-256.jpg logo-gainmap-512.jpg logo-gainmap-1024.jpg logo-gainmap.jpg logo-sdr-128.jpg logo-sdr-256.jpg logo-sdr-512.jpg logo-sdr-1024.jpg logo-sdr.jpg)
+FILES=(logo.svg logo-gainmap-128.jpg logo-gainmap-256.jpg logo-gainmap-512.jpg logo-gainmap-768.jpg logo-gainmap-1024.jpg logo-gainmap.jpg logo-sdr-128.jpg logo-sdr-256.jpg logo-sdr-512.jpg logo-sdr-768.jpg logo-sdr-1024.jpg logo-sdr.jpg)
 
 total=0
 complete=0

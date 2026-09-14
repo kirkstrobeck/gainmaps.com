@@ -46,6 +46,17 @@ describe("UltraFillCanvas", () => {
     expect(start).not.toHaveBeenCalled();
   });
 
+  it("keeps the reserved canvas on SDR without starting GPU work", () => {
+    vi.stubGlobal("matchMedia", vi.fn(() => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })));
+    const { container } = render(<UltraFillCanvas intensity={2} />);
+    expect(container.querySelector("canvas")).toBeInTheDocument();
+    expect(start).not.toHaveBeenCalled();
+  });
+
   it("starts a session when ultra is on and tears it down", () => {
     const { unmount } = render(<UltraFillCanvas intensity={4} className="x" />);
     expect(start).toHaveBeenCalled();

@@ -3,11 +3,12 @@
 /**
  * Encode Ultra HDR gain map JPEGs at multiple widths for logo assets.
  *
- * Logos render in small square tiles (card ~160px, detail ~240px), so four
+ * Logos render in small square tiles (card ~160px, detail ~240px), so five
  * breakpoints spanning the 1024px source canvas cover every device:
  *   logo-gainmap-128.jpg  — retina-card / thumbnail
  *   logo-gainmap-256.jpg  — 2× card / 1× detail
  *   logo-gainmap-512.jpg  — full SDR equivalent
+ *   logo-gainmap-768.jpg  — DPR-1.75 mobile card
  *   logo-gainmap-1024.jpg — max (DPR-2 at 512px tile)
  *   logo-gainmap.jpg      — alias for logo-gainmap-1024.jpg (backward compat)
  *
@@ -21,11 +22,11 @@ import sharp from "sharp";
 import { writeJpegGainMap } from "../../packages/gainmap/node_modules/hdrify/dist/index.js";
 import { encodeKeepBaseGainMap, headroomFromBoost } from "../../packages/gainmap/src/encode.ts";
 
-export const LOGO_WIDTHS = [128, 256, 512, 1024] as const;
+export const LOGO_WIDTHS = [128, 256, 512, 768, 1024] as const;
 type LogoWidth = (typeof LOGO_WIDTHS)[number];
 
 /** Lower quality for smaller variants; full quality at source size. */
-const QUALITY: Record<LogoWidth, number> = { 128: 75, 256: 80, 512: 90, 1024: 90 };
+const QUALITY: Record<LogoWidth, number> = { 128: 75, 256: 80, 512: 90, 768: 90, 1024: 90 };
 
 const TILE_MATTE = [14, 17, 21] as const;
 

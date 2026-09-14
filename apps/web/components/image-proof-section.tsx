@@ -34,6 +34,8 @@ export function ImageProofSection({ logos, photos }: Props) {
               width="100%"
               className="aspect-square"
               sizes="(max-width: 640px) 100vw, 33vw"
+              lazy
+              defer
             />
           ))}
         </div>
@@ -60,6 +62,9 @@ export function ImageProofSection({ logos, photos }: Props) {
                 width="100%"
                 className="aspect-video"
                 sizes="(min-width: 640px) 33vw, 100vw"
+                deferStandard
+                deferUltra
+                lazy
               />
               <figcaption className="truncate text-xs text-[var(--muted)]">
                 <a
