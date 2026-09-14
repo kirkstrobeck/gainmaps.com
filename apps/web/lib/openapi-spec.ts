@@ -88,6 +88,24 @@ export function buildOpenApiSpec(): object {
         Photo: PHOTO_SCHEMA,
         Logo: LOGO_SCHEMA,
       },
+      headers: {
+        "X-Api-Version": {
+          description: "Current API version (semver). Breaking changes increment the major segment.",
+          schema: { type: "string", example: "1.1.0" },
+        },
+        "RateLimit-Limit": {
+          description: "Maximum requests allowed in the current window.",
+          schema: { type: "integer", example: 1000 },
+        },
+        "RateLimit-Remaining": {
+          description: "Requests remaining in the current window.",
+          schema: { type: "integer", example: 999 },
+        },
+        "RateLimit-Reset": {
+          description: "Seconds until the current window resets.",
+          schema: { type: "integer", example: 3600 },
+        },
+      },
     },
     paths: {
       "/api/photos": {

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 export const CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "cache-control": "public, max-age=3600, stale-while-revalidate=86400",
+  "x-api-version": "1.1.0",
   "ratelimit-limit": "1000",
   "ratelimit-remaining": "1000",
   "ratelimit-reset": "3600",
