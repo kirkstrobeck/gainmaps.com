@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 // Preload above-fold photos: first 3 (one desktop row) for each format.
-const PRIORITY_COUNT = 3;
+const PRIORITY_COUNT = 1;
 
 export default function Base() {
   /* v8 ignore next */
