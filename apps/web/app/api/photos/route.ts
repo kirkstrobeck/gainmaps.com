@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PHOTOS, photoStandardSrc, photoGainmapSrc } from "@/lib/photos/catalog";
-import { jsonOk } from "@/lib/api-response";
+import { jsonOk, methodNotAllowed } from "@/lib/api-response";
 
 export async function GET(): Promise<NextResponse> {
   const data = PHOTOS.map((photo) => ({
@@ -16,4 +16,15 @@ export async function GET(): Promise<NextResponse> {
     gainmapSrc: photoGainmapSrc(photo),
   }));
   return jsonOk(data);
+}
+
+const notAllowed = () => methodNotAllowed();
+export const POST = notAllowed;
+export const PUT = notAllowed;
+export const PATCH = notAllowed;
+export const DELETE = notAllowed;
+
+import { CORS_HEADERS } from "@/lib/api-response";
+export function OPTIONS(): Response {
+  return new Response(null, { status: 204, headers: { ...CORS_HEADERS, allow: "GET, HEAD, OPTIONS" } });
 }

@@ -43,6 +43,17 @@ const LOGO_SCHEMA = {
   required: ["rank", "name", "slug", "svgPath", "gainmapPath"],
 };
 
+const VERSION_INFO_SCHEMA = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    version: { type: "string" },
+    installCommands: { type: "object" },
+    homebrewFormula: { type: "string" },
+  },
+  required: ["name", "version", "installCommands", "homebrewFormula"],
+};
+
 const SLUG_PARAM = {
   name: "slug",
   in: "path",
@@ -52,13 +63,73 @@ const SLUG_PARAM = {
 
 const NOT_FOUND_RESPONSE = {
   description: "Not found",
-  content: { "application/json": { schema: ERROR_SCHEMA } },
+  content: { "application/json": { schema: { "$ref": "#/components/schemas/Error" } } },
+};
+
+const METHOD_NOT_ALLOWED_RESPONSE = {
+  description: "Method not allowed",
+  content: { "application/json": { schema: { "$ref": "#/components/schemas/Error" } } },
 };
 
 const SERVER_ERROR_RESPONSE = {
   description: "Internal server error",
   content: { "application/json": { schema: { "$ref": "#/components/schemas/Error" } } },
 };
+
+const VERSION_HEADER_REF = {
+  "X-Api-Version": { "$ref": "#/components/headers/X-Api-Version" },
+};
+
+function listEndpoint(
+  operationId: string,
+  summary: string,
+  description: string,
+  itemRef: string,
+  listSchemaRef: string,
+) {
+  return {
+    get: {
+      operationId,
+      summary,
+      description,
+      responses: {
+        "200": {
+          description: summary,
+          headers: VERSION_HEADER_REF,
+          content: { "application/json": { schema: { "$ref": listSchemaRef } } },
+        },
+        "405": METHOD_NOT_ALLOWED_RESPONSE,
+        "500": SERVER_ERROR_RESPONSE,
+      },
+    },
+  };
+}
+
+function itemEndpoint(
+  operationId: string,
+  summary: string,
+  description: string,
+  itemRef: string,
+) {
+  return {
+    get: {
+      operationId,
+      summary,
+      description,
+      parameters: [SLUG_PARAM],
+      responses: {
+        "200": {
+          description: summary,
+          headers: VERSION_HEADER_REF,
+          content: { "application/json": { schema: { "$ref": itemRef } } },
+        },
+        "404": NOT_FOUND_RESPONSE,
+        "405": METHOD_NOT_ALLOWED_RESPONSE,
+        "500": SERVER_ERROR_RESPONSE,
+      },
+    },
+  };
+}
 
 export function buildOpenApiSpec(): object {
   return {
@@ -69,22 +140,31 @@ export function buildOpenApiSpec(): object {
       description: [
         "Public JSON API for the Gainmaps photo and logo catalogs, version info, and OpenAPI spec.",
         "",
-        "**Versioning**: The API uses a single-version path prefix-free design. Breaking changes",
-        "increment the `info.version` field and are announced via the /api/version endpoint.",
-        "Non-breaking additions (new fields, new endpoints) are shipped without a version bump.",
-        "The current API version is returned in the `x-api-version` response header on every response.",
+        "**Versioning**: The stable, versioned base path is `/api/v1/`. The unversioned `/api/` prefix",
+        "is kept for backwards compatibility and maps to the same handlers. Non-breaking additions",
+        "(new fields, new endpoints) are shipped without a version bump. Breaking changes increment",
+        "the `info.version` field and are announced via the /api/version endpoint.",
+        "The current API version is returned in the `X-Api-Version` response header on every response.",
         "",
-        "**Pagination**: List endpoints (`/api/photos`, `/api/logos`) return the full catalog.",
+        "**Pagination**: List endpoints return the full catalog.",
         "The catalogs are small (hundreds of items) so cursor/offset pagination is not implemented.",
         "Filter by slug using the per-item endpoints instead.",
+        "",
+        "**Errors**: All error responses use a typed `Error` object with `code`, `message`, and `hint`.",
+        "Unsupported methods return HTTP 405 with an `Allow` header and a JSON error body.",
       ].join("\n"),
     },
-    servers: [{ url: "https://www.gainmaps.com" }],
+    servers: [
+      { url: "https://www.gainmaps.com", description: "Production — versioned at /api/v1/" },
+    ],
     components: {
       schemas: {
         Error: ERROR_SCHEMA,
         Photo: PHOTO_SCHEMA,
+        PhotoList: { type: "array", items: { "$ref": "#/components/schemas/Photo" } },
         Logo: LOGO_SCHEMA,
+        LogoList: { type: "array", items: { "$ref": "#/components/schemas/Logo" } },
+        VersionInfo: VERSION_INFO_SCHEMA,
       },
       headers: {
         "X-Api-Version": {
@@ -94,66 +174,32 @@ export function buildOpenApiSpec(): object {
       },
     },
     paths: {
-      "/api/photos": {
-        get: {
-          operationId: "listPhotos",
-          summary: "List all photos",
-          description: "Returns the full catalog of photos. No pagination — the full array is returned.",
-          responses: {
-            "200": {
-              description: "Array of photo records",
-              content: { "application/json": { schema: { type: "array", items: { "$ref": "#/components/schemas/Photo" } } } },
-            },
-            "500": SERVER_ERROR_RESPONSE,
-          },
-        },
-      },
-      "/api/photos/{slug}": {
-        get: {
-          operationId: "getPhoto",
-          summary: "Get a photo by slug",
-          description: "Returns a single photo by slug.",
-          parameters: [SLUG_PARAM],
-          responses: {
-            "200": {
-              description: "Photo record",
-              content: { "application/json": { schema: { "$ref": "#/components/schemas/Photo" } } },
-            },
-            "404": NOT_FOUND_RESPONSE,
-            "500": SERVER_ERROR_RESPONSE,
-          },
-        },
-      },
-      "/api/logos": {
-        get: {
-          operationId: "listLogos",
-          summary: "List all logos",
-          description: "Returns the full catalog of brand logos. No pagination — the full array is returned.",
-          responses: {
-            "200": {
-              description: "Array of logo records",
-              content: { "application/json": { schema: { type: "array", items: { "$ref": "#/components/schemas/Logo" } } } },
-            },
-            "500": SERVER_ERROR_RESPONSE,
-          },
-        },
-      },
-      "/api/logos/{slug}": {
-        get: {
-          operationId: "getLogo",
-          summary: "Get a logo by slug",
-          description: "Returns a single logo by slug.",
-          parameters: [SLUG_PARAM],
-          responses: {
-            "200": {
-              description: "Logo record",
-              content: { "application/json": { schema: { "$ref": "#/components/schemas/Logo" } } },
-            },
-            "404": NOT_FOUND_RESPONSE,
-            "500": SERVER_ERROR_RESPONSE,
-          },
-        },
-      },
+      "/api/photos": listEndpoint(
+        "listPhotos",
+        "List all photos",
+        "Returns the full catalog of photos. No pagination — the full array is returned.",
+        "#/components/schemas/Photo",
+        "#/components/schemas/PhotoList",
+      ),
+      "/api/photos/{slug}": itemEndpoint(
+        "getPhoto",
+        "Get a photo by slug",
+        "Returns a single photo by slug.",
+        "#/components/schemas/Photo",
+      ),
+      "/api/logos": listEndpoint(
+        "listLogos",
+        "List all logos",
+        "Returns the full catalog of brand logos. No pagination — the full array is returned.",
+        "#/components/schemas/Logo",
+        "#/components/schemas/LogoList",
+      ),
+      "/api/logos/{slug}": itemEndpoint(
+        "getLogo",
+        "Get a logo by slug",
+        "Returns a single logo by slug.",
+        "#/components/schemas/Logo",
+      ),
       "/api/version": {
         get: {
           operationId: "getVersion",
@@ -162,21 +208,52 @@ export function buildOpenApiSpec(): object {
           responses: {
             "200": {
               description: "Version info",
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "object",
-                    properties: {
-                      name: { type: "string" },
-                      version: { type: "string" },
-                      installCommands: { type: "object" },
-                      homebrewFormula: { type: "string" },
-                    },
-                    required: ["name", "version", "installCommands", "homebrewFormula"],
-                  },
-                },
-              },
+              headers: VERSION_HEADER_REF,
+              content: { "application/json": { schema: { "$ref": "#/components/schemas/VersionInfo" } } },
             },
+            "405": METHOD_NOT_ALLOWED_RESPONSE,
+            "500": SERVER_ERROR_RESPONSE,
+          },
+        },
+      },
+      "/api/v1/photos": listEndpoint(
+        "listPhotosV1",
+        "List all photos (v1)",
+        "Stable v1 alias for `/api/photos`. Returns the full catalog of photos.",
+        "#/components/schemas/Photo",
+        "#/components/schemas/PhotoList",
+      ),
+      "/api/v1/photos/{slug}": itemEndpoint(
+        "getPhotoV1",
+        "Get a photo by slug (v1)",
+        "Stable v1 alias for `/api/photos/{slug}`.",
+        "#/components/schemas/Photo",
+      ),
+      "/api/v1/logos": listEndpoint(
+        "listLogosV1",
+        "List all logos (v1)",
+        "Stable v1 alias for `/api/logos`. Returns the full catalog of brand logos.",
+        "#/components/schemas/Logo",
+        "#/components/schemas/LogoList",
+      ),
+      "/api/v1/logos/{slug}": itemEndpoint(
+        "getLogoV1",
+        "Get a logo by slug (v1)",
+        "Stable v1 alias for `/api/logos/{slug}`.",
+        "#/components/schemas/Logo",
+      ),
+      "/api/v1/version": {
+        get: {
+          operationId: "getVersionV1",
+          summary: "Get CLI version info (v1)",
+          description: "Stable v1 alias for `/api/version`.",
+          responses: {
+            "200": {
+              description: "Version info",
+              headers: VERSION_HEADER_REF,
+              content: { "application/json": { schema: { "$ref": "#/components/schemas/VersionInfo" } } },
+            },
+            "405": METHOD_NOT_ALLOWED_RESPONSE,
             "500": SERVER_ERROR_RESPONSE,
           },
         },

@@ -18,3 +18,10 @@ export function jsonNotFound(resource: string, slug: string): NextResponse<ApiEr
     { status: 404, headers: CORS_HEADERS },
   );
 }
+
+export function methodNotAllowed(allowed = "GET, HEAD, OPTIONS"): NextResponse<ApiError> {
+  return NextResponse.json(
+    { error: { code: "METHOD_NOT_ALLOWED", message: "method not allowed", hint: `allowed: ${allowed}` } },
+    { status: 405, headers: { ...CORS_HEADERS, allow: allowed } },
+  );
+}
