@@ -35,13 +35,6 @@ function redirectToCanonical(request: NextRequest, hostname: string): NextRespon
     dest.searchParams.set("mode", "dark");
     return NextResponse.redirect(dest, 308);
   }
-  if (hostname === "gainmaps.com") {
-    const dest = request.nextUrl.clone();
-    dest.protocol = "https:";
-    dest.port = "";
-    dest.hostname = CANONICAL_HOST;
-    return NextResponse.redirect(dest, 308);
-  }
   return null;
 }
 
