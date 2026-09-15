@@ -21,7 +21,7 @@ const tsConfig = tseslint.config(
 
 export default [
   {
-    ignores: ['.next/', 'node_modules/', '.vitest.lock', 'coverage/'],
+    ignores: ['.next/', '.next-*/', 'node_modules/', '.vitest.lock', 'coverage/'],
   },
   ...tsConfig,
   {

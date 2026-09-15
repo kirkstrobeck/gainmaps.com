@@ -1,7 +1,3 @@
-// Server-render on request — static prerender fails in this container due to
-// a React module null issue in the server bundle during SSG.
-export const dynamic = "force-dynamic";
-
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
