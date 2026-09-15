@@ -1,7 +1,3 @@
-// Force all pages dynamic — SSG worker in Next.js 15.5.22 resolves the React
-// module to null, crashing useSyncExternalStore in SiteAppearanceProvider.
-export const dynamic = "force-dynamic";
-
 import type { Metadata } from "next";
 import { Archivo, Bricolage_Grotesque, JetBrains_Mono } from "next/font/google";
 

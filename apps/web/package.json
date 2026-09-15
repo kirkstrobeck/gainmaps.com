@@ -8,7 +8,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm build:worker && NEXT_DIST_DIR=.next next dev --hostname 0.0.0.0 --port 3000",
-    "build": "pnpm --filter gainmap build && pnpm build:worker && next build",
+    "build": "pnpm --filter gainmap build && pnpm build:worker && NODE_ENV=production next build",
     "build:isolated": "NODE_ENV=production pnpm --filter gainmap build && NODE_ENV=production pnpm build:worker && NODE_ENV=production NEXT_DIST_DIR=.next-prod next build",
     "build:worker": "esbuild worker/hdr-service-worker.ts --bundle --format=iife --platform=browser --target=es2022 --outfile=public/hdr-service-worker.js --legal-comments=none",
     "start": "next start --hostname 0.0.0.0",
