@@ -31,7 +31,7 @@ export function GallerySeamPhoto({ photo, priority, sizes }: { photo: Photo; pri
   const deferredCount = PHOTO_SRC_WIDTHS.filter((width) => width <= photo.width).length;
   const image = (src: string, srcSet: string, label: string, className: string, defer = false) => (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={defer ? undefined : src} srcSet={defer ? undefined : srcSet} data-seam-src={defer ? `${photo.slug}/${label === "Standard" ? "standard" : "gainmap"}` : undefined} data-seam-count={defer ? deferredCount : undefined} sizes={sizes} alt={`${photo.alt}, ${label}`} width={intrinsic.width} height={intrinsic.height} className={className} loading={loading} fetchPriority={fetchPriority} decoding="async" draggable={false} />
+    <img src={defer ? undefined : src} srcSet={defer ? undefined : srcSet} data-seam-src={defer ? `${photo.slug}/${label === "Standard" ? "standard" : "gainmap"}` : undefined} data-seam-count={defer ? deferredCount : undefined} sizes={sizes} alt={`${photo.alt}, ${label}`} width={intrinsic.width} height={intrinsic.height} className={className} loading={loading} fetchPriority={fetchPriority} decoding={priority ? "sync" : "async"} draggable={false} />
   );
   return <Instrument className="aspect-video" sdr={image(photoStandardSrc(photo, 400), photoStandardSrcset(photo), "Standard", "inst-img preview-original", !priority)} ultra={image(photoGainmapSrc(photo, 400), photoGainmapSrcset(photo), "Ultra", "inst-img gainmap-image", !priority)} />;
 }
